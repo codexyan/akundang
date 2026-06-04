@@ -1548,17 +1548,63 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         )}
                       </div>
 
-                      {s.background.type === 'gradient' && (
-                        <div className="px-3 py-2">
-                          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">CSS Gradient</p>
-                          <input
-                            value={s.background.value ?? ''}
-                            onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
-                            className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 font-mono"
-                            placeholder="linear-gradient(135deg, #1a4a1a, #0f2d0f)"
-                          />
-                        </div>
-                      )}
+                      {s.background.type === 'gradient' && (() => {
+                        // Parse existing gradient or use defaults
+                        const raw = s.background.value ?? 'linear-gradient(135deg, #1a4a1a, #0f2d0f)'
+                        const colorMatches = raw.match(/#[0-9a-fA-F]{3,6}/g) ?? ['#1a4a1a', '#0f2d0f']
+                        const c1 = colorMatches[0] ?? '#1a4a1a'
+                        const c2 = colorMatches[1] ?? '#0f2d0f'
+                        const dirs = [
+                          { label: '↓',  val: 'to bottom' },
+                          { label: '↘',  val: '135deg' },
+                          { label: '→',  val: 'to right' },
+                          { label: '↗',  val: '45deg' },
+                        ]
+                        const currentDir = dirs.find(d => raw.includes(d.val))?.val ?? '135deg'
+                        const buildGrad = (dir: string, a: string, b: string) =>
+                          `linear-gradient(${dir}, ${a}, ${b})`
+                        return (
+                          <div className="px-3 py-2 space-y-2">
+                            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Gradient</p>
+                            {/* Preview */}
+                            <div className="h-8 rounded-lg w-full" style={{ background: s.background.value ?? raw }} />
+                            {/* Colors */}
+                            <div className="flex gap-2 items-center">
+                              <div className="flex-1">
+                                <p className="text-[8px] text-gray-400 mb-0.5">Warna 1</p>
+                                <div className="flex gap-1 items-center">
+                                  <input type="color" value={c1}
+                                    onChange={e => updateSection(s.id, { background: { ...s.background, value: buildGrad(currentDir, e.target.value, c2) } })}
+                                    className="w-8 h-7 rounded cursor-pointer border border-gray-200" />
+                                  <input type="text" value={c1} readOnly className="flex-1 text-[10px] border border-gray-100 rounded px-1.5 py-1 font-mono bg-gray-50" />
+                                </div>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-[8px] text-gray-400 mb-0.5">Warna 2</p>
+                                <div className="flex gap-1 items-center">
+                                  <input type="color" value={c2}
+                                    onChange={e => updateSection(s.id, { background: { ...s.background, value: buildGrad(currentDir, c1, e.target.value) } })}
+                                    className="w-8 h-7 rounded cursor-pointer border border-gray-200" />
+                                  <input type="text" value={c2} readOnly className="flex-1 text-[10px] border border-gray-100 rounded px-1.5 py-1 font-mono bg-gray-50" />
+                                </div>
+                              </div>
+                            </div>
+                            {/* Direction */}
+                            <div>
+                              <p className="text-[8px] text-gray-400 mb-1">Arah</p>
+                              <div className="flex gap-1">
+                                {dirs.map(d => (
+                                  <button key={d.val} type="button"
+                                    onClick={() => updateSection(s.id, { background: { ...s.background, value: buildGrad(d.val, c1, c2) } })}
+                                    className={`flex-1 py-1 rounded text-xs font-bold transition-colors ${currentDir === d.val ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                                    {d.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })()}
 
                       {s.background.type === 'image' && (
                         <div className="px-3 py-2 space-y-2">

@@ -346,6 +346,15 @@ export interface GiftRegistryLink {
   marketplace?: 'tokopedia' | 'shopee' | 'bukalapak' | 'lazada' | 'other'
 }
 
+/** Satu bab dalam section Kisah Cinta bergambar */
+export interface StoryChapter {
+  title?: string
+  text?: string
+  date?: string
+  photo_url?: string
+  overlay_opacity?: number   // 0–1, default 0.45 — kegelapan foto
+}
+
 export interface NewInvitationData {
   bride_name: string
   groom_name: string
@@ -362,6 +371,8 @@ export interface NewInvitationData {
   story_title?: string
   story_text?: string
   story_timeline?: TimelineItem[]
+  // Kisah Cinta bergambar: beberapa bab, masing-masing full-screen + foto
+  story_chapters?: StoryChapter[]
   akad?: EventDetail
   resepsi?: EventDetail
   gallery_photos?: string[]
