@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
 import { format, parseISO, differenceInSeconds } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 

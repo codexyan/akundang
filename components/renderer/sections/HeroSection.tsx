@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -10,7 +10,7 @@ interface Props {
   meta: TemplateMeta
 }
 
-// ─── Variant: Default — centered, photo background ─────────────
+// â”€â”€â”€ Variant: Default â€” centered, photo background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string }) {
   return (
     <div className="text-center w-full max-w-sm mx-auto">
@@ -28,21 +28,21 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
 
       <motion.h1
         variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { delay: 0.35, duration: 0.8 } } }}
-        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 800, lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
+        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
       >
         {data.groom_name}
       </motion.h1>
 
       <motion.p
         variants={{ hidden: { opacity: 0, scale: 0.7 }, visible: { opacity: 1, scale: 1, transition: { delay: 0.5, duration: 0.5 } } }}
-        style={{ fontSize: 26, margin: '8px 0', fontWeight: 300, fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}
+        style={{ fontSize: 26, margin: '8px 0', fontWeight: 'var(--bw, 300)', fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}
       >
         &amp;
       </motion.p>
 
       <motion.h1
         variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { delay: 0.6, duration: 0.8 } } }}
-        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 800, lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
+        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
       >
         {data.bride_name}
       </motion.h1>
@@ -73,7 +73,7 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
   )
 }
 
-// ─── Variant: Bottom — foto penuh, teks di bawah ───────────────
+// â”€â”€â”€ Variant: Bottom â€” foto penuh, teks di bawah â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string; primary: string }) {
   return (
     <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '8vh', position: 'relative' }}>
@@ -99,7 +99,7 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { delay: 0.45, duration: 0.9 } } }}
-          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 900, lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
+          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
         >
           {data.groom_name}
         </motion.h1>
@@ -113,7 +113,7 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { delay: 0.7, duration: 0.9 } } }}
-          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 900, lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
+          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
         >
           {data.bride_name}
         </motion.h1>
@@ -131,7 +131,7 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
   )
 }
 
-// ─── Variant: Minimal — tanpa foto, tipografis ─────────────────
+// â”€â”€â”€ Variant: Minimal â€” tanpa foto, tipografis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string; primary: string }) {
   return (
     <div className="text-center max-w-xs mx-auto px-6 w-full">
@@ -158,7 +158,7 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.4, duration: 0.8 } } }}
-          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 700, lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
+          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
         >
           {data.groom_name}
         </motion.h1>
@@ -168,13 +168,13 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
           <motion.span
             variants={{ hidden: { opacity: 0, rotate: -180 }, visible: { opacity: 1, rotate: 0, transition: { delay: 0.6, duration: 0.5 } } }}
             style={{ fontSize: 16, color: accent }}
-          >✦</motion.span>
+          >âœ¦</motion.span>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}44` }} />
         </div>
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.65, duration: 0.8 } } }}
-          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 700, lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
+          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
         >
           {data.bride_name}
         </motion.h1>
@@ -192,7 +192,7 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
   )
 }
 
-// ─── Main HeroSection ──────────────────────────────────────────
+// â”€â”€â”€ Main HeroSection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function HeroSection({ section, data, meta }: Props) {
   const { primary, accent, text } = meta.color_scheme
   const variant = section.style_variant ?? 'default'
@@ -216,3 +216,5 @@ export default function HeroSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+
+

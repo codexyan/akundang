@@ -1716,13 +1716,15 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                       </div>
 
                       {/* ── Font Override per Section ── */}
-                      <div className="px-3 pb-3 border-t border-orange-50 bg-orange-50/30">
-                        <p className="text-[9px] font-bold text-orange-500 uppercase tracking-widest mt-2.5 mb-2">
-                          Font Section Ini
+                      <div className="px-3 pb-3 border-t border-orange-50 bg-orange-50/30 space-y-2.5">
+                        <p className="text-[9px] font-bold text-orange-500 uppercase tracking-widest mt-2.5">
+                          Tipografi Section Ini
                         </p>
+
+                        {/* Font family */}
                         <div className="flex gap-2">
                           <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Judul</p>
+                            <p className="text-[9px] text-gray-500 mb-1">Font Judul</p>
                             <select
                               value={s.font_heading ?? ''}
                               onChange={e => updateSection(s.id, { font_heading: e.target.value || undefined })}
@@ -1733,7 +1735,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                             </select>
                           </div>
                           <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Teks</p>
+                            <p className="text-[9px] text-gray-500 mb-1">Font Teks</p>
                             <select
                               value={s.font_body ?? ''}
                               onChange={e => updateSection(s.id, { font_body: e.target.value || undefined })}
@@ -1744,10 +1746,59 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                             </select>
                           </div>
                         </div>
-                        {(s.font_heading || s.font_body) && (
-                          <button onClick={() => updateSection(s.id, { font_heading: undefined, font_body: undefined })}
-                            className="mt-1.5 text-[9px] text-orange-500 hover:underline">
-                            Reset ke font global
+
+                        {/* Font weight */}
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <p className="text-[9px] text-gray-500 mb-1">Ketebalan Judul</p>
+                            <select
+                              value={s.heading_weight ?? ''}
+                              onChange={e => updateSection(s.id, { heading_weight: e.target.value ? Number(e.target.value) : undefined })}
+                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            >
+                              <option value="">Default (700)</option>
+                              {[300,400,500,600,700,800,900].map(w => (
+                                <option key={w} value={w}>{w} — {w<=300?'Tipis':w<=400?'Normal':w<=500?'Medium':w<=600?'Semi Bold':w<=700?'Bold':w<=800?'Extra Bold':'Black'}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[9px] text-gray-500 mb-1">Ketebalan Teks</p>
+                            <select
+                              value={s.body_weight ?? ''}
+                              onChange={e => updateSection(s.id, { body_weight: e.target.value ? Number(e.target.value) : undefined })}
+                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            >
+                              <option value="">Default (400)</option>
+                              {[300,400,500,600,700].map(w => (
+                                <option key={w} value={w}>{w} — {w<=300?'Tipis':w<=400?'Normal':w<=500?'Medium':w<=600?'Semi Bold':'Bold'}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Font scale */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-[9px] text-gray-500">Ukuran Font (skala)</p>
+                            <span className="text-[9px] font-mono text-gray-600">{Math.round((s.font_scale ?? 1) * 100)}%</span>
+                          </div>
+                          <input type="range" min={0.7} max={1.5} step={0.05}
+                            value={s.font_scale ?? 1}
+                            onChange={e => updateSection(s.id, { font_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
+                            className="w-full accent-orange-500 h-1"
+                          />
+                          <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
+                            <span>70%</span><span>100%</span><span>150%</span>
+                          </div>
+                        </div>
+
+                        {(s.font_heading || s.font_body || s.heading_weight || s.body_weight || s.font_scale) && (
+                          <button onClick={() => updateSection(s.id, {
+                            font_heading: undefined, font_body: undefined,
+                            heading_weight: undefined, body_weight: undefined, font_scale: undefined,
+                          })} className="text-[9px] text-orange-500 hover:underline">
+                            Reset semua tipografi ke default
                           </button>
                         )}
                       </div>

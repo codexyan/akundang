@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig

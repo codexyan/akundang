@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
 import { Copy, Check } from 'lucide-react'
 
 interface Props {

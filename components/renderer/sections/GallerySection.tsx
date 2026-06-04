@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper from '../SectionWrapper'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import SectionWrapper, { resolveFont, fontW } from '../SectionWrapper'
+import { usePreviewContext } from '../PreviewContext'
+import { X, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react'
 
 interface Props {
   section: SectionConfig
@@ -14,10 +15,39 @@ interface Props {
 
 export default function GallerySection({ section, data, meta }: Props) {
   const { accent, text } = meta.color_scheme
+  const font = resolveFont(meta, section)
   const photos = data.gallery_photos ?? []
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const { isPreview } = usePreviewContext()
 
-  if (photos.length === 0) return null
+  // Preview placeholder saat belum ada foto
+  if (photos.length === 0) {
+    if (!isPreview) return null
+    return (
+      <SectionWrapper section={section}>
+        <div className="w-full max-w-lg mx-auto px-6 py-12 text-center">
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="h-px flex-1 max-w-12" style={{ background: `linear-gradient(to right, transparent, ${accent}66)` }} />
+            <p className="text-[10px] tracking-[0.4em] uppercase font-semibold" style={{ color: `${accent}88`, fontFamily: `'${font.body}', serif`, fontWeight: fontW('body') as unknown as number }}>
+              Galeri Foto
+            </p>
+            <div className="h-px flex-1 max-w-12" style={{ background: `linear-gradient(to left, transparent, ${accent}66)` }} />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: `${accent}18`, border: `1px dashed ${accent}44` }}>
+                <ImageIcon size={18} style={{ color: `${accent}55` }} />
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] mt-4" style={{ color: `${text}44`, fontFamily: `'${font.body}', serif` }}>
+            Upload foto di tab Galeri
+          </p>
+        </div>
+      </SectionWrapper>
+    )
+  }
 
   function prev() {
     setLightbox((i) => (i !== null ? (i - 1 + photos.length) % photos.length : null))

@@ -13,14 +13,36 @@ interface Props {
 }
 
 /**
- * Merge template-level fonts dengan per-section font override.
- * Gunakan ini di semua section component.
+ * Merge template-level fonts dengan per-section overrides.
+ * Kembalikan font family, weight, dan scale multiplier.
  */
 export function resolveFont(meta: TemplateMeta, section: SectionConfig) {
   return {
-    heading: section.font_heading ?? meta.font.heading,
-    body:    section.font_body    ?? meta.font.body,
+    heading: section.font_heading  ?? meta.font.heading,
+    body:    section.font_body     ?? meta.font.body,
+    hw:      section.heading_weight ?? 700,  // heading font-weight
+    bw:      section.body_weight    ?? 400,  // body font-weight
+    scale:   section.font_scale     ?? 1.0,  // size multiplier
   }
+}
+
+/** Hitung font size px dengan scale dari section */
+export function fs(base: number, scale: number): number {
+  return Math.round(base * scale * 10) / 10
+}
+
+/** CSS clamp dengan scale */
+export function clampFs(min: string, mid: string, max: string, scale: number): string {
+  if (scale === 1) return `clamp(${min}, ${mid}, ${max})`
+  return `calc(clamp(${min}, ${mid}, ${max}) * ${scale})`
+}
+
+/**
+ * Shorthand: font-weight via CSS variable untuk heading/body.
+ * Gunakan sebagai: fontWeight: fontW('heading')
+ */
+export function fontW(type: 'heading' | 'body'): string {
+  return type === 'heading' ? 'var(--hw, 700)' : 'var(--bw, 400)'
 }
 
 export default function SectionWrapper({ section, children, className = '' }: Props) {
@@ -68,11 +90,19 @@ export default function SectionWrapper({ section, children, className = '' }: Pr
     ? { alignSelf: 'stretch', flex: 1, display: 'flex', flexDirection: 'column' }
     : {}
 
+  // CSS variables untuk font scale + weight — dibaca semua child section
+  const fontVars = {
+    '--fscale': section.font_scale ?? 1,
+    '--hw': section.heading_weight ?? 700,
+    '--bw': section.body_weight ?? 400,
+  } as React.CSSProperties
+
   return (
     <section
       ref={ref}
       style={{
         ...bgStyle,
+        ...fontVars,
         minHeight: sectionMinH,
         scrollSnapAlign: 'start',
         display: 'flex',

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, EventDetail } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
 import { format, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { MapPin, Clock, CalendarDays, ExternalLink } from 'lucide-react'

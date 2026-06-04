@@ -180,6 +180,9 @@ export interface SectionConfig {
   style_variant?: string            // Variant tampilan section
   font_heading?: string             // Override font judul untuk section ini
   font_body?: string                // Override font teks untuk section ini
+  heading_weight?: number           // Ketebalan judul: 300 | 400 | 500 | 600 | 700 | 800 | 900
+  body_weight?: number              // Ketebalan teks: 300 | 400 | 500 | 600 | 700
+  font_scale?: number               // Skala ukuran font section: 0.75 – 1.5 (default 1.0)
 }
 
 export type AssetPosition =
