@@ -1,0 +1,36 @@
+import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+import { z } from 'zod'
+import { users } from '@/lib/db'
+import { createSessionToken, buildSetCookieHeader } from '@/lib/session'
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+})
+
+export async function POST(req: NextRequest) {
+  const body = await req.json()
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Data tidak valid' }, { status: 400 })
+  }
+
+  const { email, password } = parsed.data
+
+  if (users.findByEmail(email)) {
+    return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 })
+  }
+
+  const password_hash = await bcrypt.hash(password, 10)
+  const user = users.create({ email, password_hash, role: 'user' })
+  const token = await createSessionToken({ userId: user.id, email: user.email, role: 'user' })
+
+  return NextResponse.json(
+    { user: { id: user.id, email: user.email, role: 'user', isAdmin: false } },
+    {
+      status: 201,
+      headers: { 'Set-Cookie': buildSetCookieHeader(token) },
+    }
+  )
+}

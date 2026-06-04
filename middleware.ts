@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSessionFromRequest } from '@/lib/session'
+import { isAdmin } from '@/lib/auth'
+
+const PROTECTED_PATHS = ['/dashboard', '/admin']
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'akundang.id'
+
+export async function middleware(req: NextRequest) {
+  const hostname = req.headers.get('host') || ''
+  const host = hostname.replace(/:\d+$/, '')
+  const isLocalhost = host === 'localhost'
+
+  // Subdomain routing
+  let slug: string | null = null
+  if (isLocalhost) {
+    slug = req.nextUrl.searchParams.get('slug')
+  } else if (host.endsWith(`.${APP_DOMAIN}`)) {
+    slug = host.split('.')[0]
+  }
+
+  const isMainDomain = !slug || slug === 'www' || slug === APP_DOMAIN.split('.')[0]
+
+  if (!isMainDomain && slug) {
+    const url = req.nextUrl.clone()
+    url.pathname = `/invitation/${slug}${req.nextUrl.pathname}`
+    return NextResponse.rewrite(url)
+  }
+
+  // Auth guard untuk protected routes
+  const isProtected = PROTECTED_PATHS.some((p) => req.nextUrl.pathname.startsWith(p))
+  if (!isProtected) return NextResponse.next()
+
+  const session = await getSessionFromRequest(req)
+
+  if (!session) {
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('redirect', req.nextUrl.pathname)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  if (req.nextUrl.pathname.startsWith('/admin') && !isAdmin(session)) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|uploads|.*\\..*).*)'],
+}

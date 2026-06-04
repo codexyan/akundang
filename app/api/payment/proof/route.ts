@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/session-server'
+import { paymentProofs, invitations, users } from '@/lib/db'
+
+export async function GET() {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  return NextResponse.json({ proofs: paymentProofs.findByUserId(session.userId) })
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const { invitation_id, amount, bank_name, transfer_date, proof_url, notes } = body
+
+  const inv = invitations.findById(invitation_id)
+  if (!inv || inv.user_id !== session.userId) return NextResponse.json({ error: 'Undangan tidak ditemukan' }, { status: 404 })
+
+  if (inv.is_paid) return NextResponse.json({ error: 'Undangan sudah aktif' }, { status: 409 })
+
+  // Cek apakah sudah ada proof pending
+  const existingPending = paymentProofs.findByInvitationId(invitation_id).find((p) => p.status === 'pending')
+  if (existingPending) return NextResponse.json({ error: 'Sudah ada bukti transfer yang menunggu verifikasi' }, { status: 409 })
+
+  const user = users.findById(session.userId)
+  const proof = paymentProofs.create({
+    invitation_id,
+    user_id: session.userId,
+    user_email: user?.email ?? session.email,
+    slug: inv.slug,
+    amount: Number(amount) || 0,
+    bank_name: bank_name || '',
+    transfer_date: transfer_date || '',
+    proof_url: proof_url || '',
+    notes: notes || '',
+    status: 'pending',
+    admin_notes: '',
+  })
+
+  return NextResponse.json({ proof }, { status: 201 })
+}

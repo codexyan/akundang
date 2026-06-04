@@ -1,0 +1,399 @@
+// ─── LEGACY TEMPLATE TYPES (hardcoded templates) ──────────────────────────────
+
+export type LegacyTemplateId = 'modern-white' | 'floral-garden' | 'dark-elegant'
+// Backward-compat alias — old code uses `Template`
+export type Template = LegacyTemplateId
+
+export interface InvitationData {
+  groomName: string
+  groomFather: string
+  groomMother: string
+  brideName: string
+  brideFather: string
+  brideMother: string
+  akadDate: string
+  akadTime: string
+  akadVenue: string
+  akadAddress: string
+  akadMapsUrl: string
+  resepsiDate: string
+  resepsiTime: string
+  resepsiVenue: string
+  resepsiAddress: string
+  resepsiMapsUrl: string
+  heroPhotoUrl?: string
+  musicUrl?: string
+  musicTitle?: string
+  giftAddress?: string
+  giftRecipient?: string
+  giftContact?: string
+  paymentBankName?: string
+  paymentAccountNumber?: string
+  paymentAccountName?: string
+  paymentQris?: string
+  paymentNote?: string
+  openingText?: string
+  closingText?: string
+}
+
+export interface Invitation {
+  id: string
+  user_id: string
+  slug: string
+  template_id: string
+  data: InvitationData
+  package_tier?: import('@/lib/packages').PackageTier
+  is_published: boolean
+  is_paid: boolean
+  expires_at: string | null
+  created_at: string
+}
+
+export interface Gallery {
+  id: string
+  invitation_id: string
+  url: string
+  order: number
+}
+
+export interface Guest {
+  id: string
+  invitation_id: string
+  name: string
+  attending: boolean
+  total_guests: number
+  created_at: string
+}
+
+export interface Wish {
+  id: string
+  invitation_id: string
+  name: string
+  message: string
+  created_at: string
+}
+
+export interface TemplateConfig {
+  id: LegacyTemplateId
+  name: string
+  description: string
+  thumbnailUrl: string
+  demoSlug: string
+  tags: string[]
+}
+
+export const LEGACY_TEMPLATE_IDS: LegacyTemplateId[] = ['modern-white', 'floral-garden', 'dark-elegant']
+
+export const TEMPLATES: TemplateConfig[] = [
+  {
+    id: 'modern-white',
+    name: 'Modern White',
+    description: 'Bersih, minimalis, elegan. Cocok untuk pasangan modern.',
+    thumbnailUrl: '/templates/modern-white/thumbnail.jpg',
+    demoSlug: 'demo-modern',
+    tags: ['minimalis', 'modern', 'putih'],
+  },
+  {
+    id: 'floral-garden',
+    name: 'Floral Garden',
+    description: 'Penuh bunga dan warna hangat. Romantis dan feminin.',
+    thumbnailUrl: '/templates/floral-garden/thumbnail.jpg',
+    demoSlug: 'demo-floral',
+    tags: ['bunga', 'romantis', 'feminin'],
+  },
+  {
+    id: 'dark-elegant',
+    name: 'Dark Elegant',
+    description: 'Gelap, mewah, dan berkesan. Untuk kesan yang kuat.',
+    thumbnailUrl: '/templates/dark-elegant/thumbnail.jpg',
+    demoSlug: 'demo-dark',
+    tags: ['gelap', 'mewah', 'elegan'],
+  },
+]
+
+export const PRICE = 129000
+export const PRICE_FORMATTED = 'Rp 129.000'
+
+// ─── JSON-DRIVEN TEMPLATE SYSTEM (v2) ─────────────────────────────────────────
+
+export type SectionType =
+  | 'hero'
+  | 'profiles'
+  | 'countdown'
+  | 'story'
+  | 'events'
+  | 'gallery'
+  | 'gift'
+  | 'rsvp'
+  | 'wishes'
+  | 'livestream'
+  | 'closing'
+  | 'quote'
+  | 'video'
+  | 'gift-registry'
+  | 'ig-story'
+  | 'qrcode'
+
+export type TransitionType =
+  | 'fade'
+  | 'slide-up'
+  | 'slide-down'
+  | 'slide-left'
+  | 'slide-right'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'none'
+
+export type OpeningType =
+  | 'envelope'
+  | 'curtain'
+  | 'flower-bloom'
+  | 'fade-reveal'
+  | 'gate-open'
+  | 'scroll-reveal'
+
+export interface BackgroundConfig {
+  type: 'image' | 'color' | 'gradient'
+  url?: string
+  value?: string
+  overlay_opacity?: number
+}
+
+export type SectionPaddingY  = 'compact' | 'normal' | 'spacious'
+export type SectionTextAlign = 'center' | 'left' | 'right'
+export type SectionLayout    = 'default' | 'split-left' | 'split-right' | 'full-bleed'
+
+export interface SectionConfig {
+  id: string
+  type: SectionType
+  order: number
+  enabled: boolean
+  background: BackgroundConfig
+  decoration_images: string[]
+  transition_in: TransitionType
+  transition_out: TransitionType
+  user_fields: string[]
+  // Advanced layout controls
+  padding_y?: SectionPaddingY       // Kepadatan vertikal
+  text_align?: SectionTextAlign     // Alignment teks
+  content_layout?: SectionLayout    // Layout konten
+  style_variant?: string            // Variant tampilan section
+  font_heading?: string             // Override font judul untuk section ini
+  font_body?: string                // Override font teks untuk section ini
+}
+
+export type AssetPosition =
+  | 'top-left' | 'top-center' | 'top-right'
+  | 'center-left' | 'center' | 'center-right'
+  | 'bottom-left' | 'bottom-center' | 'bottom-right'
+
+export type AssetAnimation =
+  | 'none' | 'fade-in' | 'slide-left' | 'slide-right'
+  | 'slide-up' | 'slide-down' | 'zoom-in' | 'rotate-in'
+
+export type AssetIdleAnimation =
+  | 'none' | 'float' | 'pulse' | 'shimmer' | 'sway' | 'spin-slow' | 'heartbeat' | 'drift-right'
+
+export interface DecorationAsset {
+  id: string
+  url: string
+  label?: string
+  position: AssetPosition
+  offset_x?: number        // px, geser dari anchor
+  offset_y?: number
+  width?: number           // px, default 80
+  rotation?: number        // derajat
+  flip_h?: boolean
+  flip_v?: boolean
+  opacity?: number         // 0-100
+  animation?: AssetAnimation     // animasi masuk
+  animation_delay?: number       // ms, delay animasi masuk
+  idle_animation?: AssetIdleAnimation  // animasi on-the-spot setelah masuk
+  idle_speed?: 'slow' | 'normal' | 'fast'  // kecepatan idle, default 'normal'
+  z_layer?: number         // z-order/layer, default 0
+}
+
+export interface OpeningConfig {
+  type: OpeningType
+  duration_ms: number
+  background_image?: string
+  overlay_image?: string
+  animation?: string
+  music_autoplay?: boolean
+  // Cover page (onboarding) settings
+  subtitle?: string
+  button_text?: string
+  invitation_text?: string
+  show_guest_name?: boolean
+  cover_photo_url?: string
+  cover_photo_display?: 'background' | 'portrait' | 'banner'
+  cover_photo_opacity?: number
+  cover_photo_position?: 'top' | 'center' | 'bottom'
+  cover_gradient_height?: number
+  cover_gradient_color?: string   // Warna gradasi bawah, default: primary template
+  // Aset dekorasi custom (upload-based)
+  decoration_assets?: DecorationAsset[]
+  // Aktifkan/nonaktifkan halaman cover sebelum undangan
+  show_opening?: boolean           // default: true
+}
+
+export interface LoadingConfig {
+  background_color: string
+  logo_image?: string
+  text: string
+  animation?: string
+}
+
+export interface ColorScheme {
+  primary: string
+  accent: string
+  text: string
+  background?: string
+}
+
+export interface FontConfig {
+  heading: string
+  body: string
+}
+
+export interface TemplateMeta {
+  name: string
+  slug: string
+  category: string
+  thumbnail?: string
+  preview_images?: string[]
+  color_scheme: ColorScheme
+  font: FontConfig
+}
+
+export interface JsonTemplateConfig {
+  meta: TemplateMeta
+  opening: OpeningConfig
+  loading: LoadingConfig
+  sections: SectionConfig[]
+}
+
+/** Tier minimum yang dibutuhkan user untuk akses template.
+ *  'all' = semua user (termasuk free). Selain itu = tier minimum (lihat lib/packages.ts). */
+export type TemplatePackageRequirement = 'all' | 'starter' | 'premium' | 'ultimate'
+
+/** Kategori template — admin bisa CRUD dari Manajemen tab. */
+export interface TemplateCategory {
+  /** Slug (kebab-case), dipakai sebagai value di field category. */
+  slug: string
+  /** Nama tampil ke user. */
+  label: string
+  /** Bawaan tidak bisa dihapus admin. */
+  is_built_in: boolean
+}
+
+/** Color palette preset untuk Studio Desain. */
+export interface ColorPalette {
+  id: string
+  name: string
+  /** Grouping di Studio Desain UI: 'Nusantara' | 'Modern' | 'Floral' | 'Minimalis' | 'Rustic' | custom. */
+  group: string
+  primary: string
+  accent: string
+  text: string
+  background: string
+  is_built_in: boolean
+}
+
+export interface TemplateRecord {
+  id: string
+  name: string
+  slug: string
+  category: string
+  config: JsonTemplateConfig
+  thumbnail_url: string
+  status: 'draft' | 'active' | 'archived'
+  sort_order: number
+  usage_count: number
+  /** Harga dalam Rupiah utuh (Int). 0 = gratis / ikuti harga global. */
+  price: number
+  /** Single source of truth untuk access control (gantikan isPremium boolean). */
+  required_package: TemplatePackageRequirement
+  created_at: string
+}
+
+// Invitation data format for JSON-driven templates (snake_case)
+export interface EventDetail {
+  date: string
+  time: string
+  venue_name: string
+  venue_address: string
+  maps_url?: string
+}
+
+export interface GiftAccount {
+  type: 'bank' | 'ewallet'
+  bank?: string
+  platform?: string
+  number: string
+  name: string
+}
+
+export interface TimelineItem {
+  date: string
+  title: string
+  description?: string
+}
+
+export interface GiftRegistryLink {
+  label: string
+  url: string
+  marketplace?: 'tokopedia' | 'shopee' | 'bukalapak' | 'lazada' | 'other'
+}
+
+export interface NewInvitationData {
+  bride_name: string
+  groom_name: string
+  bride_parents?: string
+  groom_parents?: string
+  tagline?: string
+  // Individual profile photos + bios (for profiles section)
+  groom_photo_url?: string
+  bride_photo_url?: string
+  groom_bio?: string
+  bride_bio?: string
+  // Couple photo (used in hero background)
+  couple_photo_url?: string
+  story_title?: string
+  story_text?: string
+  story_timeline?: TimelineItem[]
+  akad?: EventDetail
+  resepsi?: EventDetail
+  gallery_photos?: string[]
+  music_url?: string
+  gift_accounts?: GiftAccount[]
+  livestream_url?: string
+  closing_text?: string
+  thank_you_message?: string
+  // Quote/Doa
+  quote_arabic?: string
+  quote_translation?: string
+  quote_source?: string
+  // Video Embed
+  video_embed_url?: string
+  video_caption?: string
+  // Gift Registry
+  gift_registry?: GiftRegistryLink[]
+  // IG Story Download
+  ig_story_image_url?: string
+  // QR Code Generator
+  qr_target_url?: string
+  qr_label?: string
+}
+
+export interface NewInvitation {
+  id: string
+  user_id: string
+  slug: string
+  template_id: string
+  data: NewInvitationData
+  is_published: boolean
+  is_paid: boolean
+  expires_at: string | null
+  created_at: string
+}
