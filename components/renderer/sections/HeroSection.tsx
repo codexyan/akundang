@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -16,7 +16,7 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
     <div className="text-center w-full max-w-sm mx-auto">
       <motion.p
         variants={{ hidden: { opacity: 0, y: -8 }, visible: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.7 } } }}
-        style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: `${accent}bb`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 22 }}
+        style={{ fontSize: fsb(11), letterSpacing: '0.22em', textTransform: 'uppercase', color: `${accent}bb`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 22 }}
       >
         Bismillahirrahmanirrahim
       </motion.p>
@@ -28,21 +28,21 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
 
       <motion.h1
         variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { delay: 0.35, duration: 0.8 } } }}
-        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
+        style={{ fontSize: clampH('2rem', '8vw', '3.5rem'), fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
       >
         {data.groom_name}
       </motion.h1>
 
       <motion.p
         variants={{ hidden: { opacity: 0, scale: 0.7 }, visible: { opacity: 1, scale: 1, transition: { delay: 0.5, duration: 0.5 } } }}
-        style={{ fontSize: 26, margin: '8px 0', fontWeight: 'var(--bw, 300)', fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}
+        style={{ fontSize: fsh(26), margin: '8px 0', fontWeight: 'var(--bw, 300)', fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}
       >
         &amp;
       </motion.p>
 
       <motion.h1
         variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { delay: 0.6, duration: 0.8 } } }}
-        style={{ fontSize: 'clamp(2rem, 8vw, 3.5rem)', fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
+        style={{ fontSize: clampH('2rem', '8vw', '3.5rem'), fontWeight: 'var(--hw, 800)', lineHeight: 1.05, color: text, fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '-0.01em', margin: 0 }}
       >
         {data.bride_name}
       </motion.h1>
@@ -55,7 +55,7 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
       {data.tagline && (
         <motion.p
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.9, duration: 0.8 } } }}
-          style={{ fontSize: 11, lineHeight: 1.9, fontStyle: 'italic', color: `${text}aa`, fontFamily: `'${meta.font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
+          style={{ fontSize: fsb(11), lineHeight: 1.9, fontStyle: 'italic', color: `${text}aa`, fontFamily: `'${meta.font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
         >
           {data.tagline}
         </motion.p>
@@ -65,7 +65,7 @@ function HeroDefault({ data, meta, accent, text }: { data: NewInvitationData; me
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 1.1, duration: 0.6 } } }}
         style={{ marginTop: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
       >
-        <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}44` }}>Scroll</p>
+        <p style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}44` }}>Scroll</p>
         <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
           style={{ width: 1, height: 28, backgroundColor: `${accent}55` }} />
       </motion.div>
@@ -87,7 +87,7 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
       <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingLeft: 32, paddingRight: 32 }}>
         <motion.p
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.2, duration: 0.7 } } }}
-          style={{ fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', color: `${accent}cc`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 16 }}
+          style={{ fontSize: fsb(9), letterSpacing: '0.35em', textTransform: 'uppercase', color: `${accent}cc`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 16 }}
         >
           Bismillahirrahmanirrahim
         </motion.p>
@@ -99,21 +99,21 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { delay: 0.45, duration: 0.9 } } }}
-          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
+          style={{ fontSize: clampH('2.2rem', '9vw', '4rem'), fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
         >
           {data.groom_name}
         </motion.h1>
 
         <motion.p
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.6 } } }}
-          style={{ fontSize: 22, margin: '6px 0', fontStyle: 'italic', fontWeight: 300, color: accent, fontFamily: `'${meta.font.heading}', serif` }}
+          style={{ fontSize: fsh(22), margin: '6px 0', fontStyle: 'italic', fontWeight: 300, color: accent, fontFamily: `'${meta.font.heading}', serif` }}
         >
           &amp;
         </motion.p>
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { delay: 0.7, duration: 0.9 } } }}
-          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
+          style={{ fontSize: clampH('2.2rem', '9vw', '4rem'), fontWeight: 'var(--hw, 900)', lineHeight: 1, color: '#fff', fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
         >
           {data.bride_name}
         </motion.h1>
@@ -121,7 +121,7 @@ function HeroBottom({ data, meta, accent, text, primary }: { data: NewInvitation
         {data.tagline && (
           <motion.p
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.9, duration: 0.7 } } }}
-            style={{ fontSize: 10, lineHeight: 1.8, marginTop: 14, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', fontFamily: `'${meta.font.body}', serif`, maxWidth: 260, margin: '14px auto 0' }}
+            style={{ fontSize: fsb(10), lineHeight: 1.8, marginTop: 14, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', fontFamily: `'${meta.font.body}', serif`, maxWidth: 260, margin: '14px auto 0' }}
           >
             {data.tagline}
           </motion.p>
@@ -152,13 +152,13 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
           }} />
         ))}
 
-        <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: `${accent}99`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 20 }}>
+        <p style={{ fontSize: fsb(9), letterSpacing: '0.4em', textTransform: 'uppercase', color: `${accent}99`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 20 }}>
           Undangan Pernikahan
         </p>
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.4, duration: 0.8 } } }}
-          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
+          style={{ fontSize: clampH('1.8rem', '7vw', '2.8rem'), fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
         >
           {data.groom_name}
         </motion.h1>
@@ -167,14 +167,14 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
           <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}44` }} />
           <motion.span
             variants={{ hidden: { opacity: 0, rotate: -180 }, visible: { opacity: 1, rotate: 0, transition: { delay: 0.6, duration: 0.5 } } }}
-            style={{ fontSize: 16, color: accent }}
+            style={{ fontSize: fsh(16), color: accent }}
           >âœ¦</motion.span>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}44` }} />
         </div>
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.65, duration: 0.8 } } }}
-          style={{ fontSize: 'clamp(1.8rem, 7vw, 2.8rem)', fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
+          style={{ fontSize: clampH('1.8rem', '7vw', '2.8rem'), fontWeight: 'var(--hw, 700)', lineHeight: 1.1, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0 }}
         >
           {data.bride_name}
         </motion.h1>
@@ -182,7 +182,7 @@ function HeroMinimal({ data, meta, accent, text, primary }: { data: NewInvitatio
         {data.tagline && (
           <motion.p
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.85, duration: 0.7 } } }}
-            style={{ fontSize: 10, lineHeight: 1.8, marginTop: 18, fontStyle: 'italic', color: `${text}88`, fontFamily: `'${meta.font.body}', serif` }}
+            style={{ fontSize: fsb(10), lineHeight: 1.8, marginTop: 18, fontStyle: 'italic', color: `${text}88`, fontFamily: `'${meta.font.body}', serif` }}
           >
             {data.tagline}
           </motion.p>
@@ -216,5 +216,7 @@ export default function HeroSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+
+
 
 

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -138,11 +138,9 @@ function TimelineView({ section, data, meta }: Props) {
                 </div>
                 <p className="text-[10px] font-bold tracking-widest uppercase mb-1.5"
                   style={{ color: accent, fontFamily: `'${font.body}', serif` }}>{item.date}</p>
-                <h3 className="text-lg font-bold mb-1.5 leading-snug"
-                  style={{ color: text, fontFamily: `'${font.heading}', serif` }}>{item.title}</h3>
+                <h3 style={{ fontSize: fsh(18), fontWeight: 'var(--hw, 700)', marginBottom: 6, lineHeight: 1.3, color: text, fontFamily: `'${font.heading}', serif` }}>{item.title}</h3>
                 {item.description && (
-                  <p className="text-sm leading-relaxed"
-                    style={{ color: `${text}aa`, fontFamily: `'${font.body}', serif` }}>{item.description}</p>
+                  <p style={{ fontSize: fsb(13), lineHeight: 1.7, color: `${text}aa`, fontFamily: `'${font.body}', serif` }}>{item.description}</p>
                 )}
               </motion.div>
             ))}
@@ -174,15 +172,13 @@ function DefaultView({ section, data, meta }: Props) {
           </motion.div>
         )}
         {data.story_title && (
-          <motion.h2 className="text-2xl sm:text-3xl font-bold mb-5 leading-snug"
-            style={{ color: accent, fontFamily: `'${font.heading}', serif` }}
+          <motion.h2 style={{ fontSize: clampH('1.4rem', '6vw', '1.9rem'), fontWeight: 'var(--hw, 700)', marginBottom: 20, lineHeight: 1.3, color: accent, fontFamily: `'${font.heading}', serif` }}
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { delay: 0.2, duration: 0.55 } } }}>
             {data.story_title}
           </motion.h2>
         )}
         {data.story_text && (
-          <motion.p className="text-sm sm:text-base leading-[1.9] whitespace-pre-line"
-            style={{ color: `${text}bb`, fontFamily: `'${font.body}', serif` }}
+          <motion.p style={{ fontSize: fsb(14), lineHeight: 1.9, whiteSpace: 'pre-line', color: `${text}bb`, fontFamily: `'${font.body}', serif` }}
             variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { delay: 0.3, duration: 0.6 } } }}>
             {data.story_text}
           </motion.p>

@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, EventDetail } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 import { format, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { MapPin, Clock, CalendarDays, ExternalLink } from 'lucide-react'
@@ -65,7 +65,7 @@ function EventCard({
         <div className="flex items-start gap-3">
           <MapPin size={15} style={{ color: `${accent}99` }} className="mt-0.5 shrink-0" />
           <div>
-            <p className="font-semibold" style={{ color: text }}>{event.venue_name}</p>
+            <p style={{ fontSize: fsb(12), fontWeight: 600, color: text }}>{event.venue_name}</p>
             <p className="mt-0.5 text-xs leading-relaxed">{event.venue_address}</p>
           </div>
         </div>
@@ -90,6 +90,7 @@ function EventCard({
 
 export default function EventsSection({ section, data, meta }: Props) {
   const { accent, text } = meta.color_scheme
+  const font = resolveFont(meta, section)
   const variant = section.style_variant ?? 'default'
 
   const events = [
@@ -102,8 +103,7 @@ export default function EventsSection({ section, data, meta }: Props) {
       <div className="max-w-lg mx-auto w-full py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <motion.p className="text-xs tracking-[0.3em] uppercase mb-3"
-            style={{ color: `${accent}99`, fontFamily: `'${meta.font.body}', serif` }}
+          <motion.p style={{ fontSize: fsb(10), letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 12, color: `${accent}99`, fontFamily: `'${font.body}', serif` }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Detail Acara
           </motion.p>
@@ -112,7 +112,7 @@ export default function EventsSection({ section, data, meta }: Props) {
         </div>
 
         {variant === 'timeline' ? (
-          /* ─── Timeline variant ─── */
+          /* â”€â”€â”€ Timeline variant â”€â”€â”€ */
           <div className="relative">
             <div className="absolute left-[18px] top-0 bottom-0 w-px" style={{ backgroundColor: `${accent}33` }} />
             {events.map(({ title, event }, i) => {
@@ -125,12 +125,12 @@ export default function EventsSection({ section, data, meta }: Props) {
                     <CalendarDays size={14} style={{ color: accent }} />
                   </div>
                   <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: `${accent}99`, fontFamily: `'${meta.font.body}', serif` }}>{title}</p>
-                  <p className="text-base font-bold mb-2" style={{ color: accent, fontFamily: `'${meta.font.heading}', serif` }}>{title}</p>
-                  <div className="space-y-1 text-xs" style={{ color: `${text}cc`, fontFamily: `'${meta.font.body}', serif` }}>
+                  <p style={{ fontSize: fsh(16), fontWeight: font.hw as number, marginBottom: 8, color: accent, fontFamily: `'${font.heading}', serif` }}>{title}</p>
+                  <div style={{ fontSize: fsb(12), lineHeight: '1.7', color: `${text}cc`, fontFamily: `'${font.body}', serif` }}>
                     <p className="capitalize">{formattedDate}</p>
                     <p>{event.time} WIB</p>
                     <p className="font-semibold" style={{ color: text }}>{event.venue_name}</p>
-                    <p style={{ color: `${text}77` }}>{event.venue_address}</p>
+                    <p style={{ fontSize: fsb(11), color: `${text}77` }}>{event.venue_address}</p>
                   </div>
                   {event.maps_url && (
                     <a href={event.maps_url} target="_blank" rel="noopener noreferrer"
@@ -144,7 +144,7 @@ export default function EventsSection({ section, data, meta }: Props) {
             })}
           </div>
         ) : variant === 'compact' ? (
-          /* ─── Compact variant ─── */
+          /* â”€â”€â”€ Compact variant â”€â”€â”€ */
           <div className="space-y-5">
             {events.map(({ title, event }, i) => {
               const formattedDate = (() => { try { return format(parseISO(event.date), 'EEEE, d MMMM yyyy', { locale: localeId }) } catch { return event.date } })()
@@ -182,7 +182,7 @@ export default function EventsSection({ section, data, meta }: Props) {
             })}
           </div>
         ) : (
-          /* ─── Default: cards ─── */
+          /* â”€â”€â”€ Default: cards â”€â”€â”€ */
           <div className="flex flex-col sm:flex-row gap-4">
             {events.map(({ title, event }, i) => (
               <EventCard key={title} title={title} event={event} accent={accent} text={text} font={meta.font} delay={0.15 + i * 0.1} />
@@ -193,3 +193,4 @@ export default function EventsSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+

@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 import { format, parseISO, differenceInSeconds } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 
@@ -75,7 +75,7 @@ export default function CountdownSection({ section, data, meta }: Props) {
 
         {timeLeft !== null ? (
           variant === 'minimal' ? (
-            /* ─── Minimal: angka besar tanpa kotak ─── */
+            /* â”€â”€â”€ Minimal: angka besar tanpa kotak â”€â”€â”€ */
             <div className="flex justify-center gap-6">
               {units.map((unit, i) => (
                 <motion.div key={unit.label} className="flex flex-col items-center"
@@ -92,7 +92,7 @@ export default function CountdownSection({ section, data, meta }: Props) {
               ))}
             </div>
           ) : (
-            /* ─── Default: angka dalam kotak ─── */
+            /* â”€â”€â”€ Default: angka dalam kotak â”€â”€â”€ */
             <div className="grid grid-cols-4 gap-3">
               {units.map((unit, i) => (
                 <motion.div key={unit.label} className="flex flex-col items-center"
@@ -119,3 +119,4 @@ export default function CountdownSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+

@@ -1777,26 +1777,41 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                           </div>
                         </div>
 
-                        {/* Font scale */}
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="text-[9px] text-gray-500">Ukuran Font (skala)</p>
-                            <span className="text-[9px] font-mono text-gray-600">{Math.round((s.font_scale ?? 1) * 100)}%</span>
+                        {/* Font size: heading + body terpisah */}
+                        <div className="space-y-2">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-[9px] text-gray-500">Ukuran Judul</p>
+                              <span className="text-[9px] font-mono text-gray-500">{Math.round((s.heading_scale ?? 1) * 100)}%</span>
+                            </div>
+                            <input type="range" min={0.6} max={1.8} step={0.05}
+                              value={s.heading_scale ?? 1}
+                              onChange={e => updateSection(s.id, { heading_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
+                              className="w-full accent-orange-500 h-1" />
+                            <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
+                              <span>60%</span><span>Judul</span><span>180%</span>
+                            </div>
                           </div>
-                          <input type="range" min={0.7} max={1.5} step={0.05}
-                            value={s.font_scale ?? 1}
-                            onChange={e => updateSection(s.id, { font_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
-                            className="w-full accent-orange-500 h-1"
-                          />
-                          <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
-                            <span>70%</span><span>100%</span><span>150%</span>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-[9px] text-gray-500">Ukuran Teks Isi</p>
+                              <span className="text-[9px] font-mono text-gray-500">{Math.round((s.body_scale ?? 1) * 100)}%</span>
+                            </div>
+                            <input type="range" min={0.6} max={1.5} step={0.05}
+                              value={s.body_scale ?? 1}
+                              onChange={e => updateSection(s.id, { body_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
+                              className="w-full accent-blue-400 h-1" />
+                            <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
+                              <span>60%</span><span>Teks</span><span>150%</span>
+                            </div>
                           </div>
                         </div>
 
-                        {(s.font_heading || s.font_body || s.heading_weight || s.body_weight || s.font_scale) && (
+                        {(s.font_heading || s.font_body || s.heading_weight || s.body_weight || s.heading_scale || s.body_scale) && (
                           <button onClick={() => updateSection(s.id, {
                             font_heading: undefined, font_body: undefined,
-                            heading_weight: undefined, body_weight: undefined, font_scale: undefined,
+                            heading_weight: undefined, body_weight: undefined,
+                            heading_scale: undefined, body_scale: undefined,
                           })} className="text-[9px] text-orange-500 hover:underline">
                             Reset semua tipografi ke default
                           </button>

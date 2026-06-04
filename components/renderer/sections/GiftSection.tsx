@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 import { Copy, Check } from 'lucide-react'
 
 interface Props {
@@ -100,3 +100,4 @@ export default function GiftSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+

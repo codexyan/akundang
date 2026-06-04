@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -16,7 +16,7 @@ interface PersonData {
   side: 'left' | 'right'
 }
 
-// ─── Shared photo frame ────────────────────────────────────────
+// â”€â”€â”€ Shared photo frame â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function PhotoCircle({ photoUrl, accent, name, size = 120, side }: { photoUrl?: string; accent: string; name: string; size?: number; side: 'left' | 'right' }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
@@ -29,7 +29,7 @@ function PhotoCircle({ photoUrl, accent, name, size = 120, side }: { photoUrl?: 
           {photoUrl
             ? <img src={photoUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.28, color: `${accent}55` }}>
-                {side === 'left' ? '🤵' : '👰'}
+                {side === 'left' ? 'ðŸ¤µ' : 'ðŸ‘°'}
               </div>
           }
         </div>
@@ -39,7 +39,7 @@ function PhotoCircle({ photoUrl, accent, name, size = 120, side }: { photoUrl?: 
   )
 }
 
-// ─── Variant: Default — side by side ──────────────────────────
+// â”€â”€â”€ Variant: Default â€” side by side â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ProfilesDefault({ data, meta, accent, text }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string }) {
   const people: PersonData[] = [
     { name: data.groom_name, parents: data.groom_parents, photoUrl: data.groom_photo_url, bio: data.groom_bio, accent, text, font: meta.font, side: 'left' },
@@ -56,13 +56,13 @@ function ProfilesDefault({ data, meta, accent, text }: { data: NewInvitationData
           >
             <PhotoCircle photoUrl={p.photoUrl} accent={accent} name={p.name} size={Math.min(120, Math.floor(window?.innerWidth ? window.innerWidth * 0.28 : 110))} side={p.side} />
             <div style={{ marginTop: 14 }}>
-              <h3 style={{ fontSize: 'clamp(14px, 3.5vw, 17px)', fontWeight: 700, color: text, fontFamily: `'${p.font.heading}', serif`, marginBottom: 4 }}>{p.name}</h3>
+              <h3 style={{ fontSize: clampH('14px', '3.5vw', '17px'), fontWeight: 700, color: text, fontFamily: `'${p.font.heading}', serif`, marginBottom: 4 }}>{p.name}</h3>
               {p.parents && (
-                <p style={{ fontSize: 10.5, lineHeight: 1.6, color: `${text}77`, fontFamily: `'${p.font.body}', serif`, marginBottom: 4 }}>
+                <p style={{ fontSize: fsb(10.5), lineHeight: 1.6, color: `${text}77`, fontFamily: `'${p.font.body}', serif`, marginBottom: 4 }}>
                   Putra/Putri dari<br /><span style={{ color: `${accent}cc` }}>{p.parents}</span>
                 </p>
               )}
-              {p.bio && <p style={{ fontSize: 10, lineHeight: 1.7, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${p.font.body}', serif`, maxWidth: 140 }}>{p.bio}</p>}
+              {p.bio && <p style={{ fontSize: fsb(10), lineHeight: 1.7, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${p.font.body}', serif`, maxWidth: 140 }}>{p.bio}</p>}
             </div>
           </motion.div>
         ))}
@@ -73,7 +73,7 @@ function ProfilesDefault({ data, meta, accent, text }: { data: NewInvitationData
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 14, flexShrink: 0 }}
         >
           <div style={{ width: 1, height: 44, backgroundColor: `${accent}33` }} />
-          <span style={{ fontSize: 16, fontWeight: 700, fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}>&amp;</span>
+          <span style={{ fontSize: fsh(16), fontWeight: 700, fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}>&amp;</span>
           <div style={{ width: 1, height: 44, backgroundColor: `${accent}33` }} />
         </motion.div>
       </div>
@@ -81,7 +81,7 @@ function ProfilesDefault({ data, meta, accent, text }: { data: NewInvitationData
   )
 }
 
-// ─── Variant: Card — setiap profil dalam kartu ─────────────────
+// â”€â”€â”€ Variant: Card â€” setiap profil dalam kartu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ProfilesCard({ data, meta, accent, text }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string }) {
   const cards = [
     { name: data.groom_name, parents: data.groom_parents, photoUrl: data.groom_photo_url, bio: data.groom_bio, side: 'left' as const },
@@ -95,7 +95,7 @@ function ProfilesCard({ data, meta, accent, text }: { data: NewInvitationData; m
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.1 } } }}
         style={{ textAlign: 'center', marginBottom: 24 }}
       >
-        <span style={{ fontSize: 20, fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}>&amp;</span>
+        <span style={{ fontSize: fsh(20), fontStyle: 'italic', color: accent, fontFamily: `'${meta.font.heading}', serif` }}>&amp;</span>
       </motion.div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -110,13 +110,13 @@ function ProfilesCard({ data, meta, accent, text }: { data: NewInvitationData; m
           >
             <PhotoCircle photoUrl={p.photoUrl} accent={accent} name={p.name} size={80} side={p.side} />
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: text, fontFamily: `'${meta.font.heading}', serif`, marginBottom: 4 }}>{p.name}</h3>
+              <h3 style={{ fontSize: fsh(18), fontWeight: 700, color: text, fontFamily: `'${meta.font.heading}', serif`, marginBottom: 4 }}>{p.name}</h3>
               {p.parents && (
-                <p style={{ fontSize: 11, lineHeight: 1.6, color: `${text}77`, fontFamily: `'${meta.font.body}', serif` }}>
+                <p style={{ fontSize: fsb(11), lineHeight: 1.6, color: `${text}77`, fontFamily: `'${meta.font.body}', serif` }}>
                   Putra/Putri dari<br /><span style={{ color: `${accent}cc` }}>{p.parents}</span>
                 </p>
               )}
-              {p.bio && <p style={{ fontSize: 10.5, lineHeight: 1.7, marginTop: 4, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${meta.font.body}', serif` }}>{p.bio}</p>}
+              {p.bio && <p style={{ fontSize: fsb(10.5), lineHeight: 1.7, marginTop: 4, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${meta.font.body}', serif` }}>{p.bio}</p>}
             </div>
           </motion.div>
         ))}
@@ -125,7 +125,7 @@ function ProfilesCard({ data, meta, accent, text }: { data: NewInvitationData; m
   )
 }
 
-// ─── Variant: Vertical — susun atas bawah, foto besar ─────────
+// â”€â”€â”€ Variant: Vertical â€” susun atas bawah, foto besar â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ProfilesVertical({ data, meta, accent, text }: { data: NewInvitationData; meta: TemplateMeta; accent: string; text: string }) {
   const people = [
     { name: data.groom_name, parents: data.groom_parents, photoUrl: data.groom_photo_url, bio: data.groom_bio, side: 'left' as const },
@@ -141,13 +141,13 @@ function ProfilesVertical({ data, meta, accent, text }: { data: NewInvitationDat
         >
           <PhotoCircle photoUrl={p.photoUrl} accent={accent} name={p.name} size={150} side={p.side} />
           <div style={{ marginTop: 20 }}>
-            <h3 style={{ fontSize: 22, fontWeight: 700, color: text, fontFamily: `'${meta.font.heading}', serif`, marginBottom: 6 }}>{p.name}</h3>
+            <h3 style={{ fontSize: fsh(22), fontWeight: 700, color: text, fontFamily: `'${meta.font.heading}', serif`, marginBottom: 6 }}>{p.name}</h3>
             {p.parents && (
-              <p style={{ fontSize: 12, lineHeight: 1.7, color: `${text}77`, fontFamily: `'${meta.font.body}', serif` }}>
+              <p style={{ fontSize: fsb(12), lineHeight: 1.7, color: `${text}77`, fontFamily: `'${meta.font.body}', serif` }}>
                 Putra/Putri dari<br /><span style={{ color: `${accent}cc` }}>{p.parents}</span>
               </p>
             )}
-            {p.bio && <p style={{ fontSize: 11, lineHeight: 1.7, marginTop: 6, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${meta.font.body}', serif` }}>{p.bio}</p>}
+            {p.bio && <p style={{ fontSize: fsb(11), lineHeight: 1.7, marginTop: 6, fontStyle: 'italic', color: `${text}55`, fontFamily: `'${meta.font.body}', serif` }}>{p.bio}</p>}
           </div>
 
           {/* Divider antara dua profil */}
@@ -163,7 +163,7 @@ function ProfilesVertical({ data, meta, accent, text }: { data: NewInvitationDat
   )
 }
 
-// ─── Main ProfilesSection ──────────────────────────────────────
+// â”€â”€â”€ Main ProfilesSection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ProfilesSection({ section, data, meta }: Props) {
   const { accent, text } = meta.color_scheme
   const variant = section.style_variant ?? 'default'
@@ -176,7 +176,7 @@ export default function ProfilesSection({ section, data, meta }: Props) {
       <div className="text-center mb-10 w-full">
         <motion.p
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-          style={{ fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}88`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 12 }}
+          style={{ fontSize: fsb(10), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}88`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 12 }}
         >
           Pengantin
         </motion.p>
@@ -185,7 +185,7 @@ export default function ProfilesSection({ section, data, meta }: Props) {
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
         >
           <div style={{ height: 1, width: 50, backgroundColor: `${accent}44` }} />
-          <span style={{ fontSize: 14, color: accent }}>✦</span>
+          <span style={{ fontSize: fsh(14), color: accent }}>âœ¦</span>
           <div style={{ height: 1, width: 50, backgroundColor: `${accent}44` }} />
         </motion.div>
       </div>
@@ -196,3 +196,5 @@ export default function ProfilesSection({ section, data, meta }: Props) {
     </SectionWrapper>
   )
 }
+
+

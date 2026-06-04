@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper, { resolveFont, clampFs, fs, fontW } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, clampFs, fs, fontW, fsh, fsb, clampH, clampB } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -22,7 +22,7 @@ export default function ClosingSection({ section, data, meta }: Props) {
     <div className="max-w-md mx-auto text-center w-full py-8">
       <motion.div className="text-4xl mb-6"
         variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } } }}>
-        💍
+        ðŸ’
       </motion.div>
 
       <motion.div className="h-px w-20 mx-auto mb-6" style={{ backgroundColor: `${accent}55` }}
@@ -58,7 +58,7 @@ export default function ClosingSection({ section, data, meta }: Props) {
         <p className="text-xs tracking-widest uppercase" style={{ color: `${text}55`, fontFamily: `'${meta.font.body}', serif` }}>
           {thankYouText}
         </p>
-        <p className="text-xs mt-3" style={{ color: `${text}33` }}>Dibuat dengan ❤ di Akundang</p>
+        <p className="text-xs mt-3" style={{ color: `${text}33` }}>Dibuat dengan â¤ di Akundang</p>
       </motion.div>
     </div>
   )
@@ -88,3 +88,5 @@ export default function ClosingSection({ section, data, meta }: Props) {
 
   return <SectionWrapper section={section} className="px-6">{content}</SectionWrapper>
 }
+
+
