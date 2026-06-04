@@ -346,13 +346,14 @@ export interface GiftRegistryLink {
   marketplace?: 'tokopedia' | 'shopee' | 'bukalapak' | 'lazada' | 'other'
 }
 
-/** Satu bab dalam section Kisah Cinta bergambar */
+/** Satu bab dalam section Kisah Cinta — foto atau video background */
 export interface StoryChapter {
   title?: string
   text?: string
   date?: string
   photo_url?: string
-  overlay_opacity?: number   // 0–1, default 0.45 — kegelapan foto
+  video_url?: string         // video background cinematic (mp4/webm)
+  overlay_opacity?: number   // 0–1, default 0.45
 }
 
 export interface NewInvitationData {

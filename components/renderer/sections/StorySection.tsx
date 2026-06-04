@@ -18,7 +18,9 @@ function ChapterView({ chapter, index, total, accent, font }: {
   font: { heading: string; body: string }
 }) {
   const overlay = chapter.overlay_opacity ?? 0.48
-  const hasPhoto = !!chapter.photo_url
+  const hasVideo = !!chapter.video_url
+  const hasPhoto = !!chapter.photo_url && !hasVideo
+  const hasBg = hasVideo || hasPhoto
   const bgMax = Math.min(overlay + 0.3, 0.85)
 
   return (
@@ -26,26 +28,45 @@ function ChapterView({ chapter, index, total, accent, font }: {
       minHeight: '100dvh', scrollSnapAlign: 'start',
       position: 'relative', display: 'flex', flexDirection: 'column',
       justifyContent: 'flex-end', overflow: 'hidden',
-      ...(hasPhoto
-        ? { backgroundImage: `url(${chapter.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-        : { backgroundColor: accent }),
+      backgroundColor: accent,
+      ...(hasPhoto ? { backgroundImage: `url(${chapter.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}),
     }}>
-      <div className="absolute inset-0 z-0" style={{
-        background: hasPhoto
-          ? `linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,${overlay * 0.5}) 40%, rgba(0,0,0,${bgMax}) 100%)`
+
+      {/* Video background cinematic */}
+      {hasVideo && (
+        <video
+          src={chapter.video_url}
+          autoPlay muted loop playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        />
+      )}
+
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 z-[1]" style={{
+        background: hasBg
+          ? `linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,${overlay * 0.5}) 40%, rgba(0,0,0,${bgMax}) 100%)`
           : 'linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.5) 100%)',
       }} />
-      <motion.div className="absolute top-0 left-0 h-[2.5px] z-10"
+      {/* Progress bar */}
+      <motion.div className="absolute top-0 left-0 h-[2.5px] z-20"
         style={{ backgroundColor: accent, width: `${((index + 1) / total) * 100}%` }}
         initial={{ scaleX: 0, transformOrigin: 'left' }}
         whileInView={{ scaleX: 1 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         viewport={{ once: true }} />
-      <div className="absolute top-8 right-6 z-10">
+
+      {/* Counter + video badge */}
+      <div className="absolute top-8 right-6 z-20 flex items-center gap-2">
+        {hasVideo && (
+          <span className="text-[9px] font-bold text-white/50 bg-white/10 px-2 py-0.5 rounded-full tracking-wider uppercase">
+            ▶ Video
+          </span>
+        )}
         <span className="text-[10px] font-semibold text-white/40 tracking-[0.2em]">
           {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
         </span>
       </div>
-      <div className="relative z-10 px-8 pb-14 pt-20 max-w-lg">
+
+      <div className="relative z-20 px-8 pb-14 pt-20 max-w-lg">
         {chapter.date && (
           <motion.p className="text-[11px] tracking-[0.35em] uppercase mb-3 font-medium"
             style={{ color: `${accent}cc`, fontFamily: `'${font.body}', serif` }}
