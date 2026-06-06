@@ -24,7 +24,8 @@ export default function InvitationRenderer({
   initialWishes = [],
   musicUrl,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>('loading')
+  // SKIP loading & opening - go straight to main!
+  const [phase, setPhase] = useState<Phase>('main')
   const config = template.config
   const { meta } = config
 
@@ -84,65 +85,37 @@ export default function InvitationRenderer({
 
   return (
     <div style={{ fontFamily: `'${meta.font.body}', serif` }}>
-      {/* Loading phase */}
-      <AnimatePresence>
-        {phase === 'loading' && (
-          <LoadingScreen key="loading" config={config.loading} onDone={handleLoadDone} />
-        )}
-      </AnimatePresence>
+      {/* Loading phase - COMPLETELY DISABLED */}
+      {/* Opening phase - COMPLETELY DISABLED */}
+      {/* User feedback: Double entry issue - skip all intro screens! */}
+      {/* Go STRAIGHT to main content - NO loading, NO opening */}
 
-      {/* Opening phase — DISABLED (causes double-entry confusion) */}
-      {/* Users complained: "Why do I have to enter twice?" */}
-      {/* Solution: Skip opening entirely, this code never runs now */}
-      {/*
-      <AnimatePresence>
-        {phase === 'opening' && (
-          <motion.div
-            key="opening"
-            style={{ pointerEvents: 'auto' }}
-            exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: 0.25 } }}
-          >
-            <OpeningScene
-              config={{ ...config.opening, type: 'fade-reveal' }}
-              data={invitationData}
-              meta={meta}
-              onOpen={handleOpen}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      */}
-
-      {/* Main invitation content — scroll-snap container, satu section = satu layar */}
-      <AnimatePresence>
-        {phase === 'main' && (
-          <motion.main
-            key="main"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            style={{
-              backgroundColor: meta.color_scheme.primary,
-              height: '100dvh',
-              overflowY: 'scroll',
-              overflowX: 'hidden',
-              scrollSnapType: 'y mandatory',
-              scrollbarWidth: 'none',
-            }}
-          >
-            {activeSections.map((section) => (
-              <SectionRenderer
-                key={section.id}
-                sectionConfig={section}
-                invitationData={invitationData}
-                templateMeta={meta}
-                invitationId={invitationId}
-                initialWishes={section.type === 'wishes' ? initialWishes : undefined}
-              />
-            ))}
-          </motion.main>
-        )}
-      </AnimatePresence>
+      {/* Main invitation content — direct entry, no delays */}
+      <motion.main
+        key="main"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          backgroundColor: meta.color_scheme.primary,
+          height: '100dvh',
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+          scrollSnapType: 'y mandatory',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {activeSections.map((section) => (
+          <SectionRenderer
+            key={section.id}
+            sectionConfig={section}
+            invitationData={invitationData}
+            templateMeta={meta}
+            invitationId={invitationId}
+            initialWishes={section.type === 'wishes' ? initialWishes : undefined}
+          />
+        ))}
+      </motion.main>
     </div>
   )
 }
