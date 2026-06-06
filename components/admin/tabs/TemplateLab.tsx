@@ -1175,18 +1175,29 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
           {activeTab === 'opening' && (
             <div className="space-y-5">
 
-              {/* ── Info: Cover Disabled ── */}
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+              {/* ── Info: Preview Flow Available ── */}
+              <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
                 <div className="flex items-start gap-3">
-                  <div className="text-2xl">⚡</div>
+                  <div className="text-2xl">▶️</div>
                   <div>
-                    <p className="text-sm font-semibold text-amber-900 mb-1">
-                      Cover Page Dinonaktifkan (Loading Tetap Bisa Di-preview)
+                    <p className="text-sm font-semibold text-blue-900 mb-1">
+                      Preview Full Flow: Cover → Loading → Undangan
                     </p>
-                    <p className="text-xs text-amber-700 leading-relaxed">
-                      Halaman cover dihapus untuk UX lebih cepat. Loading screen TIDAK muncul di undangan live,
-                      tapi tetap bisa di-preview di mockup untuk melihat desain.
+                    <p className="text-xs text-blue-700 leading-relaxed mb-2">
+                      Klik tombol "Preview" di Cover atau Loading untuk melihat flow lengkap di mockup.
+                      Flow ini HANYA untuk preview admin, di undangan live langsung masuk tanpa delay.
                     </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPreviewPlaying(true)}
+                        className="text-[10px] font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
+                      >
+                        ▶ Preview Flow Lengkap
+                      </button>
+                      <span className="text-[9px] text-blue-600">
+                        Cover → (klik MASUK SEKARANG) → Loading → Undangan
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2549,16 +2560,20 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     overflow: 'hidden',
                     borderRadius: '2rem' // Match phone mockup radius
                   }}>
-                    <LoadingScreen config={cfg.loading} onDone={() => setPreviewLoading(false)} />
+                    <LoadingScreen
+                      config={cfg.loading}
+                      onDone={() => {
+                        setPreviewLoading(false)
+                        // After loading, show main invitation
+                        setPreviewPlaying(false)
+                      }}
+                    />
                   </div>
                 )}
 
-                {/* ── Play overlay — animasi opening dalam mockup ──
-                    position:absolute agar terkontain di dalam screen (tidak fixed ke viewport)
-                    Opening components sudah mendukung positionMode='absolute'
-                */}
+                {/* ── Cover/Opening preview — click MASUK SEKARANG triggers loading ── */}
                 {previewPlaying && (
-                  <div style={{ position: 'absolute', inset: 0, zIndex: 30, overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 30, overflow: 'hidden', borderRadius: '2rem' }}>
                     <div style={{ width: 390, zoom: 340 / 390, height: 845, position: 'relative' }}>
                       <AnimatePresence>
                         <OpeningScene
@@ -2566,7 +2581,11 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                           data={previewData}
                           meta={cfg.meta}
                           positionMode="absolute"
-                          onOpen={() => setPreviewPlaying(false)}
+                          onOpen={() => {
+                            // When clicking MASUK SEKARANG: hide cover, show loading
+                            setPreviewPlaying(false)
+                            setPreviewLoading(true)
+                          }}
                         />
                       </AnimatePresence>
                     </div>
