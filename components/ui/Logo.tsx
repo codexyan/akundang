@@ -57,22 +57,38 @@ export default function Logo({
             delay: 0.1
           }}
         >
-          {/* Outer ring with gradient */}
+          {/* Outer ring with green-gold gradient */}
           <div
-            className={`relative rounded-full p-1 bg-gold-gradient shadow-lg group-hover:shadow-xl transition-all duration-300`}
+            className={`relative rounded-full p-1 shadow-lg group-hover:shadow-xl transition-all duration-300`}
             style={{
               width: config.icon + 8,
               height: config.icon + 8,
+              background: 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 30%, #b8860b 70%, #d4af37 100%)',
             }}
           >
             {/* Inner white circle */}
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-              {/* Heart icon */}
+              {/* Heart icon with green-gold */}
               <Heart
                 size={config.icon - 8}
-                className="text-gold-600 fill-gold-600 group-hover:scale-110 transition-transform"
+                className="group-hover:scale-110 transition-transform"
+                style={{
+                  color: '#2d5a3d',
+                  fill: 'url(#heartGradient)',
+                }}
                 strokeWidth={2}
               />
+              {/* SVG gradient definition */}
+              <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                  <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#1a3320" />
+                    <stop offset="40%" stopColor="#2d5a3d" />
+                    <stop offset="70%" stopColor="#b8860b" />
+                    <stop offset="100%" stopColor="#d4af37" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
             {/* Sparkle accent - top right */}
@@ -98,7 +114,7 @@ export default function Logo({
         animate={animated ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.5, delay: animated ? 0.2 : 0, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* "ak" with gradient */}
+        {/* "ak" with green-gold gradient */}
         <span
           className={`${config.text} font-bold tracking-tight relative`}
           style={{
@@ -106,7 +122,7 @@ export default function Logo({
               ? 'white'
               : isDark
               ? '#1c1917'
-              : 'linear-gradient(135deg, #b8860b 0%, #d4af37 60%, #c9952d 100%)',
+              : 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 30%, #4a7c59 50%, #b8860b 75%, #d4af37 100%)',
             WebkitBackgroundClip: isLight || isDark ? 'text' : 'text',
             WebkitTextFillColor: isLight || isDark ? 'currentColor' : 'transparent',
             color: isLight ? 'white' : isDark ? '#1c1917' : 'transparent',
@@ -114,13 +130,16 @@ export default function Logo({
         >
           ak
 
-          {/* Premium underline accent */}
+          {/* Premium underline accent - green-gold */}
           <motion.div
-            className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 via-champagne-400 to-gold-400 rounded-full"
+            className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full"
             initial={animated ? { scaleX: 0 } : {}}
             animate={animated ? { scaleX: 1 } : {}}
             transition={{ delay: 0.6, duration: 0.4 }}
-            style={{ transformOrigin: 'left' }}
+            style={{
+              transformOrigin: 'left',
+              background: 'linear-gradient(90deg, #1a3320 0%, #2d5a3d 25%, #4a7c59 50%, #b8860b 75%, #d4af37 100%)'
+            }}
           />
         </span>
 

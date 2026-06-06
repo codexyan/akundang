@@ -67,9 +67,11 @@ const config: Config = {
         },
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(135deg, #b8860b 0%, #d4af37 45%, #c9952d 100%)',
+        'gold-gradient': 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 30%, #b8860b 60%, #d4af37 100%)',
+        'green-gold-gradient': 'linear-gradient(135deg, #0f1a12 0%, #1a3320 25%, #2d5a3d 50%, #b8860b 75%, #d4af37 100%)',
         'dark-gradient': 'linear-gradient(135deg, #0f1a12 0%, #1a3320 50%, #0f1a12 100%)',
-        'champagne-gradient': 'linear-gradient(135deg, #c9952d 0%, #d4af37 100%)',
+        'champagne-gradient': 'linear-gradient(135deg, #1a3320 0%, #c9952d 50%, #d4af37 100%)',
+        'hero-text-gradient': 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 20%, #4a7c59 40%, #b8860b 70%, #d4af37 100%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-in-out',

@@ -297,13 +297,24 @@
     color: var(--color-primary-500);
   }
 
-  /* ─── BACKGROUND UTILITIES ─────────────────────────────────────────── */
+  /* ─── BACKGROUND UTILITIES - GREEN-GOLD COMBINATION ───────────────── */
   .bg-primary-gradient {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-400) 45%, var(--color-accent-500) 100%);
+    background: linear-gradient(135deg, #1a3320 0%, #2d5a3d 30%, #b8860b 60%, #d4af37 100%);
+  }
+
+  .bg-green-gold-gradient {
+    background: linear-gradient(135deg, #0f1a12 0%, #1a3320 25%, #2d5a3d 50%, #b8860b 75%, #d4af37 100%);
   }
 
   .bg-dark-gradient {
     background: linear-gradient(135deg, var(--color-secondary-600) 0%, var(--color-secondary-500) 50%, var(--color-secondary-600) 100%);
+  }
+
+  .bg-hero-text {
+    background: linear-gradient(135deg, #1a3320 0%, #2d5a3d 20%, #4a7c59 40%, #b8860b 70%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   /* ─── HELPER UTILITIES ─────────────────────────────────────────────── */

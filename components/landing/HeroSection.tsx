@@ -268,7 +268,7 @@ export default function HeroSection() {
                   className="bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
-                      "linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #f4d03f 100%)",
+                      "linear-gradient(135deg, #1a3320 0%, #2d5a3d 20%, #4a7c59 40%, #b8860b 70%, #d4af37 100%)",
                   }}
                 >
                   yang bikin tamu kagum
@@ -282,8 +282,11 @@ export default function HeroSection() {
                     duration: 0.6,
                     ease: [0.22, 1, 0.36, 1],
                   }}
-                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300 rounded-full origin-left"
-                  style={{ transformOrigin: "left" }}
+                  className="absolute -bottom-2 left-0 right-0 h-1 rounded-full origin-left"
+                  style={{
+                    transformOrigin: "left",
+                    background: "linear-gradient(90deg, #1a3320 0%, #4a7c59 30%, #b8860b 60%, #d4af37 100%)"
+                  }}
                 />
               </span>
               <span className="block mt-2">sejak klik pertama</span>
@@ -402,7 +405,7 @@ export default function HeroSection() {
                   className="relative w-full sm:w-auto px-8 py-4 rounded-2xl text-white text-button-lg overflow-hidden shadow-2xl"
                   style={{
                     background:
-                      "linear-gradient(135deg, #1a3320 0%, #2d5a3d 50%, #1a3320 100%)",
+                      "linear-gradient(135deg, #1a3320 0%, #2d5a3d 30%, #4a7c59 60%, #b8860b 100%)",
                   }}
                 >
                   {/* Animated gradient overlay */}
@@ -410,7 +413,7 @@ export default function HeroSection() {
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{
                       background:
-                        "linear-gradient(135deg, #2d5a3d 0%, #3d6f4d 100%)",
+                        "linear-gradient(135deg, #2d5a3d 0%, #4a7c59 50%, #d4af37 100%)",
                     }}
                   />
 
