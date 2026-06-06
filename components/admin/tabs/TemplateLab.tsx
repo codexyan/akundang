@@ -315,6 +315,7 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
   )
 }
 
+
 // Variant yang tersedia per tipe section
 const SECTION_VARIANTS: Record<string, { value: string; label: string; desc: string }[]> = {
   hero: [
