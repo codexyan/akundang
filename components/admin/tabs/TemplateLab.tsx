@@ -1503,6 +1503,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
             </div>
+            </div>
           )}
 
           {/* ── Sections ── */}
