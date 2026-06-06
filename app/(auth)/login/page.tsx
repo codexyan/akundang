@@ -135,7 +135,7 @@ function LoginContent() {
                     Password
                   </label>
                   <Link
-                    href="/reset-password"
+                    href="/forgot-password"
                     className="text-xs font-medium text-gold-600 hover:text-gold-600"
                   >
                     Lupa?
