@@ -2605,7 +2605,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
             </div>
 
             <p className="text-center text-xs text-slate-400 mt-3 font-medium">
-              {previewPlaying ? '▶ Animasi berjalan...' : previewMode === 'cover' ? 'Cover · ' : 'Undangan · '}{!previewPlaying && config.name}
+              {previewMode === 'cover' ? 'Cover · ' : 'Undangan · '}{config.name}
             </p>
           </div>
         </div>
