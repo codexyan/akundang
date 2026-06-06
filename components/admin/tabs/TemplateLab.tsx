@@ -2416,29 +2416,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
             <span className="text-xs font-semibold text-gray-600">Live Preview</span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Toggle preview mode */}
-            <div className="flex rounded-lg overflow-hidden border border-gray-200">
-              <button
-                onClick={() => setPreviewMode('cover')}
-                className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                  previewMode === 'cover'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Cover
-              </button>
-              <button
-                onClick={() => setPreviewMode('invitation')}
-                className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                  previewMode === 'invitation'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Undangan
-              </button>
-            </div>
             {previewMode === 'invitation' && (
               <span className="text-xs text-gray-400">
                 {sections.filter(s => s.enabled).length} sections
