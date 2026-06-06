@@ -66,11 +66,20 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
         }} />
       )}
 
-      {/* Gradasi bawah — warna & ketebalan bisa dikontrol */}
+      {/* Gradasi bawah — SMOOTH gradient untuk blend dengan foto */}
       <div style={{
         position: 'absolute', inset: 'auto 0 0 0',
         height: `${gradH}%`,
-        background: `linear-gradient(to top, ${gradColor} ${gradStop}%, ${gradColor}bb ${Math.round(gradStop * 0.6)}%, transparent 100%)`,
+        background: `linear-gradient(to top,
+          ${gradColor}dd 0%,
+          ${gradColor}cc 8%,
+          ${gradColor}bb 15%,
+          ${gradColor}99 22%,
+          ${gradColor}77 30%,
+          ${gradColor}55 40%,
+          ${gradColor}33 52%,
+          ${gradColor}11 68%,
+          transparent 100%)`,
         zIndex: 1,
       }} />
 
