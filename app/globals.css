@@ -246,78 +246,91 @@
 
   /* ─── MOBILE OPTIMIZATIONS (< 640px) ──────────────────────────────── */
   @media (max-width: 640px) {
-    /* Better mobile hierarchy with smooth progression */
+    /* Compact mobile sizes - much smaller for mobile screens */
     .text-display-2xl {
-      font-size: 1.75rem;  /* 28px fixed */
+      font-size: 1.375rem;  /* 22px */
       line-height: 1.25;
     }
 
     .text-display-xl {
-      font-size: 1.625rem;  /* 26px fixed */
-      line-height: 1.25;
+      font-size: 1.25rem;  /* 20px */
+      line-height: 1.3;
     }
 
     .text-display-lg {
-      font-size: 1.5rem;  /* 24px fixed */
-      line-height: 1.3;
+      font-size: 1.125rem;  /* 18px - headline */
+      line-height: 1.35;
       letter-spacing: -0.005em;
     }
 
     .text-display-md {
-      font-size: 1.25rem;  /* 20px fixed */
-      line-height: 1.35;
+      font-size: 1rem;  /* 16px */
+      line-height: 1.4;
     }
 
-    /* Smooth heading progression */
+    /* Heading sizes */
     .text-h1 {
-      font-size: 1.375rem;  /* 22px */
-      line-height: 1.35;
+      font-size: 1rem;  /* 16px */
+      line-height: 1.4;
     }
 
     .text-h2 {
-      font-size: 1.25rem;  /* 20px */
-      line-height: 1.4;
+      font-size: 0.9375rem;  /* 15px */
+      line-height: 1.45;
     }
 
     .text-h3 {
-      font-size: 1.125rem;  /* 18px */
-      line-height: 1.4;
+      font-size: 0.875rem;  /* 14px */
+      line-height: 1.45;
     }
 
     .text-h4 {
-      font-size: 1rem;  /* 16px */
-      line-height: 1.45;
+      font-size: 0.8125rem;  /* 13px */
+      line-height: 1.5;
     }
 
     .text-h5 {
-      font-size: 0.9375rem;  /* 15px */
-      line-height: 1.45;
+      font-size: 0.75rem;  /* 12px */
+      line-height: 1.5;
     }
 
-    /* Body text optimization */
+    /* Body text - compact */
     .text-body-lg {
-      font-size: 0.9375rem;  /* 15px */
+      font-size: 0.8125rem;  /* 13px - subheadline */
       line-height: 1.6;
     }
 
     .text-body-base {
-      font-size: 0.875rem;  /* 14px */
+      font-size: 0.75rem;  /* 12px */
       line-height: 1.6;
     }
 
     .text-body-sm {
-      font-size: 0.8125rem;  /* 13px */
+      font-size: 0.6875rem;  /* 11px */
       line-height: 1.55;
     }
 
-    /* Labels & UI */
+    /* Labels & UI - smaller */
     .text-label-base {
-      font-size: 0.6875rem;  /* 11px */
+      font-size: 0.625rem;  /* 10px */
       line-height: 1.4;
+      letter-spacing: 0.03em;
     }
 
     .text-button-lg {
-      font-size: 0.9375rem;  /* 15px */
+      font-size: 0.8125rem;  /* 13px */
+    }
+
+    .text-button-base {
+      font-size: 0.75rem;  /* 12px */
+    }
+
+    .text-caption {
+      font-size: 0.6875rem;  /* 11px */
+    }
+
+    .text-caption-sm {
+      font-size: 0.625rem;  /* 10px */
     }
   }
 
