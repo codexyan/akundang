@@ -483,7 +483,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     thumbnail_url: '',
   })
   const [releasing, setReleasing] = useState(false)
-  const [jsonError, setJsonError] = useState('')
   const [previewKey, setPreviewKey] = useState(0)
   const [savedLabs, setSavedLabs] = useState<{ id: string; name: string; config: TemplateRecord }[]>(() => {
     try { return JSON.parse(localStorage.getItem('akundang-labs') || '[]') }
