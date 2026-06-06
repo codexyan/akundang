@@ -58,8 +58,9 @@ function LoginContent() {
     }
     const { user } = await res.json()
     toast.success('Login berhasil! 🎉')
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@akundang.id'
-    router.push(user?.email === adminEmail ? '/admin' : redirect)
+    // Check if user is admin by role field or isAdmin flag
+    const isAdmin = user?.role === 'admin' || user?.isAdmin === true
+    router.push(isAdmin ? '/admin' : redirect)
     router.refresh()
   }
 
