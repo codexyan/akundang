@@ -15,6 +15,7 @@ import { LEGACY_TEMPLATE_IDS, PRICE_FORMATTED } from '@/lib/types'
 import { getInvitationUrl, isExpired } from '@/lib/utils'
 import { generateSlugSuggestions } from '@/lib/slug-generator'
 import { Button } from '@/components/ui/Button'
+import Logo from '@/components/ui/Logo'
 import GalleryManager from './GalleryManager'
 import MusicManager from './MusicManager'
 import RSVPList from './RSVPList'
@@ -150,9 +151,7 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
       `}>
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-stone-200/50">
-          <Link href="/" className="flex items-center leading-none">
-            <span className="text-lg font-bold tracking-tight"><span className="text-gold-600">ak</span><span className="text-stone-900">undang</span></span>
-          </Link>
+          <Logo size="sm" showIcon={true} />
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-stone-400">
             <X size={18} />
           </button>
@@ -245,7 +244,7 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
           <button onClick={() => setSidebarOpen(true)} className="text-stone-500">
             <Menu size={20} />
           </button>
-          <span className="font-bold tracking-tight text-sm"><span className="text-gold-600">ak</span><span className="text-stone-900">undang</span></span>
+          <Logo size="sm" showIcon={true} />
           <div className="w-8" />
         </header>
 

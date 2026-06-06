@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import Logo from './Logo'
 
 export default function Navbar() {
   const router = useRouter()
@@ -24,13 +25,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-stone-200/50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center leading-none">
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-rose-600">ak</span><span className="text-stone-900">undang</span>
-          </span>
-        </Link>
+        <Logo size="md" showIcon={true} animated={false} />
 
         <div className="flex items-center gap-1 min-w-[160px] justify-end">
           {!loaded ? (
@@ -45,13 +42,13 @@ export default function Navbar() {
               </span>
               <Link
                 href="/dashboard"
-                className="text-sm font-medium text-stone-700 hover:text-rose-600 px-3 py-1.5 rounded-xl hover:bg-rose-50 transition-colors"
+                className="text-sm font-medium text-stone-700 hover:text-gold-600 px-3 py-1.5 rounded-xl hover:bg-gold-50 transition-colors"
               >
                 Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-400 hover:text-gray-700 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                className="text-sm text-stone-400 hover:text-stone-700 px-3 py-1.5 rounded-xl hover:bg-stone-100 transition-colors"
               >
                 Keluar
               </button>
@@ -60,13 +57,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-medium text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                className="text-sm font-medium text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-xl hover:bg-stone-100 transition-colors"
               >
                 Masuk
               </Link>
               <Link
                 href="/register"
-                className="text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-xl transition-colors"
+                className="text-sm font-semibold bg-gold-gradient hover:opacity-90 text-white px-4 py-1.5 rounded-xl transition-all shadow-sm hover:shadow-md"
               >
                 Mulai Gratis
               </Link>
