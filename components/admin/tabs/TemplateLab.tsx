@@ -1331,7 +1331,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     </Field>
                   )}
                 </div>
-                )} {/* end show_opening !== false */}
               </div>
 
               {/* ── Foto Cover ── */}
