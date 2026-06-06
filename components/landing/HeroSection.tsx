@@ -1,85 +1,128 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Play, Sparkles, Star, MousePointerClick, Zap, Heart, Check } from 'lucide-react'
+import Link from "next/link";
+import Image from "next/image";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValue,
+} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  Play,
+  Sparkles,
+  Star,
+  MousePointerClick,
+  Zap,
+  Heart,
+  Check,
+} from "lucide-react";
 
-const COUPLE_PHOTO = '/uploads/c13e2da0-d952-471c-b411-302bbfa0d71b-1780155627570.jpg'
-const PROMO_END    = new Date('2026-08-31T23:59:59')
+const COUPLE_PHOTO =
+  "/uploads/c13e2da0-d952-471c-b411-302bbfa0d71b-1780155627570.jpg";
+const PROMO_END = new Date("2026-08-31T23:59:59");
 
 function useDaysLeft(target: Date) {
-  const [days, setDays] = useState(0)
+  const [days, setDays] = useState(0);
   useEffect(() => {
-    const calc = () => setDays(Math.max(0, Math.floor((target.getTime() - Date.now()) / 86400000)))
-    calc()
-    const t = setInterval(calc, 60000)
-    return () => clearInterval(t)
-  }, [target])
-  return days
+    const calc = () =>
+      setDays(
+        Math.max(0, Math.floor((target.getTime() - Date.now()) / 86400000)),
+      );
+    calc();
+    const t = setInterval(calc, 60000);
+    return () => clearInterval(t);
+  }, [target]);
+  return days;
 }
 
 // ─── Floating Interactive Cards ──────────────────────────────────────────
 const FEATURE_CARDS = [
   {
-    delay: 0.8, side: 'left', top: '15%',
-    icon: Check, iconColor: '#10b981', bgGradient: 'from-emerald-500/10 to-green-500/5',
-    title: 'RSVP Confirmed',
-    value: '+12',
-    subtitle: 'baru saja',
-    x: -60
+    delay: 0.8,
+    side: "left",
+    top: "15%",
+    icon: Check,
+    iconColor: "#10b981",
+    bgGradient: "from-emerald-500/10 to-green-500/5",
+    title: "RSVP Confirmed",
+    value: "+12",
+    subtitle: "baru saja",
+    x: -60,
   },
   {
-    delay: 1.0, side: 'left', top: '55%',
-    icon: Heart, iconColor: '#ec4899', bgGradient: 'from-pink-500/10 to-rose-500/5',
-    title: 'Ucapan Hangat',
-    value: '284',
-    subtitle: 'ucapan masuk',
-    x: -60
+    delay: 1.0,
+    side: "left",
+    top: "55%",
+    icon: Heart,
+    iconColor: "#ec4899",
+    bgGradient: "from-pink-500/10 to-rose-500/5",
+    title: "Ucapan Hangat",
+    value: "284",
+    subtitle: "ucapan masuk",
+    x: -60,
   },
   {
-    delay: 1.2, side: 'right', top: '25%',
-    icon: MousePointerClick, iconColor: '#8b5cf6', bgGradient: 'from-purple-500/10 to-violet-500/5',
-    title: 'Views Hari Ini',
-    value: '1.2K',
-    subtitle: 'pengunjung aktif',
-    x: 60
+    delay: 1.2,
+    side: "right",
+    top: "25%",
+    icon: MousePointerClick,
+    iconColor: "#8b5cf6",
+    bgGradient: "from-purple-500/10 to-violet-500/5",
+    title: "Views Hari Ini",
+    value: "1.2K",
+    subtitle: "pengunjung aktif",
+    x: 60,
   },
   {
-    delay: 1.4, side: 'right', top: '65%',
-    icon: Zap, iconColor: '#f59e0b', bgGradient: 'from-amber-500/10 to-yellow-500/5',
-    title: 'Load Speed',
-    value: '0.8s',
-    subtitle: 'super cepat',
-    x: 60
+    delay: 1.4,
+    side: "right",
+    top: "65%",
+    icon: Zap,
+    iconColor: "#f59e0b",
+    bgGradient: "from-amber-500/10 to-yellow-500/5",
+    title: "Load Speed",
+    value: "0.8s",
+    subtitle: "super cepat",
+    x: 60,
   },
-]
+];
 
 // ─── 3D Floating Element ──────────────────────────────────────────
-function FloatingOrb({ delay = 0, size = 100, gradient }: { delay?: number; size?: number; gradient: string }) {
-  const orbRef = useRef<HTMLDivElement>(null)
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
+function FloatingOrb({
+  delay = 0,
+  size = 100,
+  gradient,
+}: {
+  delay?: number;
+  size?: number;
+  gradient: string;
+}) {
+  const orbRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  const springConfig = { damping: 25, stiffness: 150 }
-  const orbX = useSpring(mouseX, springConfig)
-  const orbY = useSpring(mouseY, springConfig)
+  const springConfig = { damping: 25, stiffness: 150 };
+  const orbX = useSpring(mouseX, springConfig);
+  const orbY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!orbRef.current) return
-      const rect = orbRef.current.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-      const distanceX = (e.clientX - centerX) / 25
-      const distanceY = (e.clientY - centerY) / 25
-      mouseX.set(distanceX)
-      mouseY.set(distanceY)
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [mouseX, mouseY])
+      if (!orbRef.current) return;
+      const rect = orbRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const distanceX = (e.clientX - centerX) / 25;
+      const distanceY = (e.clientY - centerY) / 25;
+      mouseX.set(distanceX);
+      mouseY.set(distanceY);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
 
   return (
     <motion.div
@@ -95,50 +138,68 @@ function FloatingOrb({ delay = 0, size = 100, gradient }: { delay?: number; size
         style={{ width: size, height: size }}
       />
     </motion.div>
-  )
+  );
 }
 
 export default function HeroSection() {
-  const daysLeft = useDaysLeft(PROMO_END)
-  const ref = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
+  const daysLeft = useDaysLeft(PROMO_END);
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '15%'])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   // Animated number counter
-  const [activeUsers, setActiveUsers] = useState(0)
+  const [activeUsers, setActiveUsers] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => {
-      let current = 0
-      const target = 128
-      const increment = target / 30
+      let current = 0;
+      const target = 128;
+      const increment = target / 30;
       const interval = setInterval(() => {
-        current += increment
+        current += increment;
         if (current >= target) {
-          setActiveUsers(target)
-          clearInterval(interval)
+          setActiveUsers(target);
+          clearInterval(interval);
         } else {
-          setActiveUsers(Math.floor(current))
+          setActiveUsers(Math.floor(current));
         }
-      }, 30)
-      return () => clearInterval(interval)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
+      }, 30);
+      return () => clearInterval(interval);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <section ref={ref} className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-stone-50" style={{ minHeight: '100svh' }}>
-
+    <section
+      ref={ref}
+      className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-stone-50"
+      style={{ minHeight: "100svh" }}
+    >
       {/* ── Animated Background Orbs (3D Parallax) ── */}
       <motion.div className="absolute inset-0 z-0" style={{ y: bgY, opacity }}>
-        <FloatingOrb delay={0.2} size={400} gradient="bg-gradient-to-br from-rose-200/40 to-pink-100/20" />
+        <FloatingOrb
+          delay={0.2}
+          size={400}
+          gradient="bg-gradient-to-br from-rose-200/40 to-pink-100/20"
+        />
         <div className="absolute top-1/4 left-1/4">
-          <FloatingOrb delay={0.4} size={300} gradient="bg-gradient-to-br from-amber-200/30 to-orange-100/15" />
+          <FloatingOrb
+            delay={0.4}
+            size={300}
+            gradient="bg-gradient-to-br from-amber-200/30 to-orange-100/15"
+          />
         </div>
         <div className="absolute bottom-1/4 right-1/4">
-          <FloatingOrb delay={0.6} size={350} gradient="bg-gradient-to-br from-emerald-200/25 to-teal-100/15" />
+          <FloatingOrb
+            delay={0.6}
+            size={350}
+            gradient="bg-gradient-to-br from-emerald-200/25 to-teal-100/15"
+          />
         </div>
 
         {/* Grid pattern */}
@@ -151,33 +212,38 @@ export default function HeroSection() {
         className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 pb-20 lg:pt-32 lg:pb-24"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-center">
-
           {/* ── Left: Premium Copy ── */}
           <div className="max-w-2xl">
-
-            {/* 🎯 Promo Badge dengan Glassmorphism */}
+            {/* 🎯 Promo Badge dengan Glassmorphism - Compact */}
             <motion.div
-              initial={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="inline-flex items-center gap-3 mb-10 rounded-full border px-5 py-3 backdrop-blur-xl"
+              className="inline-flex items-center gap-2 sm:gap-3 mb-6 sm:mb-10 rounded-full border px-3 py-1.5 sm:px-5 sm:py-3 backdrop-blur-xl text-[10px] sm:text-xs"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-                borderColor: 'rgba(212,175,55,0.3)',
-                boxShadow: '0 8px 32px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.8)'
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+                borderColor: "rgba(212,175,55,0.3)",
+                boxShadow:
+                  "0 8px 32px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.8)",
               }}
             >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
-                <Sparkles size={14} className="text-white" />
+              <div className="flex items-center justify-center w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                <Sparkles size={10} className="sm:hidden text-white" />
+                <Sparkles size={14} className="hidden sm:block text-white" />
               </div>
-              <span className="text-label-base text-secondary">Promo Launching</span>
-              <div className="h-4 w-px bg-stone-300" />
-              <span className="text-button-base font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+              <span className="text-secondary font-medium">
+                Promo Launching
+              </span>
+              <div className="h-3 sm:h-4 w-px bg-stone-300" />
+              <span className="font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                 Rp 129K
               </span>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200">
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                <span className="text-caption font-semibold text-orange-700">{daysLeft} hari lagi</span>
+              <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-orange-50 border border-orange-200">
+                <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                <span className="text-caption font-semibold text-orange-700">
+                  {daysLeft} hari lagi
+                </span>
               </div>
             </motion.div>
 
@@ -185,17 +251,20 @@ export default function HeroSection() {
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.8,
+                delay: 0.15,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="font-serif text-display-lg text-primary"
             >
-              <span className="block">
-                Undangan digital
-              </span>
+              <span className="block">Undangan digital</span>
               <span className="relative inline-block mt-2">
                 <span
                   className="bg-clip-text text-transparent"
                   style={{
-                    backgroundImage: 'linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #f4d03f 100%)',
+                    backgroundImage:
+                      "linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #f4d03f 100%)",
                   }}
                 >
                   yang bikin tamu kagum
@@ -204,26 +273,36 @@ export default function HeroSection() {
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{
+                    delay: 0.8,
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
                   className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300 rounded-full origin-left"
-                  style={{ transformOrigin: 'left' }}
+                  style={{ transformOrigin: "left" }}
                 />
               </span>
-              <span className="block mt-2">
-                sejak klik pertama
-              </span>
+              <span className="block mt-2">sejak klik pertama</span>
             </motion.h1>
 
             {/* 🎯 Subheadline dengan better readability */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.7,
+                delay: 0.35,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="mt-7 text-body-lg text-secondary max-w-xl text-no-orphan"
             >
-              Tamu klik link → musik langsung mengalir → nama mereka muncul → foto kalian tersaji cantik.
-              <span className="text-primary font-semibold"> Terpukau sejak detik pertama</span>,
-              tanpa ribet scroll atau cari tombol.
+              Tamu klik link → musik langsung mengalir → nama mereka muncul →
+              foto kalian tersaji cantik.
+              <span className="text-primary font-semibold">
+                {" "}
+                Terpukau sejak detik pertama
+              </span>
+              , tanpa ribet scroll atau cari tombol.
             </motion.p>
 
             {/* 🎯 Stats Bar - Social Proof */}
@@ -236,12 +315,16 @@ export default function HeroSection() {
               {/* Avatars dengan better design */}
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-3">
-                  {['🤵🏻', '👰🏻', '🤵🏽', '👰🏽', '🤵🏿'].map((e, i) => (
+                  {["🤵🏻", "👰🏻", "🤵🏽", "👰🏽", "🤵🏿"].map((e, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 300 }}
+                      transition={{
+                        delay: 0.6 + i * 0.08,
+                        type: "spring",
+                        stiffness: 300,
+                      }}
                       className="w-10 h-10 rounded-full border-3 border-white bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center shadow-lg"
                       style={{ zIndex: 5 - i }}
                     >
@@ -256,14 +339,26 @@ export default function HeroSection() {
                         key={i}
                         initial={{ opacity: 0, scale: 0, rotate: -180 }}
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        transition={{ delay: 1 + i * 0.05, type: 'spring', stiffness: 200 }}
+                        transition={{
+                          delay: 1 + i * 0.05,
+                          type: "spring",
+                          stiffness: 200,
+                        }}
                       >
-                        <Star size={14} className="fill-amber-400 text-amber-400 drop-shadow-sm" />
+                        <Star
+                          size={14}
+                          className="fill-amber-400 text-amber-400 drop-shadow-sm"
+                        />
                       </motion.div>
                     ))}
-                    <span className="text-button-base font-bold text-primary ml-1">4.9</span>
+                    <span className="text-button-base font-bold text-primary ml-1">
+                      4.9
+                    </span>
                   </div>
-                  <p className="text-caption text-tertiary font-medium">dari <strong className="text-secondary">500+</strong> pasangan</p>
+                  <p className="text-caption text-tertiary font-medium">
+                    dari <strong className="text-secondary">500+</strong>{" "}
+                    pasangan
+                  </p>
                 </div>
               </div>
 
@@ -277,7 +372,9 @@ export default function HeroSection() {
                   <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-400 animate-ping" />
                 </div>
                 <div>
-                  <p className="text-h5 font-bold text-primary leading-none">{activeUsers}</p>
+                  <p className="text-h5 font-bold text-primary leading-none">
+                    {activeUsers}
+                  </p>
                   <p className="text-caption-sm text-tertiary">sedang online</p>
                 </div>
               </div>
@@ -287,7 +384,11 @@ export default function HeroSection() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.7,
+                delay: 0.6,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="mt-10 flex flex-col sm:flex-row gap-4"
             >
               <Link href="/templates" className="group">
@@ -296,26 +397,34 @@ export default function HeroSection() {
                   whileTap={{ scale: 0.97 }}
                   className="relative w-full sm:w-auto px-8 py-4 rounded-2xl text-white text-button-lg overflow-hidden shadow-2xl"
                   style={{
-                    background: 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 50%, #1a3320 100%)',
+                    background:
+                      "linear-gradient(135deg, #1a3320 0%, #2d5a3d 50%, #1a3320 100%)",
                   }}
                 >
                   {/* Animated gradient overlay */}
                   <motion.div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ background: 'linear-gradient(135deg, #2d5a3d 0%, #3d6f4d 100%)' }}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #2d5a3d 0%, #3d6f4d 100%)",
+                    }}
                   />
 
                   {/* Shine effect */}
                   <motion.div
                     className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
                     }}
                   />
 
                   <span className="relative flex items-center justify-center gap-2">
                     Mulai Buat Undangan
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight
+                      size={18}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
                   </span>
                 </motion.button>
               </Link>
@@ -326,13 +435,17 @@ export default function HeroSection() {
                   whileTap={{ scale: 0.97 }}
                   className="w-full sm:w-auto px-8 py-4 rounded-2xl text-button-lg backdrop-blur-xl border-2 transition-all text-stone-700"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))',
-                    borderColor: 'rgba(120,113,108,0.2)',
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))",
+                    borderColor: "rgba(120,113,108,0.2)",
                   }}
                 >
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                      <Play size={11} className="fill-white text-white ml-0.5" />
+                      <Play
+                        size={11}
+                        className="fill-white text-white ml-0.5"
+                      />
                     </div>
                     Lihat Demo Live
                   </span>
@@ -340,33 +453,40 @@ export default function HeroSection() {
               </Link>
             </motion.div>
 
-            {/* 🎯 Feature Pills - Redesigned */}
+            {/* 🎯 Feature Pills - Compact Mobile */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.85 }}
-              className="mt-8 flex flex-wrap gap-2.5"
+              className="mt-5 sm:mt-8 flex flex-wrap gap-1.5 sm:gap-2.5"
             >
               {[
-                { icon: '🎵', text: 'Musik auto-play' },
-                { icon: '✨', text: 'Nama tamu personal' },
-                { icon: '📸', text: 'Galeri unlimited' },
-                { icon: '✅', text: 'RSVP realtime' },
-                { icon: '💬', text: 'Ucapan langsung' },
+                { icon: "🎵", text: "Musik auto-play" },
+                { icon: "✨", text: "Nama tamu personal" },
+                { icon: "📸", text: "Galeri unlimited" },
+                { icon: "✅", text: "RSVP realtime" },
+                { icon: "💬", text: "Ucapan langsung" },
               ].map(({ icon, text }, i) => (
                 <motion.span
                   key={text}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.9 + i * 0.06, type: 'spring', stiffness: 200 }}
-                  className="group flex items-center gap-2 px-4 py-2 rounded-full text-body-sm font-medium text-secondary backdrop-blur-md border hover:border-amber-300 hover:bg-amber-50/50 transition-all cursor-default"
+                  transition={{
+                    delay: 0.9 + i * 0.06,
+                    type: "spring",
+                    stiffness: 200,
+                  }}
+                  className="group flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-body-sm font-medium text-secondary backdrop-blur-md border hover:border-amber-300 hover:bg-amber-50/50 transition-all cursor-default"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5))',
-                    borderColor: 'rgba(120,113,108,0.15)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5))",
+                    borderColor: "rgba(120,113,108,0.15)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                   }}
                 >
-                  <span className="text-base group-hover:scale-110 transition-transform">{icon}</span>
+                  <span className="text-base group-hover:scale-110 transition-transform">
+                    {icon}
+                  </span>
                   {text}
                 </motion.span>
               ))}
@@ -380,8 +500,10 @@ export default function HeroSection() {
             transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="flex justify-center lg:justify-end perspective-1000 mt-12 lg:mt-0"
           >
-            <div className="relative select-none" style={{ transformStyle: 'preserve-3d', isolation: 'isolate' }}>
-
+            <div
+              className="relative select-none"
+              style={{ transformStyle: "preserve-3d", isolation: "isolate" }}
+            >
               {/* Enhanced glow */}
               <div className="absolute -inset-20 pointer-events-none">
                 <div className="absolute inset-0 bg-gradient-radial from-amber-200/40 via-transparent to-transparent blur-3xl" />
@@ -392,19 +514,29 @@ export default function HeroSection() {
               {FEATURE_CARDS.map((card, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, x: card.side === 'left' ? -20 : 20, scale: 0.9 }}
+                  initial={{
+                    opacity: 0,
+                    x: card.side === "left" ? -20 : 20,
+                    scale: 0.9,
+                  }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
-                  transition={{ delay: card.delay, duration: 0.6, type: 'spring', stiffness: 100 }}
+                  transition={{
+                    delay: card.delay,
+                    duration: 0.6,
+                    type: "spring",
+                    stiffness: 100,
+                  }}
                   whileHover={{ scale: 1.03, y: -3 }}
                   className={`absolute z-20 ${card.bgGradient} backdrop-blur-xl rounded-xl p-2.5 border border-white/20 hidden xl:block`}
                   style={{
-                    [card.side === 'left' ? 'left' : 'right']: '-5px',
+                    [card.side === "left" ? "left" : "right"]: "-5px",
                     top: card.top,
-                    transform: `translateX(${card.side === 'left' ? '-100%' : '100%'})`,
-                    background: 'rgba(255,255,255,0.98)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+                    transform: `translateX(${card.side === "left" ? "-100%" : "100%"})`,
+                    background: "rgba(255,255,255,0.98)",
+                    boxShadow:
+                      "0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)",
                     maxWidth: 140,
-                    willChange: 'transform',
+                    willChange: "transform",
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -412,16 +544,25 @@ export default function HeroSection() {
                       className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-inner"
                       style={{
                         background: `linear-gradient(135deg, ${card.iconColor}15, ${card.iconColor}05)`,
-                        border: `1px solid ${card.iconColor}20`
+                        border: `1px solid ${card.iconColor}20`,
                       }}
                     >
                       <card.icon size={14} style={{ color: card.iconColor }} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold text-primary leading-tight mb-0.5">{card.title}</p>
+                      <p className="text-[10px] font-semibold text-primary leading-tight mb-0.5">
+                        {card.title}
+                      </p>
                       <div className="flex items-baseline gap-1">
-                        <p className="text-sm font-bold leading-none" style={{ color: card.iconColor }}>{card.value}</p>
-                        <p className="text-[9px] text-muted truncate">{card.subtitle}</p>
+                        <p
+                          className="text-sm font-bold leading-none"
+                          style={{ color: card.iconColor }}
+                        >
+                          {card.value}
+                        </p>
+                        <p className="text-[9px] text-muted truncate">
+                          {card.subtitle}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -437,12 +578,12 @@ export default function HeroSection() {
                 transition={{
                   duration: 6,
                   repeat: Infinity,
-                  ease: 'easeInOut',
+                  ease: "easeInOut",
                 }}
                 className="relative"
                 style={{
                   width: 280,
-                  transformStyle: 'preserve-3d',
+                  transformStyle: "preserve-3d",
                 }}
               >
                 {/* iPhone 15 Pro Max style */}
@@ -450,7 +591,8 @@ export default function HeroSection() {
                   className="relative rounded-[52px] overflow-hidden"
                   style={{
                     padding: 12,
-                    background: 'linear-gradient(145deg, #2c2c2e 0%, #1c1c1e 50%, #0a0a0a 100%)',
+                    background:
+                      "linear-gradient(145deg, #2c2c2e 0%, #1c1c1e 50%, #0a0a0a 100%)",
                     boxShadow: `
                       0 50px 100px rgba(0,0,0,0.4),
                       0 0 0 1px rgba(255,255,255,0.05),
@@ -466,13 +608,16 @@ export default function HeroSection() {
                       top: 15,
                       width: 95,
                       height: 26,
-                      backgroundColor: '#000',
-                      boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.1)'
+                      backgroundColor: "#000",
+                      boxShadow: "inset 0 1px 2px rgba(255,255,255,0.1)",
                     }}
                   />
 
                   {/* Screen */}
-                  <div className="rounded-[42px] overflow-hidden bg-black relative" style={{ aspectRatio: '9/19.5' }}>
+                  <div
+                    className="rounded-[42px] overflow-hidden bg-black relative"
+                    style={{ aspectRatio: "9/19.5" }}
+                  >
                     {/* Placeholder background gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-rose-900 via-pink-800 to-purple-900" />
 
@@ -487,12 +632,13 @@ export default function HeroSection() {
                       onError={(e) => {
                         // Hide image on error, show gradient background
                         const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
+                        target.style.display = "none";
                       }}
                     />
 
                     {/* Premium overlay gradient */}
-                    <div className="absolute inset-0 z-10"
+                    <div
+                      className="absolute inset-0 z-10"
                       style={{
                         background: `
                           linear-gradient(180deg,
@@ -501,29 +647,44 @@ export default function HeroSection() {
                             rgba(0,0,0,0.05) 50%,
                             rgba(0,0,0,0.3) 75%,
                             rgba(0,0,0,0.9) 100%)
-                        `
+                        `,
                       }}
                     />
 
                     {/* Status bar - iOS 18 style */}
                     <div className="absolute top-0 inset-x-0 h-11 flex items-end justify-between px-7 pb-2 z-20">
-                      <span className="text-caption-sm font-semibold text-white/80">9:41</span>
+                      <span className="text-caption-sm font-semibold text-white/80">
+                        9:41
+                      </span>
                       <div className="flex items-center gap-1">
                         <div className="flex items-end gap-0.5">
-                          {[4,5,6,5,6].map((h, i) => (
-                            <div key={i} style={{ width: 2.5, height: h, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.7)' }} />
+                          {[4, 5, 6, 5, 6].map((h, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                width: 2.5,
+                                height: h,
+                                borderRadius: 1,
+                                backgroundColor: "rgba(255,255,255,0.7)",
+                              }}
+                            />
                           ))}
                         </div>
                         <div className="ml-1.5 w-5 h-2.5 rounded-sm border border-white/60 flex items-center px-0.5 relative">
-                          <div className="h-full rounded-sm bg-white/90" style={{ width: '75%' }} />
+                          <div
+                            className="h-full rounded-sm bg-white/90"
+                            style={{ width: "75%" }}
+                          />
                           <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-1.5 bg-white/60 rounded-r-sm" />
                         </div>
                       </div>
                     </div>
 
                     {/* Label */}
-                    <p className="absolute z-20 inset-x-0 text-center text-white/60 text-eyebrow font-medium"
-                      style={{ top: 52 }}>
+                    <p
+                      className="absolute z-20 inset-x-0 text-center text-white/60 text-eyebrow font-medium"
+                      style={{ top: 52 }}
+                    >
                       Undangan Pernikahan
                     </p>
 
@@ -534,7 +695,7 @@ export default function HeroSection() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.5, duration: 0.8 }}
                         className="font-serif italic text-white text-center leading-none drop-shadow-2xl text-display-md"
-                        style={{ textShadow: '0 4px 24px rgba(0,0,0,1)' }}
+                        style={{ textShadow: "0 4px 24px rgba(0,0,0,1)" }}
                       >
                         Ikhwal
                       </motion.p>
@@ -544,14 +705,26 @@ export default function HeroSection() {
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
                           transition={{ delay: 1.7, duration: 0.5 }}
-                          style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #d4af37, transparent)' }}
+                          style={{
+                            width: 40,
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, transparent, #d4af37, transparent)",
+                          }}
                         />
                         <motion.p
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          transition={{ delay: 1.8, type: 'spring', stiffness: 200 }}
+                          transition={{
+                            delay: 1.8,
+                            type: "spring",
+                            stiffness: 200,
+                          }}
                           className="font-serif text-h3"
-                          style={{ color: '#d4af37', textShadow: '0 2px 12px rgba(212,175,55,0.8)' }}
+                          style={{
+                            color: "#d4af37",
+                            textShadow: "0 2px 12px rgba(212,175,55,0.8)",
+                          }}
                         >
                           &amp;
                         </motion.p>
@@ -559,7 +732,12 @@ export default function HeroSection() {
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
                           transition={{ delay: 1.7, duration: 0.5 }}
-                          style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #d4af37, transparent)' }}
+                          style={{
+                            width: 40,
+                            height: 1,
+                            background:
+                              "linear-gradient(90deg, transparent, #d4af37, transparent)",
+                          }}
                         />
                       </div>
 
@@ -568,7 +746,7 @@ export default function HeroSection() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.9, duration: 0.8 }}
                         className="font-serif italic text-white text-center leading-none drop-shadow-2xl text-display-md"
-                        style={{ textShadow: '0 4px 24px rgba(0,0,0,1)' }}
+                        style={{ textShadow: "0 4px 24px rgba(0,0,0,1)" }}
                       >
                         Fani
                       </motion.p>
@@ -586,8 +764,13 @@ export default function HeroSection() {
                     {/* Bottom section - Enhanced */}
                     <div className="absolute bottom-0 inset-x-0 z-20 px-6 pb-7">
                       <div className="text-center mb-4">
-                        <p className="text-white/50 text-caption-sm tracking-wider mb-1">Kepada Yth.</p>
-                        <p className="text-white text-caption font-semibold" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+                        <p className="text-white/50 text-caption-sm tracking-wider mb-1">
+                          Kepada Yth.
+                        </p>
+                        <p
+                          className="text-white text-caption font-semibold"
+                          style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}
+                        >
                           Bapak Andi dan Keluarga
                         </p>
                       </div>
@@ -597,21 +780,37 @@ export default function HeroSection() {
                         whileTap={{ scale: 0.95 }}
                         className="w-full py-3 rounded-full text-white text-button-sm tracking-widest uppercase backdrop-blur-xl"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
-                          border: '1px solid rgba(255,255,255,0.3)',
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)'
+                          background:
+                            "linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))",
+                          border: "1px solid rgba(255,255,255,0.3)",
+                          boxShadow:
+                            "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
                         }}
                       >
                         Buka Undangan
                       </motion.button>
 
                       {/* Progress indicator */}
-                      <div className="mt-3 mx-auto relative overflow-hidden rounded-full" style={{ width: 56, height: 2, backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                      <div
+                        className="mt-3 mx-auto relative overflow-hidden rounded-full"
+                        style={{
+                          width: 56,
+                          height: 2,
+                          backgroundColor: "rgba(255,255,255,0.2)",
+                        }}
+                      >
                         <motion.div
                           className="absolute inset-y-0 left-0 rounded-full"
-                          style={{ background: 'linear-gradient(90deg, #d4af37, #f4d03f)' }}
-                          animate={{ width: ['0%', '100%', '0%'] }}
-                          transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+                          style={{
+                            background:
+                              "linear-gradient(90deg, #d4af37, #f4d03f)",
+                          }}
+                          animate={{ width: ["0%", "100%", "0%"] }}
+                          transition={{
+                            duration: 3.5,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
                         />
                       </div>
                     </div>
@@ -619,11 +818,13 @@ export default function HeroSection() {
                 </div>
 
                 {/* Enhanced reflection */}
-                <div className="absolute inset-x-3 -bottom-4 h-12 rounded-b-3xl opacity-25 blur-xl"
+                <div
+                  className="absolute inset-x-3 -bottom-4 h-12 rounded-b-3xl opacity-25 blur-xl"
                   style={{
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.5), transparent)',
-                    transform: 'scaleY(-1) translateY(-100%)',
-                    filter: 'blur(20px)'
+                    background:
+                      "linear-gradient(to bottom, rgba(0,0,0,0.5), transparent)",
+                    transform: "scaleY(-1) translateY(-100%)",
+                    filter: "blur(20px)",
                   }}
                 />
               </motion.div>
@@ -633,9 +834,13 @@ export default function HeroSection() {
       </motion.div>
 
       {/* ── Bottom gradient fade ── */}
-      <div className="absolute bottom-0 inset-x-0 h-32 pointer-events-none z-10"
-        style={{ background: 'linear-gradient(to bottom, transparent, rgba(248,250,252,0.9))' }}
+      <div
+        className="absolute bottom-0 inset-x-0 h-32 pointer-events-none z-10"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, rgba(248,250,252,0.9))",
+        }}
       />
     </section>
-  )
+  );
 }
