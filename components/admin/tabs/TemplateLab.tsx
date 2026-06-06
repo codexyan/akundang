@@ -1293,7 +1293,11 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
 
-              {/* ── Foto Cover ── */}
+              {/* ── Background Music ── */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                  Musik Latar
+                </p>
               <div className="pt-4 border-t border-gray-100">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
                   Foto Pasangan
@@ -1422,18 +1426,24 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 )}
               </div>
 
-              {/* ── Musik & Loading ── */}
+              {/* ── Loading Screen Settings ── */}
               <div className="pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Musik & Loading Screen
+                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
+                    Loading Screen
                   </p>
                   <button
-                    onClick={() => { setPreviewLoading(true); setTimeout(() => setPreviewLoading(false), 2200) }}
+                    onClick={() => setPreviewMode('loading')}
                     className="flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-2 py-1 transition-colors"
                   >
-                    <Play className="w-2.5 h-2.5 fill-current" /> Preview Loading
+                    <Play className="w-2.5 h-2.5 fill-current" /> Preview
                   </button>
+                </div>
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 mb-3">
+                  <p className="text-[9px] text-blue-700 leading-relaxed">
+                    <strong>Info:</strong> Loading screen TIDAK muncul di undangan live (langsung masuk).
+                    Setting ini hanya untuk preview di mockup admin.
+                  </p>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-1">
