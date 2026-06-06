@@ -365,7 +365,7 @@ const ANIM_LABEL: Record<string, string> = {
 const HEADING_FONTS = ['Playfair Display', 'Cinzel', 'Cormorant Garamond', 'Great Vibes', 'Dancing Script', 'Libre Baskerville', 'EB Garamond']
 const BODY_FONTS = ['Lato', 'Raleway', 'Nunito', 'Cormorant Garamond', 'Roboto', 'Inter', 'Jost']
 
-type ConfigTab = 'identity' | 'colors' | 'opening' | 'sections' | 'json'
+type ConfigTab = 'identity' | 'colors' | 'opening' | 'loading' | 'sections' | 'json'
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (Cover)', profiles: 'Profil Pasangan', countdown: 'Hitung Mundur',
@@ -843,32 +843,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
 
-              {/* Kategori — Managed in Management Module */}
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">🏷️</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">
-                      Kategori Template
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      Kategori saat ini: <span className="font-semibold text-gray-700">{categoryList.find(c => c.slug === cfg.meta.category)?.label || cfg.meta.category}</span>
-                    </p>
-                    <p className="text-[10px] text-gray-400 leading-relaxed">
-                      Untuk mengelola kategori (tambah, edit, hapus), gunakan modul Manajemen.
-                    </p>
-                    {onGoToManagement && (
-                      <button
-                        onClick={onGoToManagement}
-                        className="mt-2 text-[10px] font-semibold text-indigo-600 hover:text-indigo-700"
-                      >
-                        Buka Manajemen →
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* OLD CATEGORY CRUD - HIDDEN */}
               <div className="hidden">
                 {catAdding && (
@@ -930,34 +904,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* Tipografi — Available in Opening & Sections */}
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">✍️</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">
-                      Tipografi (Font & Ukuran)
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      Font saat ini: <span className="font-semibold text-gray-700">{cfg.meta.font.heading}</span> (Judul), <span className="font-semibold text-gray-700">{cfg.meta.font.body}</span> (Teks)
-                    </p>
-                    <p className="text-[10px] text-gray-400 leading-relaxed">
-                      Setting font dan ukuran tersedia di setiap fitur:
-                    </p>
-                    <ul className="mt-2 space-y-1 text-[10px] text-gray-500">
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-indigo-400">•</span>
-                        <span>Tab <strong>Opening</strong> → untuk cover & greeting</span>
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <span className="text-indigo-400">•</span>
-                        <span>Tab <strong>Sections</strong> → untuk setiap section</span>
-                      </li>
-                    </ul>
-                  </div>
                 </div>
               </div>
 
