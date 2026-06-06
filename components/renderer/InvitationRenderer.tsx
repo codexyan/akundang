@@ -60,18 +60,23 @@ export default function InvitationRenderer({
     }
   }, [phase, musicUrl])
 
-  // Opening hanya tampil jika EKSPLISIT diaktifkan — default: skip langsung ke main
-  const skipOpening = config.opening.show_opening !== true
-  const handleLoadDone = useCallback(() => setPhase(skipOpening ? 'main' : 'opening'), [skipOpening])
+  // FORCE SKIP OPENING - Always go directly to main content (no double-entry!)
+  // User feedback: Opening phase causes confusion ("Why must I enter twice?")
+  // Solution: Skip opening entirely, go straight from loading → main
+  const skipOpening = true  // ALWAYS skip (was: config.opening.show_opening !== true)
+  const handleLoadDone = useCallback(() => setPhase('main'), [])  // Always go to main
   const handleOpen    = useCallback(() => setPhase('main'), [])
 
-  // Opening auto-dismiss setelah duration_ms — user tidak perlu klik
+  // Opening auto-dismiss - DISABLED (opening phase never runs now)
+  // Commented out because we force skip opening phase
+  /*
   useEffect(() => {
     if (phase !== 'opening') return
     const ms = config.opening.duration_ms ?? 3000
     const t = setTimeout(handleOpen, ms)
     return () => clearTimeout(t)
   }, [phase, config.opening.duration_ms, handleOpen])
+  */
 
   const activeSections = [...config.sections]
     .filter((s) => s.enabled)
@@ -86,7 +91,10 @@ export default function InvitationRenderer({
         )}
       </AnimatePresence>
 
-      {/* Opening phase — selalu FadeReveal, auto-dismiss via timer */}
+      {/* Opening phase — DISABLED (causes double-entry confusion) */}
+      {/* Users complained: "Why do I have to enter twice?" */}
+      {/* Solution: Skip opening entirely, this code never runs now */}
+      {/*
       <AnimatePresence>
         {phase === 'opening' && (
           <motion.div
@@ -103,6 +111,7 @@ export default function InvitationRenderer({
           </motion.div>
         )}
       </AnimatePresence>
+      */}
 
       {/* Main invitation content — scroll-snap container, satu section = satu layar */}
       <AnimatePresence>
