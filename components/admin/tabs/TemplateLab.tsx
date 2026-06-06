@@ -1175,57 +1175,32 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
           {activeTab === 'opening' && (
             <div className="space-y-5">
 
-              {/* ── Halaman Cover (Onboarding) ── */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
-                    Halaman Cover
-                  </p>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <span className="text-[10px] text-gray-500">
-                      {cfg.opening.show_opening === true ? 'Aktif' : 'Nonaktif (default)'}
-                    </span>
-                    <button
-                      onClick={() => updateOpening({ show_opening: cfg.opening.show_opening === true ? false : true })}
-                      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
-                        cfg.opening.show_opening === true ? 'bg-indigo-600' : 'bg-gray-200'
-                      }`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                        cfg.opening.show_opening === true ? 'translate-x-[18px]' : 'translate-x-0.5'
-                      }`} />
-                    </button>
-                  </label>
-                </div>
-
-                {cfg.opening.show_opening === false ? (
-                  <p className="text-[10px] text-gray-400 text-center py-4 border border-dashed border-gray-200 rounded-xl">
-                    Halaman cover dinonaktifkan. Undangan langsung terbuka tanpa halaman cover.
-                  </p>
-                ) : (
-                <div className="space-y-4">
-
-                  <div className="flex items-end gap-3">
-                    <div style={{ width: 120 }}>
-                      <Field label="Durasi Tampil (detik)">
-                        <input
-                          type="number" min={1} max={10} step={0.5}
-                          value={Math.round((cfg.opening.duration_ms ?? 3000) / 100) / 10}
-                          onChange={e => updateOpening({ duration_ms: Math.round(Number(e.target.value) * 1000) })}
-                          className={inputCls}
-                        />
-                      </Field>
-                    </div>
-                    <button
-                      onClick={() => setPreviewPlaying(true)}
-                      className="flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-3 py-2.5 transition-colors shrink-0 mb-0.5"
-                    >
-                      <Play className="w-3 h-3 fill-current" /> Preview
-                    </button>
+              {/* ── Info: Cover Disabled ── */}
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">⚡</div>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900 mb-1">
+                      Cover Page & Loading Dinonaktifkan
+                    </p>
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      Untuk UX yang lebih cepat, halaman cover dan loading screen telah dihapus permanen.
+                      Undangan langsung terbuka tanpa delay (0.4s fade-in saja).
+                    </p>
                   </div>
-                  <p className="text-[9px] text-gray-400">
-                    Cover tampil selama durasi lalu otomatis masuk ke undangan. User bisa klik untuk masuk lebih cepat.
-                  </p>
+                </div>
+              </div>
+
+              {/* ── Opening Content (Still configurable for future use) ── */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                  Konten Opening (Tidak Ditampilkan di Cover)
+                </p>
+                <p className="text-[9px] text-gray-400 mb-4 italic">
+                  Setting ini untuk konten saja. Cover page tidak akan muncul karena sudah dinonaktifkan.
+                </p>
+
+                <div className="space-y-4 opacity-60">
 
                   <Field label="Salam Pembuka">
                     <input
