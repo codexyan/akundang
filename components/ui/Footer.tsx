@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Instagram, Mail, MessageCircle, Github, Twitter } from 'lucide-react'
@@ -14,12 +17,6 @@ const companyLinks = [
   { href: '/#testimoni', label: 'Testimoni' },
   { href: '/#faq', label: 'FAQ' },
   { href: '/blog', label: 'Blog' },
-]
-
-const accountLinks = [
-  { href: '/login', label: 'Masuk' },
-  { href: '/register', label: 'Daftar' },
-  { href: '/dashboard', label: 'Dashboard' },
 ]
 
 const socials = [
@@ -51,6 +48,27 @@ function FooterLinkGroup({ title, links }: { title: string; links: { href: strin
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const [user, setUser] = useState<{ email: string; role?: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then(({ user }) => setUser(user ?? null))
+      .catch(() => {})
+  }, [])
+
+  const accountLinks = user
+    ? [
+        {
+          href: user.role === 'admin' ? '/admin' : '/dashboard',
+          label: user.role === 'admin' ? 'Admin Panel' : 'Dashboard',
+        },
+      ]
+    : [
+        { href: '/login', label: 'Masuk' },
+        { href: '/register', label: 'Daftar' },
+        { href: '/dashboard', label: 'Dashboard' },
+      ]
 
   return (
     <footer className="relative bg-white border-t border-stone-200">
@@ -139,7 +157,7 @@ export default function Footer() {
         <div className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-stone-100">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-stone-400 text-xs text-center sm:text-left">
-              © {currentYear} <span className="text-stone-500 font-medium">Akundang</span>. Semua hak dilindungi.
+              &copy; {currentYear} <span className="text-stone-500 font-medium">Akundang</span>. Semua hak dilindungi.
             </p>
 
             <div className="flex items-center gap-5 text-xs">
@@ -153,7 +171,7 @@ export default function Footer() {
                 href="/terms"
                 className="text-stone-400 hover:text-stone-600 transition-colors"
               >
-                Syarat & Ketentuan
+                Syarat &amp; Ketentuan
               </Link>
             </div>
           </div>

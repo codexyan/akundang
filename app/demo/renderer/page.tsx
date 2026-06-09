@@ -21,6 +21,7 @@ const DEMO_DATA: NewInvitationData = {
   bride_name: 'Ani Permatasari',
   bride_parents: 'Bapak Hendra Permata & Ibu Dewi Lestari',
   groom_parents: 'Bapak Ahmad Santoso & Ibu Sri Rahayu',
+  couple_photo_url: '/logos/foto-mockup.png',
   tagline: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri. — QS Ar-Rum: 21',
   story_title: 'Kisah Kami',
   story_text: 'Kami pertama kali bertemu di sebuah acara kampus pada tahun 2019. Sebuah perkenalan singkat yang ternyata menjadi awal dari perjalanan panjang yang penuh makna.',

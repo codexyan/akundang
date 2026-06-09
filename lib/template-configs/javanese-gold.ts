@@ -37,6 +37,10 @@ const JAVANESE_GOLD: TemplateRecord = {
       type: 'fade-reveal',
       duration_ms: 3000,
       music_autoplay: false,
+      cover_photo_url: '/logos/foto-mockup.png',
+      cover_photo_opacity: 40,
+      cover_photo_position: 'center',
+      cover_photo_display: 'background',
     },
     sections: [
       {
