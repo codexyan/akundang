@@ -4,14 +4,15 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
 import {
-  FlaskConical, Save, RefreshCw, Maximize2,
+  FlaskConical, Save, RefreshCw, Maximize2, Move,
   ChevronUp, ChevronDown, Eye, EyeOff, Palette, Type,
-  LayoutTemplate, Code2, Sparkles, Loader2, Plus, Trash2, Rocket, X, GripVertical, Play, Check,
+  LayoutTemplate, Code2, Sparkles, Loader2, Plus, Trash2, Rocket, X, GripVertical, Play, Check, Lock, Unlock,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getTransitionVariants } from '@/components/renderer/transitions/useTransition'
-import type { TransitionType, TemplateMeta, ColorScheme, OpeningConfig, TemplateCategory, ColorPalette } from '@/lib/types'
+import type { TransitionType, TemplateMeta, ColorScheme, OpeningConfig, TemplateCategory, ColorPalette, DecorationAsset } from '@/lib/types'
 import type { TemplateRecord, NewInvitationData, Wish, SectionType, GiftAccount } from '@/lib/types'
+import DecorationMoodboard from '@/components/admin/DecorationMoodboard'
 import JAVANESE_GOLD from '@/lib/template-configs/javanese-gold'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import VideoUploadField from '@/components/admin/VideoUploadField'
@@ -29,6 +30,11 @@ const PREVIEW_DATA_DEFAULT: NewInvitationData = {
   bride_parents: 'Bapak & Ibu Santoso',
   groom_parents: 'Bapak & Ibu Wijaya',
   tagline: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri.',
+  groom_photo_url: 'https://images.unsplash.com/photo-1526922782478-4946233fabf5?w=400&h=500&fit=crop&crop=face',
+  bride_photo_url: 'https://images.unsplash.com/photo-1492175742197-ed20dc5a6bed?w=400&h=500&fit=crop&crop=face',
+  couple_photo_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=600&h=800&fit=crop',
+  groom_bio: 'Seorang arsitek yang percaya bahwa keindahan sejati terletak pada kesederhanaan.',
+  bride_bio: 'Dokter muda yang menemukan kebahagiaan dalam merawat dan menyayangi sesama.',
   story_title: 'Kisah Kami',
   story_text: 'Pertemuan sederhana yang ternyata menjadi awal dari perjalanan yang penuh makna. Dengan izin Allah SWT, kami memutuskan untuk melanjutkan ke jenjang pernikahan.',
   akad: {
@@ -37,6 +43,7 @@ const PREVIEW_DATA_DEFAULT: NewInvitationData = {
     venue_name: 'Masjid Al-Ikhlas',
     venue_address: 'Jl. Mawar No. 12, Jakarta Selatan',
     maps_url: 'https://maps.google.com',
+    venue_photo_url: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=600&h=400&fit=crop',
   },
   resepsi: {
     date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -44,6 +51,7 @@ const PREVIEW_DATA_DEFAULT: NewInvitationData = {
     venue_name: 'Ballroom Grand Hotel',
     venue_address: 'Jl. Sudirman No. 86, Jakarta Pusat',
     maps_url: 'https://maps.google.com',
+    venue_photo_url: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop',
   },
   gift_accounts: [
     { type: 'bank', bank: 'BCA', number: '1234567890', name: 'Ikhwal' },
@@ -55,16 +63,30 @@ const PREVIEW_DATA_DEFAULT: NewInvitationData = {
   quote_source: 'QS. Ar-Rum: 21',
   video_embed_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   video_caption: 'Highlight perjalanan kami bersama',
+  story_chapters: [
+    { date: 'Maret 2021', title: 'Pertama Bertemu', text: 'Sebuah pertemuan yang tidak direncanakan di ruang meeting kantor. Senyumnya yang hangat membuat hari-hari di kantor terasa berbeda.', photo_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&h=900&fit=crop' },
+    { date: 'Desember 2022', title: 'Jatuh Cinta', text: 'Dari rekan kerja menjadi sahabat, dari sahabat menjadi cinta. Perasaan yang tumbuh perlahan namun pasti, bagai bunga yang mekar di musim semi.', photo_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=600&h=900&fit=crop' },
+    { date: 'Juni 2023', title: 'Melamar', text: 'Dengan restu kedua keluarga dan keyakinan di hati, kami memutuskan untuk melangkah bersama menuju jenjang yang lebih serius.', photo_url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600&h=900&fit=crop' },
+  ],
   story_timeline: [
-    { date: 'Maret 2021', title: 'Pertama Bertemu', description: 'Bertemu di kantor pertama kali, awal yang tidak terduga.' },
-    { date: 'Juni 2023',  title: 'Lamaran',        description: 'Dengan restu kedua keluarga, kami melangkah lebih jauh.' },
-    { date: 'April 2026', title: 'Hari Bahagia',   description: 'Mempersatukan dua hati menjadi satu keluarga.' },
+    { date: 'Maret 2021', title: 'Pertama Bertemu', description: 'Sebuah pertemuan yang tidak direncanakan di ruang meeting kantor. Senyumnya yang hangat membuat hari-hari terasa berbeda.', photo_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400&h=400&fit=crop' },
+    { date: 'Desember 2022', title: 'Jatuh Cinta',  description: 'Dari rekan kerja menjadi sahabat, dari sahabat menjadi cinta yang tumbuh perlahan namun pasti.', photo_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=400&h=400&fit=crop' },
+    { date: 'Juni 2023',  title: 'Melamar',        description: 'Dengan restu kedua keluarga, kami memutuskan untuk melangkah bersama menuju jenjang pernikahan.', photo_url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=400&h=400&fit=crop' },
+    { date: 'April 2026', title: 'Hari Bahagia',   description: 'Mempersatukan dua hati menjadi satu keluarga, insya Allah.', photo_url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&h=400&fit=crop' },
+  ],
+  gallery_photos: [
+    'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=600&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1529636798458-92182e662485?w=600&h=600&fit=crop',
   ],
   gift_registry: [
-    { label: 'Perlengkapan dapur',   url: 'https://tokopedia.com/wishlist/1', marketplace: 'tokopedia' },
-    { label: 'Furnitur rumah tangga', url: 'https://shopee.co.id/wishlist/2', marketplace: 'shopee' },
+    { label: 'Perlengkapan dapur',   url: 'https://tokopedia.com/wishlist/1', marketplace: 'tokopedia', image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop' },
+    { label: 'Furnitur rumah tangga', url: 'https://shopee.co.id/wishlist/2', marketplace: 'shopee', image_url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=300&fit=crop' },
   ],
-  ig_story_image_url: '',
+  ig_story_image_url: 'https://images.unsplash.com/photo-1604017011826-d3b4c23f8914?w=400&h=710&fit=crop',
   qr_target_url: 'https://akundang.id/ikhwal-fani',
   qr_label: 'Pindai untuk membagikan undangan ini',
 }
@@ -147,34 +169,129 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
   const base: React.CSSProperties = { width: 54, height: 76, backgroundColor: p, borderRadius: 6, overflow: 'hidden', flexShrink: 0, position: 'relative', display: 'flex', flexDirection: 'column' }
 
   if (type === 'hero') {
+    // Centered — crosshair + centered text block
     if (variant === 'default') return (
       <div style={base}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          <div style={{ width: 20, height: 1, backgroundColor: a }} />
-          <div style={{ width: 30, height: 3, backgroundColor: t, borderRadius: 1 }} />
-          <div style={{ width: 10, height: 2, backgroundColor: a }} />
-          <div style={{ width: 30, height: 3, backgroundColor: t, borderRadius: 1 }} />
-          <div style={{ width: 20, height: 1, backgroundColor: a }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          {/* Crosshair lines */}
+          <div style={{ position: 'absolute', width: 1, height: '100%', left: '50%', backgroundColor: `${a}15` }} />
+          <div style={{ position: 'absolute', height: 1, width: '100%', top: '50%', backgroundColor: `${a}15` }} />
+          {/* Content block */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, backgroundColor: `${p}ee`, padding: '6px 4px' }}>
+            <div style={{ fontSize: 6, color: `${a}88`, fontStyle: 'italic', lineHeight: 1 }}>بسم</div>
+            <div style={{ fontSize: 7, fontWeight: 700, color: t, lineHeight: 1, letterSpacing: -0.3 }}>A & B</div>
+            <div style={{ width: 16, height: 0.5, backgroundColor: a }} />
+            <div style={{ fontSize: 4, color: `${t}66`, lineHeight: 1 }}>scroll ↓</div>
+          </div>
         </div>
-        <div style={{ height: 4, backgroundColor: `${a}44` }} />
       </div>
     )
+    // Bottom — gradient fade, text anchored to bottom
     if (variant === 'bottom') return (
-      <div style={{ ...base, justifyContent: 'flex-end' }}>
-        <div style={{ flex: 1, background: `linear-gradient(to bottom, transparent, ${p}cc)` }} />
-        <div style={{ padding: '0 6px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <div style={{ width: 34, height: 3.5, backgroundColor: t, borderRadius: 1 }} />
-          <div style={{ width: 8, height: 1.5, backgroundColor: a }} />
-          <div style={{ width: 34, height: 3.5, backgroundColor: t, borderRadius: 1 }} />
+      <div style={{ ...base, justifyContent: 'flex-end', background: `linear-gradient(135deg, ${a}22, ${p})` }}>
+        <div style={{ position: 'absolute', inset: 0, background: `url("data:image/svg+xml,%3Csvg width='54' height='76' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='54' height='76' fill='%23999' opacity='0.08'/%3E%3C/svg%3E")` }} />
+        <div style={{ position: 'absolute', inset: '30% 0 0 0', background: `linear-gradient(to bottom, transparent, ${p}ee)` }} />
+        <div style={{ position: 'relative', padding: '0 5px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+          <div style={{ fontSize: 7, fontWeight: 700, color: '#fff', lineHeight: 1, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>A & B</div>
+          <div style={{ width: 18, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ flex: 1, height: 0.5, backgroundColor: `${a}88` }} />
+            <div style={{ width: 2, height: 2, borderRadius: '50%', backgroundColor: a }} />
+            <div style={{ flex: 1, height: 0.5, backgroundColor: `${a}88` }} />
+          </div>
         </div>
       </div>
     )
+    // Minimal — double border frame, geometric center
     if (variant === 'minimal') return (
       <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 42, height: 60, border: `1.5px solid ${a}88`, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          <div style={{ width: 28, height: 2.5, backgroundColor: t, borderRadius: 1 }} />
-          <div style={{ width: 10, height: 10, border: `1px solid ${a}`, transform: 'rotate(45deg)' }} />
-          <div style={{ width: 28, height: 2.5, backgroundColor: t, borderRadius: 1 }} />
+        <div style={{ width: 42, height: 58, border: `1px solid ${a}55`, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+          <div style={{ position: 'absolute', inset: 3, border: `0.5px solid ${a}22` }} />
+          {[{ top: -3, left: -3 }, { top: -3, right: -3 }, { bottom: -3, left: -3 }, { bottom: -3, right: -3 }].map((pos, i) => (
+            <div key={i} style={{ position: 'absolute', ...pos, width: 5, height: 5, backgroundColor: a, opacity: 0.6 }} />
+          ))}
+          <div style={{ fontSize: 7, fontWeight: 600, color: t, lineHeight: 1 }}>A</div>
+          <div style={{ width: 8, height: 8, border: `0.8px solid ${a}`, transform: 'rotate(45deg)' }} />
+          <div style={{ fontSize: 7, fontWeight: 600, color: t, lineHeight: 1 }}>B</div>
+        </div>
+      </div>
+    )
+    // Split — foto kiri, nama kanan
+    if (variant === 'split') return (
+      <div style={{ ...base, flexDirection: 'row' }}>
+        <div style={{ flex: 1, background: `linear-gradient(135deg, ${a}33, ${a}11)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+            <rect x="2" y="2" width="16" height="16" rx="2" stroke={`${a}88`} strokeWidth="1" />
+            <circle cx="7" cy="8" r="2.5" fill={`${a}44`} />
+            <path d="M2,16 Q6,10 10,12 Q14,14 18,10 L18,18 L2,18 Z" fill={`${a}33`} />
+          </svg>
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', padding: '0 5px', gap: 2 }}>
+          <div style={{ fontSize: 6, fontWeight: 700, color: t, lineHeight: 1 }}>A</div>
+          <div style={{ width: 12, height: 0.5, backgroundColor: a }} />
+          <div style={{ fontSize: 6, fontWeight: 700, color: t, lineHeight: 1 }}>B</div>
+          <div style={{ fontSize: 3.5, color: `${t}55`, lineHeight: 1, marginTop: 2 }}>tagline</div>
+        </div>
+      </div>
+    )
+    // Glass Card — frosted card floating on gradient
+    if (variant === 'overlay-card') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', background: `linear-gradient(150deg, ${a}44 0%, ${p} 50%, ${a}22 100%)` }}>
+        <div style={{
+          width: 36, height: 46, borderRadius: 5,
+          background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.25)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+        }}>
+          <div style={{ fontSize: 6, fontWeight: 700, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>A</div>
+          <div style={{ fontSize: 5, color: a, fontStyle: 'italic', lineHeight: 1 }}>&amp;</div>
+          <div style={{ fontSize: 6, fontWeight: 700, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>B</div>
+          <div style={{ width: 16, height: 0.5, backgroundColor: `${a}66`, marginTop: 1 }} />
+        </div>
+      </div>
+    )
+    // Editorial — oversized dramatic text
+    if (variant === 'editorial') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+        <div style={{ fontSize: 3.5, letterSpacing: 1.5, textTransform: 'uppercase', color: `${a}77`, lineHeight: 1 }}>THE WEDDING</div>
+        <div style={{ fontSize: 12, fontWeight: 200, color: t, lineHeight: 0.9, letterSpacing: 1 }}>A</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, margin: '1px 0' }}>
+          <div style={{ width: 10, height: 0.5, backgroundColor: `${a}44` }} />
+          <div style={{ fontSize: 4, color: `${a}88` }}>&amp;</div>
+          <div style={{ width: 10, height: 0.5, backgroundColor: `${a}44` }} />
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 200, color: t, lineHeight: 0.9, letterSpacing: 1 }}>B</div>
+      </div>
+    )
+    // Arch — SVG arch frame
+    if (variant === 'arch') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
+        <svg viewBox="0 0 42 64" width="42" height="64" fill="none" style={{ position: 'absolute' }}>
+          <path d="M8,64 L8,24 Q8,5 21,5 Q34,5 34,24 L34,64" stroke={`${a}55`} strokeWidth="1" />
+          <path d="M12,64 L12,26 Q12,10 21,10 Q30,10 30,26 L30,64" stroke={`${a}22`} strokeWidth="0.5" />
+        </svg>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 4 }}>
+          <div style={{ fontSize: 4, color: `${a}88`, lineHeight: 1 }}>بسم الله</div>
+          <div style={{ fontSize: 7, fontWeight: 600, color: t, lineHeight: 1 }}>A</div>
+          <div style={{ fontSize: 5, color: a, fontStyle: 'italic', lineHeight: 1 }}>&amp;</div>
+          <div style={{ fontSize: 7, fontWeight: 600, color: t, lineHeight: 1 }}>B</div>
+        </div>
+      </div>
+    )
+    // Magazine — circle photo + horizontal name
+    if (variant === 'magazine') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+        <div style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${a}`, backgroundColor: `${a}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
+            <circle cx="6" cy="4.5" r="2.5" fill={`${a}44`} />
+            <ellipse cx="6" cy="10" rx="4" ry="2.5" fill={`${a}33`} />
+          </svg>
+        </div>
+        <div style={{ fontSize: 3.5, letterSpacing: 1, textTransform: 'uppercase', color: `${a}77`, lineHeight: 1 }}>UNDANGAN</div>
+        <div style={{ fontSize: 6.5, fontWeight: 700, color: t, lineHeight: 1 }}>A & B</div>
+        <div style={{ width: 18, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <div style={{ flex: 1, height: 0.5, backgroundColor: `${a}44` }} />
+          <div style={{ width: 1.5, height: 1.5, borderRadius: '50%', backgroundColor: a }} />
+          <div style={{ flex: 1, height: 0.5, backgroundColor: `${a}44` }} />
         </div>
       </div>
     )
@@ -214,14 +331,27 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
 
   if (type === 'events') {
     if (variant === 'default') return (
-      <div style={{ ...base, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, padding: 6 }}>
+      <div style={{ ...base, justifyContent: 'center', padding: '4px 6px', gap: 4 }}>
         {[0,1].map(i => (
-          <div key={i} style={{ flex: 1, height: 54, border: `1px solid ${a}44`, borderRadius: 3, padding: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ width: '80%', height: 2.5, backgroundColor: a, borderRadius: 1 }} />
-            <div style={{ width: '60%', height: 2, backgroundColor: `${t}66`, borderRadius: 1 }} />
-            <div style={{ width: '70%', height: 2, backgroundColor: `${t}66`, borderRadius: 1 }} />
+          <div key={i} style={{ width: '100%', border: `1px solid ${a}30`, padding: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+              <div style={{ width: 2, height: 10, backgroundColor: `${a}50` }} />
+              <div style={{ width: 20, height: 2, backgroundColor: t }} />
+            </div>
+            <div style={{ width: '80%', height: 8, backgroundColor: `${a}12` }} />
+            <div style={{ width: '60%', height: 1.5, backgroundColor: `${t}44` }} />
           </div>
         ))}
+      </div>
+    )
+    if (variant === 'cinematic') return (
+      <div style={{ ...base, justifyContent: 'flex-end', gap: 0, background: `linear-gradient(135deg, ${t}cc, ${t}88)` }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} />
+        <div style={{ position: 'relative', padding: '0 6px 6px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{ width: 16, height: 1.5, backgroundColor: `${a}cc` }} />
+          <div style={{ width: 28, height: 2, backgroundColor: 'rgba(255,255,255,0.8)' }} />
+          <div style={{ width: 20, height: 1.5, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+        </div>
       </div>
     )
     if (variant === 'timeline') return (
@@ -230,27 +360,38 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
           {[0,1].map(i => (
             <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: a, flexShrink: 0 }} />
-                {i === 0 && <div style={{ width: 1.5, height: 16, backgroundColor: `${a}44` }} />}
+                <div style={{ width: 7, height: 7, borderRadius: '50%', border: `1.5px solid ${a}60`, flexShrink: 0 }} />
+                {i === 0 && <div style={{ width: 0.5, height: 14, backgroundColor: `${a}30` }} />}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 1 }}>
-                <div style={{ width: 24, height: 2.5, backgroundColor: a, borderRadius: 1 }} />
-                <div style={{ width: 18, height: 2, backgroundColor: `${t}55`, borderRadius: 1 }} />
+                <div style={{ width: 24, height: 2, backgroundColor: t }} />
+                <div style={{ width: 18, height: 1.5, backgroundColor: `${t}44` }} />
               </div>
             </div>
           ))}
         </div>
       </div>
     )
-    if (variant === 'compact') return (
-      <div style={{ ...base, justifyContent: 'center', padding: '4px 8px', gap: 6 }}>
-        {[0,1].map(i => (
-          <div key={i}>
-            <div style={{ width: 28, height: 2.5, backgroundColor: a, borderRadius: 1, marginBottom: 3 }} />
-            <div style={{ width: '100%', height: 1.5, backgroundColor: `${t}55`, borderRadius: 1, marginBottom: 2 }} />
-            <div style={{ width: '80%', height: 1.5, backgroundColor: `${t}44`, borderRadius: 1 }} />
+    if (variant === 'magazine') return (
+      <div style={{ ...base, justifyContent: 'flex-start', gap: 0 }}>
+        <div style={{ width: '100%', height: 20, background: `${a}22` }} />
+        <div style={{ padding: '4px 6px', display: 'flex', gap: 4 }}>
+          <div style={{ width: 2, height: 24, backgroundColor: `${a}40` }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ width: 24, height: 2, backgroundColor: t }} />
+            <div style={{ width: 18, height: 1.5, backgroundColor: `${t}44` }} />
+            <div style={{ width: 14, height: 1.5, backgroundColor: `${t}33` }} />
           </div>
-        ))}
+        </div>
+      </div>
+    )
+    if (variant === 'elegant') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ width: 20, height: 1.5, backgroundColor: `${a}55` }} />
+        <div style={{ width: 28, height: 2, backgroundColor: t }} />
+        <div style={{ fontSize: 7, color: `${t}55`, fontStyle: 'italic' }}>—</div>
+        <div style={{ width: 20, height: 1.5, backgroundColor: `${a}55` }} />
+        <div style={{ width: 24, height: 2, backgroundColor: t }} />
       </div>
     )
   }
@@ -260,23 +401,99 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
       <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <div style={{ display: 'flex', gap: 3 }}>
           {[0,1,2,3].map(i => (
-            <div key={i} style={{ width: 10, height: 14, border: `1px solid ${a}55`, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 6, height: 2, backgroundColor: a }} />
+            <div key={i} style={{ width: 10, height: 14, border: `1px solid ${a}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 6, height: 2, backgroundColor: t }} />
             </div>
           ))}
         </div>
-        <div style={{ width: 28, height: 1.5, backgroundColor: `${a}44` }} />
+        <div style={{ width: 28, height: 0.5, backgroundColor: `${a}44` }} />
+      </div>
+    )
+    if (variant === 'cinematic') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(135deg, ${t}cc, ${t}99)` }}>
+        <div style={{ width: 16, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{ width: 10, height: 14, background: 'rgba(0,0,0,0.35)', border: '0.5px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 5, height: 2, backgroundColor: 'rgba(255,255,255,0.8)' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+    if (variant === 'elegant') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ fontSize: 14, fontWeight: 300, color: t, lineHeight: 1 }}>60</div>
+        <div style={{ width: 20, height: 0.5, backgroundColor: `${a}40` }} />
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ width: 6, height: 3, backgroundColor: `${t}88` }} />
+          ))}
+        </div>
       </div>
     )
     if (variant === 'minimal') return (
       <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
         <div style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
           {[0,1,2,3].map(i => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-              <div style={{ width: 12, height: 5, backgroundColor: t, borderRadius: 1, opacity: 0.9 }} />
-              <div style={{ width: 8, height: 1.5, backgroundColor: `${a}77`, borderRadius: 1 }} />
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <div style={{ width: 10, height: 5, backgroundColor: t, opacity: 0.8 }} />
+              <div style={{ width: 6, height: 1, backgroundColor: `${a}55` }} />
             </div>
           ))}
+        </div>
+      </div>
+    )
+    if (variant === 'rings') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${a}55`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 4, height: 2, backgroundColor: t }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+    if (variant === 'magazine') return (
+      <div style={{ ...base, justifyContent: 'flex-start', gap: 0 }}>
+        <div style={{ width: '100%', height: 22, background: `linear-gradient(135deg, ${a}44, ${a}22)` }} />
+        <div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div style={{ width: 3, height: 12, backgroundColor: `${a}55` }} />
+          <div style={{ display: 'flex', gap: 2 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ width: 8, height: 10, borderTop: `1.5px solid ${a}66`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 5, height: 2, backgroundColor: t }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (type === 'gift') {
+    if (variant === 'default') return (
+      <div style={{ ...base, justifyContent: 'center', padding: '6px 4px', gap: 3 }}>
+        {[0,1].map(i => (
+          <div key={i} style={{ width: '100%', height: 20, borderRadius: 4, background: `linear-gradient(135deg, ${a}55, ${a}33)`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 3, left: 4, width: 8, height: 5, borderRadius: 1.5, backgroundColor: `${a}88`, border: `0.5px solid ${a}` }} />
+            <div style={{ position: 'absolute', bottom: 3, left: 4, width: 22, height: 1.5, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 1 }} />
+          </div>
+        ))}
+      </div>
+    )
+    if (variant === 'swipe') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: 36, height: 50 }}>
+          <div style={{ position: 'absolute', top: 0, left: 4, right: 4, height: 40, borderRadius: 4, background: `${a}22`, transform: 'scale(0.92)' }} />
+          <div style={{ position: 'absolute', top: 4, left: 2, right: 2, height: 40, borderRadius: 4, background: `${a}33`, transform: 'scale(0.96)' }} />
+          <div style={{ position: 'absolute', top: 8, left: 0, right: 0, height: 40, borderRadius: 4, background: `linear-gradient(135deg, ${a}66, ${a}44)` }}>
+            <div style={{ position: 'absolute', top: 4, left: 4, width: 7, height: 4, borderRadius: 1, backgroundColor: `${a}88` }} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
+          {[0,1,2].map(i => <div key={i} style={{ width: i === 0 ? 8 : 3, height: 3, borderRadius: 1.5, backgroundColor: i === 0 ? a : `${a}44` }} />)}
         </div>
       </div>
     )
@@ -303,13 +520,149 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
     )
   }
 
+  if (type === 'quote') {
+    if (variant === 'default') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ width: 20, height: 0.5, background: `linear-gradient(to right, transparent, ${a}50)` }} />
+        <div style={{ fontSize: 8, color: `${a}88`, fontFamily: 'serif', direction: 'rtl' as const }}>بسم</div>
+        <div style={{ width: 30, height: 1.5, backgroundColor: `${t}44`, fontStyle: 'italic' }} />
+        <div style={{ fontSize: 5, color: `${a}55`, letterSpacing: 1, textTransform: 'uppercase' as const }}>QS</div>
+        <div style={{ width: 20, height: 0.5, background: `linear-gradient(to left, transparent, ${a}50)` }} />
+      </div>
+    )
+    if (variant === 'cinematic') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 3, background: `linear-gradient(135deg, ${t}dd, ${t}aa)` }}>
+        <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontFamily: 'serif', direction: 'rtl' as const }}>بسم</div>
+        <div style={{ width: 24, height: 1, backgroundColor: 'rgba(255,255,255,0.3)' }} />
+        <div style={{ width: 20, height: 1, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+      </div>
+    )
+    if (variant === 'elegant') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+        <div style={{ fontSize: 14, color: `${a}30`, fontFamily: 'serif', lineHeight: 1 }}>&ldquo;</div>
+        <div style={{ width: 26, height: 1.5, backgroundColor: `${t}55` }} />
+        <div style={{ fontSize: 14, color: `${a}30`, fontFamily: 'serif', lineHeight: 1 }}>&rdquo;</div>
+      </div>
+    )
+    if (variant === 'magazine') return (
+      <div style={{ ...base, justifyContent: 'center', padding: '6px 6px' }}>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ width: 2, height: 24, background: `linear-gradient(to bottom, ${a}60, ${a}20)` }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ fontSize: 7, color: `${a}77`, fontFamily: 'serif', direction: 'rtl' as const, textAlign: 'right' as const }}>بسم</div>
+            <div style={{ width: 22, height: 1.5, backgroundColor: `${t}44` }} />
+          </div>
+        </div>
+      </div>
+    )
+    if (variant === 'minimal') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+        <div style={{ width: 12, height: 0.5, backgroundColor: `${a}35` }} />
+        <div style={{ width: 24, height: 1.5, backgroundColor: `${t}55` }} />
+        <div style={{ width: 18, height: 1, backgroundColor: `${t}33` }} />
+        <div style={{ width: 12, height: 0.5, backgroundColor: `${a}35` }} />
+      </div>
+    )
+  }
+
+  if (type === 'video') {
+    if (variant === 'default') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ width: 20, height: 0.5, backgroundColor: `${a}40` }} />
+        <div style={{ width: 36, height: 22, border: `1px solid ${a}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 0, height: 0, borderLeft: `6px solid ${a}55`, borderTop: '4px solid transparent', borderBottom: '4px solid transparent' }} />
+        </div>
+        <div style={{ width: 24, height: 1, backgroundColor: `${t}33` }} />
+      </div>
+    )
+    if (variant === 'cinematic') return (
+      <div style={{ ...base, justifyContent: 'flex-end', gap: 0 }}>
+        <div style={{ width: '100%', flex: 1, background: `${t}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 0, height: 0, borderLeft: `7px solid ${a}55`, borderTop: '5px solid transparent', borderBottom: '5px solid transparent' }} />
+        </div>
+        <div style={{ width: '100%', height: 16, background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)', display: 'flex', alignItems: 'flex-end', padding: '0 4px 3px' }}>
+          <div style={{ width: 20, height: 1, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+        </div>
+      </div>
+    )
+    if (variant === 'magazine') return (
+      <div style={{ ...base, justifyContent: 'center', padding: '6px 6px', gap: 3 }}>
+        <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+          <div style={{ width: 2, height: 8, backgroundColor: `${a}50` }} />
+          <div style={{ width: 18, height: 2, backgroundColor: t }} />
+        </div>
+        <div style={{ width: '100%', height: 26, border: `1px solid ${a}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 0, height: 0, borderLeft: `5px solid ${a}44`, borderTop: '3px solid transparent', borderBottom: '3px solid transparent' }} />
+        </div>
+      </div>
+    )
+    if (variant === 'minimal') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ width: 38, height: 24, border: `0.5px solid ${a}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 0, height: 0, borderLeft: `5px solid ${a}35`, borderTop: '3px solid transparent', borderBottom: '3px solid transparent' }} />
+        </div>
+        <div style={{ width: 16, height: 1, backgroundColor: `${t}25` }} />
+      </div>
+    )
+  }
+
+  if (type === 'gift-registry') {
+    if (variant === 'default') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[0,1].map(i => (
+            <div key={i} style={{ width: 20, height: 32, border: `1px solid ${a}25`, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ height: 14, background: `${a}12` }} />
+              <div style={{ padding: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div style={{ width: 12, height: 1.5, backgroundColor: t }} />
+                <div style={{ width: 8, height: 1, backgroundColor: `${t}44` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+    if (variant === 'grid') return (
+      <div style={{ ...base, alignItems: 'center', justifyContent: 'center', padding: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, width: '100%' }}>
+          {[0,1,2,3].map(i => (
+            <div key={i} style={{ height: 14, border: `0.5px solid ${a}20`, background: `${a}06` }} />
+          ))}
+        </div>
+      </div>
+    )
+    if (variant === 'list') return (
+      <div style={{ ...base, justifyContent: 'center', padding: '4px 6px', gap: 4 }}>
+        {[0,1].map(i => (
+          <div key={i} style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+            <div style={{ width: 12, height: 12, background: `${a}12`, flexShrink: 0 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <div style={{ width: 20, height: 1.5, backgroundColor: t }} />
+              <div style={{ width: 14, height: 1, backgroundColor: `${t}44` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+    if (variant === 'minimal') return (
+      <div style={{ ...base, justifyContent: 'center', padding: '4px 6px', gap: 4 }}>
+        {[0,1].map(i => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ width: 22, height: 1.5, backgroundColor: t }} />
+            <div style={{ width: 10, height: 6, border: `0.5px solid ${a}30` }} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   // Default fallback
   return (
     <div style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
-        <div style={{ width: 32, height: 2.5, backgroundColor: a, borderRadius: 1 }} />
-        <div style={{ width: 38, height: 2, backgroundColor: `${t}88`, borderRadius: 1 }} />
-        <div style={{ width: 28, height: 2, backgroundColor: `${t}66`, borderRadius: 1 }} />
+        <div style={{ width: 32, height: 2.5, backgroundColor: a }} />
+        <div style={{ width: 38, height: 2, backgroundColor: `${t}88` }} />
+        <div style={{ width: 28, height: 2, backgroundColor: `${t}66` }} />
       </div>
     </div>
   )
@@ -319,41 +672,83 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
 // Variant yang tersedia per tipe section
 const SECTION_VARIANTS: Record<string, { value: string; label: string; desc: string }[]> = {
   hero: [
-    { value: 'default', label: 'Centered', desc: 'Nama di tengah layar' },
-    { value: 'bottom',  label: 'Bottom',   desc: 'Nama di bawah, foto penuh' },
-    { value: 'minimal', label: 'Minimal',  desc: 'Tipografi, tanpa foto bg' },
+    { value: 'default',      label: 'Centered',     desc: 'Nama di tengah layar' },
+    { value: 'bottom',       label: 'Bottom',        desc: 'Nama di bawah, foto penuh' },
+    { value: 'minimal',      label: 'Minimal',       desc: 'Tipografi, tanpa foto bg' },
+    { value: 'split',        label: 'Split',          desc: 'Foto kiri, nama kanan' },
+    { value: 'overlay-card', label: 'Glass Card',     desc: 'Nama di dalam card transparan' },
+    { value: 'editorial',    label: 'Editorial',      desc: 'Teks besar dramatis' },
+    { value: 'arch',         label: 'Arch',           desc: 'Frame lengkung ornamental' },
+    { value: 'magazine',     label: 'Magazine',       desc: 'Foto circle + layout majalah' },
   ],
   profiles: [
-    { value: 'default',  label: 'Portrait',  desc: 'Frame portrait berdampingan, badge &' },
-    { value: 'card',    label: 'Full Panel', desc: 'Setiap profil satu panel penuh' },
-    { value: 'vertical', label: 'Vertical',      desc: 'Susun atas-bawah' },
+    { value: 'default',  label: 'Portrait',  desc: 'Foto 3:4 berdampingan, badge & tengah' },
+    { value: 'card',     label: 'Cinematic', desc: 'Panel full-width, teks overlay bawah' },
+    { value: 'vertical', label: 'Vertical',  desc: 'Foto bulat, susun atas-bawah' },
+    { value: 'magazine', label: 'Magazine',  desc: 'Foto kiri-kanan bergantian, editorial' },
+    { value: 'overlap',  label: 'Overlap',   desc: 'Foto tumpang tindih, nama di bawah' },
   ],
   events: [
-    { value: 'default',  label: 'Cards',    desc: 'Kartu premium dengan gradien' },
-    { value: 'photo',    label: 'Foto',     desc: 'Foto lokasi + info di bawah' },
-    { value: 'timeline', label: 'Timeline', desc: 'Garis waktu dengan titik' },
-    { value: 'compact',  label: 'Kompak',   desc: 'Ringkas, info essensial' },
+    { value: 'default',   label: 'Editorial',  desc: 'Kartu editorial bersih + foto venue' },
+    { value: 'cinematic', label: 'Sinematik',  desc: 'Full-bleed foto venue + overlay gelap' },
+    { value: 'timeline',  label: 'Timeline',   desc: 'Garis vertikal + titik + foto' },
+    { value: 'magazine',  label: 'Majalah',    desc: 'Foto lebar + accent bar kiri' },
+    { value: 'elegant',   label: 'Elegan',     desc: 'Centered dengan ornamen pemisah' },
   ],
   countdown: [
-    { value: 'boxes',   label: 'Kotak',       desc: 'Angka dalam kotak bergradien' },
-    { value: 'minimal', label: 'Minimal',     desc: 'Angka besar bersih tanpa kotak' },
-    { value: 'rings',   label: 'Lingkaran',   desc: 'Progress ring SVG animasi' },
-    { value: 'elegant', label: 'Elegan',      desc: 'Hari besar + jam/menit/detik kecil' },
+    { value: 'default',   label: 'Editorial',   desc: 'Kotak editorial minimalis' },
+    { value: 'cinematic', label: 'Sinematik',   desc: 'Full-bleed foto background + overlay' },
+    { value: 'elegant',   label: 'Elegan',      desc: 'Angka hari besar fokus + H:M:S' },
+    { value: 'minimal',   label: 'Minimal',     desc: 'Tipografi besar bersih' },
+    { value: 'rings',     label: 'Lingkaran',   desc: 'Progress ring SVG animasi' },
+    { value: 'magazine',  label: 'Majalah',     desc: 'Foto strip atas + countdown bawah' },
   ],
   gift: [
-    { value: 'default', label: 'Stack',  desc: 'Kartu vertikal penuh' },
-    { value: 'swipe',   label: 'Swipe',  desc: 'Geser horizontal, 1 kartu tampil' },
-    { value: 'grid',    label: 'Grid 2×', desc: '2 kartu kompak per baris' },
-    { value: 'list',    label: 'List',   desc: 'Baris ringkas dengan logo' },
+    { value: 'default', label: 'Stack',  desc: 'Kartu vertikal, maks 3' },
+    { value: 'swipe',   label: 'Swipe',  desc: 'Kartu tumpuk, geser horizontal' },
   ],
   closing: [
-    { value: 'default',  label: 'Simple',  desc: 'Teks penutup sederhana' },
-    { value: 'elegant',  label: 'Elegant', desc: 'Dengan ornamen border' },
+    { value: 'default',   label: 'Simple',    desc: 'Editorial bersih, centered' },
+    { value: 'elegant',   label: 'Elegant',   desc: 'Double border frame + corner dots' },
+    { value: 'cinematic', label: 'Cinematic', desc: 'Full-screen gelap, foto background' },
+    { value: 'magazine',  label: 'Magazine',  desc: 'Left-aligned editorial, tipografi besar' },
+    { value: 'card',      label: 'Card',      desc: 'Kartu aksen border atas-bawah' },
+    { value: 'poetic',    label: 'Poetic',    desc: 'Kutipan besar dengan tanda petik' },
   ],
   story: [
-    { value: 'default',   label: 'Default',   desc: 'Teks + foto opsional' },
-    { value: 'cinematic', label: 'Cinematic', desc: 'Foto besar, teks overlay' },
-    { value: 'timeline',  label: 'Timeline',  desc: 'Garis waktu perjalanan (butuh story_timeline)' },
+    { value: 'default',  label: 'Default',  desc: 'IG Stories navigasi per-bab' },
+    { value: 'timeline', label: 'Timeline', desc: 'Garis waktu perjalanan (butuh story_timeline)' },
+  ],
+  gallery: [
+    { value: 'default',   label: 'Masonry',   desc: 'Hero foto + 2 kolom staggered' },
+    { value: 'dramatic',  label: 'Dramatic',  desc: 'Full-screen, auto-slide, cinematic' },
+    { value: 'mosaic',    label: 'Mosaic',    desc: 'Grid asimetris pola majalah' },
+    { value: 'filmstrip', label: 'Filmstrip', desc: 'Scroll horizontal strip sinematik' },
+    { value: 'collage',   label: 'Collage',   desc: 'Foto tumpuk scattered editorial' },
+  ],
+  'ig-story': [
+    { value: 'default',  label: 'Centered', desc: 'Preview tengah dengan tombol unduh' },
+    { value: 'phone',    label: 'Phone',    desc: 'Mockup di dalam frame ponsel' },
+    { value: 'minimal',  label: 'Minimal',  desc: 'Foto besar, tombol overlay bawah' },
+  ],
+  quote: [
+    { value: 'default',   label: 'Editorial',  desc: 'Centered dengan ornamen atas-bawah' },
+    { value: 'cinematic', label: 'Sinematik',  desc: 'Full-height gelap + teks putih besar' },
+    { value: 'elegant',   label: 'Elegan',     desc: 'Tanda kutip besar dekoratif' },
+    { value: 'magazine',  label: 'Majalah',    desc: 'Rata kiri + accent bar' },
+    { value: 'minimal',   label: 'Minimal',    desc: 'Ultra bersih tanpa heading' },
+  ],
+  video: [
+    { value: 'default',   label: 'Editorial',  desc: 'Frame editorial + caption italic' },
+    { value: 'cinematic', label: 'Sinematik',  desc: 'Full-width + caption overlay gradient' },
+    { value: 'magazine',  label: 'Majalah',    desc: 'Rata kiri + accent bar atas' },
+    { value: 'minimal',   label: 'Minimal',    desc: 'Bersih, border tipis, tanpa header' },
+  ],
+  'gift-registry': [
+    { value: 'default',  label: 'Carousel',  desc: 'Geser horizontal kartu produk' },
+    { value: 'grid',     label: 'Grid',       desc: 'Grid 2 kolom kartu kompak' },
+    { value: 'list',     label: 'List',       desc: 'Daftar vertikal foto kiri teks kanan' },
+    { value: 'minimal',  label: 'Minimal',    desc: 'Teks saja tanpa gambar' },
   ],
 }
 
@@ -466,9 +861,13 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   const [expandedSectionId, setExpandedSectionId]   = useState<string | null>(null)
   const [draggingSectionId, setDraggingSectionId]   = useState<string | null>(null)
   const [dragOverSectionId, setDragOverSectionId]   = useState<string | null>(null)
+  const [lockedSectionIds, setLockedSectionIds]     = useState<Set<string>>(new Set())
   const [previewPlaying, setPreviewPlaying]         = useState(false)
   const [previewLoading, setPreviewLoading]         = useState(false)
   const [decorPreviewKey, setDecorPreviewKey]       = useState(0)
+  const [coverPreviewMode, setCoverPreviewMode]    = useState<'static' | 'entry' | 'exit' | 'full-flow'>('static')
+  const [decorEditMode, setDecorEditMode]          = useState(false)
+  const [selectedAssetId, setSelectedAssetId]      = useState<string | null>(null)
   const [sectionReplay, setSectionReplay]           = useState<{ id: string; key: number } | null>(null)
   const [showRelease, setShowRelease]               = useState(false)
   const [releaseSuccess, setReleaseSuccess]         = useState<string | null>(null)
@@ -493,7 +892,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   useEffect(() => {
     if (activeTab === 'opening') setPreviewMode('cover')
     else if (activeTab === 'loading') setPreviewMode('loading')
-    else setPreviewMode('invitation')
+    else { setPreviewMode('invitation'); setDecorEditMode(false); setSelectedAssetId(null) }
   }, [activeTab])
 
   // Derived
@@ -557,13 +956,14 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
       const idx = sorted.findIndex(s => s.id === sectionId)
       const swapIdx = dir === 'up' ? idx - 1 : idx + 1
       if (swapIdx < 0 || swapIdx >= sorted.length) return prev
+      if (lockedSectionIds.has(sorted[swapIdx].id)) return prev
       const newSections = sorted.map((s, i) => ({ ...s, order: i + 1 }))
       const tmp = newSections[idx].order
       newSections[idx] = { ...newSections[idx], order: newSections[swapIdx].order }
       newSections[swapIdx] = { ...newSections[swapIdx], order: tmp }
       return { ...prev, config: { ...prev.config, sections: newSections } }
     })
-  }, [])
+  }, [lockedSectionIds])
 
   const addSection = useCallback((type: string) => {
     const maxOrder = Math.max(0, ...cfg.sections.map(s => s.order))
@@ -593,6 +993,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
 
   const handleSectionDrop = useCallback((targetId: string) => {
     if (!draggingSectionId || draggingSectionId === targetId) return
+    if (lockedSectionIds.has(draggingSectionId) || lockedSectionIds.has(targetId)) return
     setConfig(prev => {
       const sorted = [...prev.config.sections].sort((a, b) => a.order - b.order)
       const fromIdx = sorted.findIndex(s => s.id === draggingSectionId)
@@ -608,7 +1009,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     })
     setDraggingSectionId(null)
     setDragOverSectionId(null)
-  }, [draggingSectionId])
+  }, [draggingSectionId, lockedSectionIds])
 
   // ── JSON tab handlers ─────────────────────────────────────────
   // JSON tab removed - function kept for compatibility but does nothing
@@ -1342,52 +1743,137 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
 
-              {/* ── Aset Dekorasi (Layer Panel) ── */}
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Aset Dekorasi</p>
-                    <p className="text-[9px] text-gray-400 mt-0.5">Upload gambar → atur posisi, efek masuk & animasi berkelanjutan</p>
+              {/* ── Aset Dekorasi — Section Khusus ── */}
+              <div className="mt-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-b from-indigo-50/80 to-white overflow-hidden">
+                {/* Header */}
+                <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white tracking-wide">Aset Dekorasi</p>
+                      <p className="text-[9px] text-indigo-200">Ornamen, bunga, kipas, frame — layer visual cover page</p>
+                    </div>
                   </div>
-                  <label className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer border border-indigo-200 hover:border-indigo-400 rounded-lg px-2 py-1 transition-colors shrink-0">
-                    <Plus className="w-3 h-3" /> Upload
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={async e => {
-                        const file = e.target.files?.[0]
-                        if (!file) return
-                        const fd = new FormData()
-                        fd.append('file', file)
-                        fd.append('folder', 'decorations')
-                        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-                        const data = await res.json()
-                        if (!res.ok) { alert(data.error); return }
-                        const newAsset: import('@/lib/types').DecorationAsset = {
-                          id: 'deco-' + Date.now().toString(36),
-                          url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
-                          position: 'top-right', width: 80, opacity: 100,
-                          animation: 'fade-in', animation_delay: 200,
-                          idle_animation: 'none', z_layer: (cfg.opening.decoration_assets?.length ?? 0),
-                        }
-                        updateOpening({ decoration_assets: [...(cfg.opening.decoration_assets ?? []), newAsset] })
-                        e.target.value = ''
-                      }}
-                    />
-                  </label>
+                  <div className="flex items-center gap-1.5">
+                    {/* Moodboard toggle */}
+                    <button
+                      onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('cover') }}
+                      className={`flex items-center gap-1 text-[9px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
+                        decorEditMode
+                          ? 'bg-white text-indigo-700 shadow-sm'
+                          : 'bg-white/20 text-white hover:bg-white/30'
+                      }`}
+                    >
+                      <Move className="w-3 h-3" />
+                      {decorEditMode ? 'Selesai' : 'Geser di Mockup'}
+                    </button>
+                    {/* Upload */}
+                    <label className="flex items-center gap-1 text-[9px] font-bold text-white bg-white/20 hover:bg-white/30 cursor-pointer rounded-lg px-2.5 py-1.5 transition-colors">
+                      <Plus className="w-3 h-3" /> Upload
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={async e => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          const fd = new FormData()
+                          fd.append('file', file)
+                          fd.append('folder', 'decorations')
+                          const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+                          const data = await res.json()
+                          if (!res.ok) { alert(data.error); return }
+                          const newAsset: DecorationAsset = {
+                            id: 'deco-' + Date.now().toString(36),
+                            url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
+                            position: 'top-right', width: 80, scale: 1, opacity: 100,
+                            animation: 'fade-in', animation_delay: 200,
+                            exit_animation: 'none', exit_delay: 0,
+                            idle_animation: 'none', z_layer: (cfg.opening.decoration_assets?.length ?? 0),
+                          }
+                          updateOpening({ decoration_assets: [...(cfg.opening.decoration_assets ?? []), newAsset] })
+                          setSelectedAssetId(newAsset.id)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
-                {(!cfg.opening.decoration_assets || cfg.opening.decoration_assets.length === 0) ? (
-                  <div className="border-2 border-dashed border-gray-200 rounded-xl py-6 text-center">
-                    <p className="text-2xl mb-1">🎋</p>
-                    <p className="text-[10px] font-medium text-gray-400">Belum ada aset dekorasi</p>
-                    <p className="text-[9px] text-gray-300 mt-0.5">Upload kipas, ornamen, batik, bunga, dll.</p>
+                {/* Moodboard hint */}
+                {decorEditMode && (
+                  <div className="mx-4 mt-3 px-3 py-2 bg-indigo-100 border border-indigo-200 rounded-lg flex items-center gap-2">
+                    <Move className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    <p className="text-[9px] text-indigo-700 leading-relaxed">
+                      <strong>Moodboard aktif</strong> — drag aset di mockup untuk mengatur posisi. Klik aset untuk pilih, lalu atur detail di panel bawah.
+                    </p>
                   </div>
-                ) : (
-                  <DecorationLayerList
-                    assets={cfg.opening.decoration_assets}
-                    onUpdate={assets => updateOpening({ decoration_assets: assets })}
-                    onPreview={() => { setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
-                  />
                 )}
+
+                {/* Content */}
+                <div className="px-4 py-3 space-y-3">
+                  {(!cfg.opening.decoration_assets || cfg.opening.decoration_assets.length === 0) ? (
+                    <div className="border-2 border-dashed border-indigo-200 rounded-xl py-8 text-center bg-white/50">
+                      <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-indigo-100 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-indigo-400" />
+                      </div>
+                      <p className="text-[10px] font-semibold text-gray-500">Belum ada aset dekorasi</p>
+                      <p className="text-[9px] text-gray-400 mt-1">Upload kipas, ornamen, batik, bunga, frame, dll.</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Asset count + grid thumbnails */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {cfg.opening.decoration_assets.map(asset => (
+                          <button
+                            key={asset.id}
+                            onClick={() => { setSelectedAssetId(asset.id === selectedAssetId ? null : asset.id) }}
+                            className={`relative w-12 h-12 rounded-lg border-2 overflow-hidden transition-all shrink-0 ${
+                              selectedAssetId === asset.id
+                                ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-md scale-105'
+                                : 'border-gray-200 hover:border-indigo-300 bg-gray-50'
+                            }`}
+                            title={asset.label || 'Aset'}
+                          >
+                            <img src={asset.url} alt="" className="w-full h-full object-contain p-0.5" />
+                            <span className="absolute bottom-0 right-0 bg-gray-900/70 text-white text-[6px] font-bold px-1 rounded-tl">
+                              L{asset.z_layer ?? 0}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Selected asset settings */}
+                      {selectedAssetId && (
+                        <DecorationLayerList
+                          assets={cfg.opening.decoration_assets}
+                          onUpdate={assets => updateOpening({ decoration_assets: assets })}
+                          onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                          onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                          focusedId={selectedAssetId}
+                          onFocusChange={setSelectedAssetId}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {/* Preview flow buttons */}
+                  {cfg.opening.decoration_assets && cfg.opening.decoration_assets.length > 0 && (
+                    <div className="flex gap-2 pt-2 border-t border-indigo-100">
+                      <button
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                        className="flex-1 py-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
+                      >
+                        ▶ Preview Masuk
+                      </button>
+                      <button
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                        className="flex-1 py-2 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
+                      >
+                        ▶▶ Full Flow
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
             </div>
@@ -1483,9 +1969,9 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
               {sections.map((s, idx) => (
                 <div
                   key={s.id}
-                  draggable
-                  onDragStart={() => setDraggingSectionId(s.id)}
-                  onDragOver={e => { e.preventDefault(); setDragOverSectionId(s.id) }}
+                  draggable={!lockedSectionIds.has(s.id)}
+                  onDragStart={() => { if (!lockedSectionIds.has(s.id)) setDraggingSectionId(s.id) }}
+                  onDragOver={e => { e.preventDefault(); if (!lockedSectionIds.has(s.id)) setDragOverSectionId(s.id) }}
                   onDrop={() => handleSectionDrop(s.id)}
                   onDragEnd={() => { setDraggingSectionId(null); setDragOverSectionId(null) }}
                   className={`border rounded-xl overflow-hidden transition-all ${
@@ -1493,39 +1979,64 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                       ? 'opacity-40 scale-[0.98] border-indigo-300'
                       : dragOverSectionId === s.id && draggingSectionId !== s.id
                       ? 'border-indigo-400 ring-2 ring-indigo-200'
+                      : lockedSectionIds.has(s.id)
+                      ? 'border-yellow-200'
                       : 'border-gray-100'
                   }`}
                 >
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50">
-                    {/* Drag handle */}
-                    <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0">
-                      <GripVertical className="w-3.5 h-3.5" />
+                    {/* Drag handle — disabled when locked */}
+                    <div className={`shrink-0 ${lockedSectionIds.has(s.id) ? 'text-yellow-400 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500'}`}>
+                      {lockedSectionIds.has(s.id)
+                        ? <Lock className="w-3.5 h-3.5" />
+                        : <GripVertical className="w-3.5 h-3.5" />
+                      }
                     </div>
-                    {/* Reorder arrows (fallback) */}
+                    {/* Reorder arrows (fallback) — disabled when locked */}
                     <div className="flex flex-col gap-0.5">
-                      <button onClick={() => moveSection(s.id, 'up')} disabled={idx === 0}
+                      <button onClick={() => moveSection(s.id, 'up')} disabled={idx === 0 || lockedSectionIds.has(s.id) || (idx > 0 && lockedSectionIds.has(sections[idx - 1].id))}
                         className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-20">
                         <ChevronUp className="w-3 h-3" />
                       </button>
-                      <button onClick={() => moveSection(s.id, 'down')} disabled={idx === sections.length - 1}
+                      <button onClick={() => moveSection(s.id, 'down')} disabled={idx === sections.length - 1 || lockedSectionIds.has(s.id) || (idx < sections.length - 1 && lockedSectionIds.has(sections[idx + 1].id))}
                         className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-20">
                         <ChevronDown className="w-3 h-3" />
                       </button>
                     </div>
 
-                    {/* Color dot */}
-                    <input
-                      type="color"
-                      value={s.background.value}
-                      onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
-                      className="w-6 h-6 rounded cursor-pointer border border-gray-200 shrink-0"
-                      title="Warna latar section"
-                    />
+                    {/* Background indicator */}
+                    {s.background.type === 'color' ? (
+                      <input
+                        type="color"
+                        value={s.background.value ?? cfg.meta.color_scheme.primary}
+                        onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
+                        className="w-6 h-6 rounded cursor-pointer border border-gray-200 shrink-0"
+                        title="Warna latar section"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded border border-gray-200 shrink-0 flex items-center justify-center bg-gray-100"
+                        title={s.background.type === 'image' ? 'Latar: gambar/GIF' : 'Latar: video'}>
+                        <span className="text-[8px]">{s.background.type === 'image' ? '🖼' : '🎬'}</span>
+                      </div>
+                    )}
 
                     {/* Label */}
                     <span className="text-xs font-medium text-gray-700 flex-1 truncate">
                       {SECTION_LABELS[s.type] ?? s.type}
                     </span>
+
+                    {/* Lock drag position */}
+                    <button
+                      onClick={() => setLockedSectionIds(prev => {
+                        const next = new Set(prev)
+                        next.has(s.id) ? next.delete(s.id) : next.add(s.id)
+                        return next
+                      })}
+                      className={`p-1 rounded-lg transition-colors ${lockedSectionIds.has(s.id) ? 'text-yellow-500 hover:bg-yellow-50' : 'text-gray-300 hover:bg-gray-100'}`}
+                      title={lockedSectionIds.has(s.id) ? 'Unlock posisi' : 'Lock posisi'}
+                    >
+                      {lockedSectionIds.has(s.id) ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                    </button>
 
                     {/* Toggle visibility */}
                     <button
@@ -1594,6 +2105,79 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         </div>
                       )}
 
+                      {/* Latar belakang section */}
+                      <div className="px-3 py-2.5">
+                        <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Latar Belakang</p>
+                        <div className="flex gap-1 mb-2.5">
+                          {(['color', 'image', 'video'] as const).map(t => (
+                            <button key={t} type="button"
+                              onClick={() => updateSection(s.id, { background: { ...s.background, type: t, ...(t === 'color' ? { url: undefined } : {}) } })}
+                              className={`flex-1 py-1.5 rounded-lg text-[9px] font-semibold transition-colors ${
+                                s.background.type === t ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-indigo-50'
+                              }`}>
+                              {t === 'color' ? 'Warna' : t === 'image' ? 'Gambar / GIF' : 'Video'}
+                            </button>
+                          ))}
+                        </div>
+                        {s.background.type === 'color' && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="color"
+                              value={s.background.value ?? cfg.meta.color_scheme.primary}
+                              onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
+                              className="w-8 h-8 rounded-lg cursor-pointer border border-gray-200 shrink-0"
+                            />
+                            <input
+                              value={s.background.value ?? cfg.meta.color_scheme.primary}
+                              onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
+                              className="flex-1 text-xs font-mono border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            />
+                          </div>
+                        )}
+                        {s.background.type === 'image' && (
+                          <div className="space-y-2">
+                            <ImageUploadField
+                              value={s.background.url}
+                              onChange={url => updateSection(s.id, { background: { ...s.background, url, type: 'image' } })}
+                              hint="JPG, PNG, WebP, atau GIF animasi"
+                            />
+                            {s.background.url && (
+                              <div className="flex items-center gap-2">
+                                <p className="text-[9px] text-gray-500 shrink-0">Overlay gelap</p>
+                                <input type="range" min={0} max={0.9} step={0.05}
+                                  value={s.background.overlay_opacity ?? 0.4}
+                                  onChange={e => updateSection(s.id, { background: { ...s.background, overlay_opacity: Number(e.target.value) } })}
+                                  className="flex-1 accent-indigo-600 h-1" />
+                                <span className="text-[9px] font-mono text-indigo-500 w-8 text-right">
+                                  {Math.round((s.background.overlay_opacity ?? 0.4) * 100)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {s.background.type === 'video' && (
+                          <div className="space-y-2">
+                            <VideoUploadField
+                              value={s.background.url}
+                              onChange={url => updateSection(s.id, { background: { ...s.background, url, type: 'video' } })}
+                              hint="MP4, WebM (maks 50MB) — autoplay, muted, loop"
+                            />
+                            {s.background.url && (
+                              <div className="flex items-center gap-2">
+                                <p className="text-[9px] text-gray-500 shrink-0">Overlay gelap</p>
+                                <input type="range" min={0} max={0.9} step={0.05}
+                                  value={s.background.overlay_opacity ?? 0.45}
+                                  onChange={e => updateSection(s.id, { background: { ...s.background, overlay_opacity: Number(e.target.value) } })}
+                                  className="flex-1 accent-indigo-600 h-1" />
+                                <span className="text-[9px] font-mono text-indigo-500 w-8 text-right">
+                                  {Math.round((s.background.overlay_opacity ?? 0.45) * 100)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Animasi masuk / keluar */}
                       <div className="px-3 py-2 flex gap-2">
                         <div className="flex-1">
@@ -1628,187 +2212,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         <div className="px-3 pb-2">
                           <p className="text-[9px] text-emerald-600 font-medium">
                             ↑ Scroll di preview untuk lihat animasi section ini
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Layout & Padding */}
-                      <div className="px-3 py-2 flex gap-2">
-                        <div className="flex-1">
-                          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Padding</p>
-                          <select value={s.padding_y ?? 'normal'} onChange={e => updateSection(s.id, { padding_y: e.target.value as 'compact' | 'normal' | 'spacious' })}
-                            className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-                            <option value="compact">Compact</option>
-                            <option value="normal">Normal</option>
-                            <option value="spacious">Spacious</option>
-                          </select>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Alignment</p>
-                          <select value={s.text_align ?? 'center'} onChange={e => updateSection(s.id, { text_align: e.target.value as 'center' | 'left' | 'right' })}
-                            className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-                            <option value="center">Center</option>
-                            <option value="left">Left</option>
-                            <option value="right">Right</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Layout konten */}
-                      <div className="px-3 py-2">
-                        <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Layout Konten</p>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {([
-                            ['default',     'Default'],
-                            ['split-left',  'Split ←'],
-                            ['split-right', 'Split →'],
-                            ['full-bleed',  'Full Bleed'],
-                          ] as [string, string][]).map(([val, lbl]) => (
-                            <button key={val}
-                              onClick={() => updateSection(s.id, { content_layout: val as 'default' | 'split-left' | 'split-right' | 'full-bleed' })}
-                              className={`text-[10px] px-2.5 py-1 rounded-lg border transition-colors font-medium ${
-                                (s.content_layout ?? 'default') === val
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
-                              }`}>
-                              {lbl}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Background type */}
-                      <div className="px-3 py-2 space-y-2">
-                        <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Latar Belakang Section</p>
-                        <div className="grid grid-cols-4 gap-1">
-                          {([
-                            ['color',    '🎨', 'Warna'],
-                            ['gradient', '🌈', 'Gradient'],
-                            ['image',    '🖼️',  'Foto'],
-                            ['video',    '🎬', 'Video'],
-                          ] as const).map(([t, icon, lbl]) => (
-                            <button key={t} type="button"
-                              onClick={() => updateSection(s.id, { background: { ...s.background, type: t } })}
-                              className={`flex flex-col items-center gap-0.5 py-2 rounded-xl text-[9px] font-semibold transition-all border ${
-                                s.background.type === t
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'bg-gray-50 text-gray-500 border-gray-100 hover:border-indigo-200 hover:bg-indigo-50'
-                              }`}>
-                              <span className="text-base leading-none">{icon}</span>
-                              {lbl}
-                            </button>
-                          ))}
-                        </div>
-                        {s.background.type === 'color' && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <input type="color" value={s.background.value ?? '#000000'}
-                              onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
-                              className="w-9 h-8 rounded cursor-pointer border border-gray-200 shrink-0" />
-                            <input type="text" value={s.background.value ?? ''}
-                              onChange={e => updateSection(s.id, { background: { ...s.background, value: e.target.value } })}
-                              className="flex-1 text-xs border border-gray-100 rounded-lg px-2 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                              placeholder="#000000" />
-                          </div>
-                        )}
-                      </div>
-
-                      {s.background.type === 'gradient' && (() => {
-                        // Parse existing gradient or use defaults
-                        const raw = s.background.value ?? 'linear-gradient(135deg, #1a4a1a, #0f2d0f)'
-                        const colorMatches = raw.match(/#[0-9a-fA-F]{3,6}/g) ?? ['#1a4a1a', '#0f2d0f']
-                        const c1 = colorMatches[0] ?? '#1a4a1a'
-                        const c2 = colorMatches[1] ?? '#0f2d0f'
-                        const dirs = [
-                          { label: '↓',  val: 'to bottom' },
-                          { label: '↘',  val: '135deg' },
-                          { label: '→',  val: 'to right' },
-                          { label: '↗',  val: '45deg' },
-                        ]
-                        const currentDir = dirs.find(d => raw.includes(d.val))?.val ?? '135deg'
-                        const buildGrad = (dir: string, a: string, b: string) =>
-                          `linear-gradient(${dir}, ${a}, ${b})`
-                        return (
-                          <div className="px-3 py-2 space-y-2">
-                            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">Gradient</p>
-                            {/* Preview */}
-                            <div className="h-8 rounded-lg w-full" style={{ background: s.background.value ?? raw }} />
-                            {/* Colors */}
-                            <div className="flex gap-2 items-center">
-                              <div className="flex-1">
-                                <p className="text-[8px] text-gray-400 mb-0.5">Warna 1</p>
-                                <div className="flex gap-1 items-center">
-                                  <input type="color" value={c1}
-                                    onChange={e => updateSection(s.id, { background: { ...s.background, value: buildGrad(currentDir, e.target.value, c2) } })}
-                                    className="w-8 h-7 rounded cursor-pointer border border-gray-200" />
-                                  <input type="text" value={c1} readOnly className="flex-1 text-[10px] border border-gray-100 rounded px-1.5 py-1 font-mono bg-gray-50" />
-                                </div>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-[8px] text-gray-400 mb-0.5">Warna 2</p>
-                                <div className="flex gap-1 items-center">
-                                  <input type="color" value={c2}
-                                    onChange={e => updateSection(s.id, { background: { ...s.background, value: buildGrad(currentDir, c1, e.target.value) } })}
-                                    className="w-8 h-7 rounded cursor-pointer border border-gray-200" />
-                                  <input type="text" value={c2} readOnly className="flex-1 text-[10px] border border-gray-100 rounded px-1.5 py-1 font-mono bg-gray-50" />
-                                </div>
-                              </div>
-                            </div>
-                            {/* Direction */}
-                            <div>
-                              <p className="text-[8px] text-gray-400 mb-1">Arah</p>
-                              <div className="flex gap-1">
-                                {dirs.map(d => (
-                                  <button key={d.val} type="button"
-                                    onClick={() => updateSection(s.id, { background: { ...s.background, value: buildGrad(d.val, c1, c2) } })}
-                                    className={`flex-1 py-1 rounded text-xs font-bold transition-colors ${currentDir === d.val ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                                    {d.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })()}
-
-                      {s.background.type === 'image' && (
-                        <div className="px-3 py-2 space-y-2">
-                          <ImageUploadField
-                            value={s.background.url}
-                            onChange={url => updateSection(s.id, { background: { ...s.background, url } })}
-                            hint="Foto akan menutupi seluruh section sebagai latar belakang"
-                          />
-                          <div className="flex items-center gap-2 pt-1">
-                            <p className="text-[9px] text-gray-500 shrink-0 font-medium">Gelap overlay</p>
-                            <input type="range" min={0} max={0.9} step={0.05}
-                              value={s.background.overlay_opacity ?? 0}
-                              onChange={e => updateSection(s.id, { background: { ...s.background, overlay_opacity: Number(e.target.value) } })}
-                              className="flex-1 accent-indigo-600 h-1.5 rounded-full" />
-                            <span className="text-[9px] font-mono text-gray-500 w-8 text-right shrink-0">
-                              {Math.round((s.background.overlay_opacity ?? 0) * 100)}%
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {s.background.type === 'video' && (
-                        <div className="px-3 py-2 space-y-2">
-                          <VideoUploadField
-                            value={s.background.url}
-                            onChange={url => updateSection(s.id, { background: { ...s.background, url } })}
-                            hint="Video akan loop otomatis tanpa suara sebagai latar belakang section"
-                          />
-                          <div className="flex items-center gap-2 pt-1">
-                            <p className="text-[9px] text-gray-500 shrink-0 font-medium">Gelap overlay</p>
-                            <input type="range" min={0} max={0.9} step={0.05}
-                              value={s.background.overlay_opacity ?? 0}
-                              onChange={e => updateSection(s.id, { background: { ...s.background, overlay_opacity: Number(e.target.value) } })}
-                              className="flex-1 accent-indigo-600 h-1.5 rounded-full" />
-                            <span className="text-[9px] font-mono text-gray-500 w-8 text-right shrink-0">
-                              {Math.round((s.background.overlay_opacity ?? 0) * 100)}%
-                            </span>
-                          </div>
-                          <p className="text-[9px] text-amber-500 bg-amber-50 px-2 py-1.5 rounded-lg">
-                            Tips: gunakan video pendek (5–15 detik) agar loading cepat di HP tamu
                           </p>
                         </div>
                       )}
@@ -2090,12 +2493,14 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                           const activeSet = new Set(
                             (previewData.gift_accounts ?? []).map(a => a.type === 'bank' ? a.bank : a.platform)
                           )
+                          const MAX_GIFT = 3
                           function toggleProvider(name: string) {
                             const b = GIFT_LAB_BRANDS[name]; if (!b) return
                             const cur = previewData.gift_accounts ?? []
                             if (activeSet.has(name)) {
                               setPreviewData(d => ({ ...d, gift_accounts: cur.filter(a => (a.type === 'bank' ? a.bank : a.platform) !== name) }))
                             } else {
+                              if (cur.length >= MAX_GIFT) return
                               setPreviewData(d => ({ ...d, gift_accounts: [...cur, makeGiftAccount(name, b)] }))
                             }
                           }
@@ -2108,9 +2513,9 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                                   <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Preview Provider</p>
                                   <div className="flex gap-1.5">
                                     <button type="button"
-                                      onClick={() => setPreviewData(d => ({ ...d, gift_accounts: Object.entries(GIFT_LAB_BRANDS).map(([n, b]) => makeGiftAccount(n, b)) }))}
+                                      onClick={() => setPreviewData(d => ({ ...d, gift_accounts: Object.entries(GIFT_LAB_BRANDS).slice(0, MAX_GIFT).map(([n, b]) => makeGiftAccount(n, b)) }))}
                                       className="text-[7px] font-bold text-violet-500 hover:text-violet-700 transition-colors">
-                                      Semua
+                                      Maks 3
                                     </button>
                                     <span className="text-[7px] text-gray-300">·</span>
                                     <button type="button"
@@ -2125,15 +2530,17 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                                 <div className="grid grid-cols-5 gap-1.5">
                                   {Object.entries(GIFT_LAB_BRANDS).map(([name, b]) => {
                                     const active = activeSet.has(name)
+                                    const atMax = !active && activeSet.size >= MAX_GIFT
                                     return (
                                       <button key={name} type="button" onClick={() => toggleProvider(name)}
-                                        title={name}
-                                        className="relative overflow-hidden rounded-lg transition-all"
+                                        title={atMax ? `Maks ${MAX_GIFT} provider` : name}
+                                        disabled={atMax}
+                                        className="relative overflow-hidden rounded-lg transition-all disabled:cursor-not-allowed"
                                         style={{
                                           background: `linear-gradient(135deg, ${b.g[0]}, ${b.g[1]})`,
                                           aspectRatio: '1 / 1',
                                           boxShadow: active ? `0 0 0 2px white, 0 0 0 3.5px ${b.g[0]}` : `0 1px 4px ${b.g[0]}44`,
-                                          opacity: active ? 1 : 0.45,
+                                          opacity: active ? 1 : atMax ? 0.2 : 0.45,
                                           transform: active ? 'scale(1)' : 'scale(0.93)',
                                           transition: 'all 0.15s ease',
                                         }}>
@@ -2152,7 +2559,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                                     )
                                   })}
                                 </div>
-                                <p className="text-[7px] text-gray-400">Klik provider untuk tampilkan / sembunyi di preview</p>
+                                <p className="text-[7px] text-gray-400">Klik provider untuk tampilkan / sembunyi di preview (maks {MAX_GIFT})</p>
                               </div>
 
                               {/* ── Toggles ── */}
@@ -2200,108 +2607,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         )}
                       </div>
 
-                      {/* ── Font Override per Section ── */}
-                      <div className="px-3 pb-3 border-t border-orange-50 bg-orange-50/30 space-y-2.5">
-                        <p className="text-[9px] font-bold text-orange-500 uppercase tracking-widest mt-2.5">
-                          Tipografi Section Ini
-                        </p>
-
-                        {/* Font family */}
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Font Judul</p>
-                            <select
-                              value={s.font_heading ?? ''}
-                              onChange={e => updateSection(s.id, { font_heading: e.target.value || undefined })}
-                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                            >
-                              <option value="">Global ({cfg.meta.font.heading})</option>
-                              {HEADING_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-                            </select>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Font Teks</p>
-                            <select
-                              value={s.font_body ?? ''}
-                              onChange={e => updateSection(s.id, { font_body: e.target.value || undefined })}
-                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                            >
-                              <option value="">Global ({cfg.meta.font.body})</option>
-                              {BODY_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Font weight */}
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Ketebalan Judul</p>
-                            <select
-                              value={s.heading_weight ?? ''}
-                              onChange={e => updateSection(s.id, { heading_weight: e.target.value ? Number(e.target.value) : undefined })}
-                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                            >
-                              <option value="">Default (700)</option>
-                              {[300,400,500,600,700,800,900].map(w => (
-                                <option key={w} value={w}>{w} — {w<=300?'Tipis':w<=400?'Normal':w<=500?'Medium':w<=600?'Semi Bold':w<=700?'Bold':w<=800?'Extra Bold':'Black'}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[9px] text-gray-500 mb-1">Ketebalan Teks</p>
-                            <select
-                              value={s.body_weight ?? ''}
-                              onChange={e => updateSection(s.id, { body_weight: e.target.value ? Number(e.target.value) : undefined })}
-                              className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                            >
-                              <option value="">Default (400)</option>
-                              {[300,400,500,600,700].map(w => (
-                                <option key={w} value={w}>{w} — {w<=300?'Tipis':w<=400?'Normal':w<=500?'Medium':w<=600?'Semi Bold':'Bold'}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Font size: heading + body terpisah */}
-                        <div className="space-y-2">
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-[9px] text-gray-500">Ukuran Judul</p>
-                              <span className="text-[9px] font-mono text-gray-500">{Math.round((s.heading_scale ?? 1) * 100)}%</span>
-                            </div>
-                            <input type="range" min={0.6} max={1.8} step={0.05}
-                              value={s.heading_scale ?? 1}
-                              onChange={e => updateSection(s.id, { heading_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
-                              className="w-full accent-orange-500 h-1" />
-                            <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
-                              <span>60%</span><span>Judul</span><span>180%</span>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-[9px] text-gray-500">Ukuran Teks Isi</p>
-                              <span className="text-[9px] font-mono text-gray-500">{Math.round((s.body_scale ?? 1) * 100)}%</span>
-                            </div>
-                            <input type="range" min={0.6} max={1.5} step={0.05}
-                              value={s.body_scale ?? 1}
-                              onChange={e => updateSection(s.id, { body_scale: Number(e.target.value) === 1 ? undefined : Number(e.target.value) })}
-                              className="w-full accent-blue-400 h-1" />
-                            <div className="flex justify-between text-[8px] text-gray-300 mt-0.5">
-                              <span>60%</span><span>Teks</span><span>150%</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {(s.font_heading || s.font_body || s.heading_weight || s.body_weight || s.heading_scale || s.body_scale) && (
-                          <button onClick={() => updateSection(s.id, {
-                            font_heading: undefined, font_body: undefined,
-                            heading_weight: undefined, body_weight: undefined,
-                            heading_scale: undefined, body_scale: undefined,
-                          })} className="text-[9px] text-orange-500 hover:underline">
-                            Reset semua tipografi ke default
-                          </button>
-                        )}
-                      </div>
                     </div>
                   )}
                 </div>
@@ -2521,9 +2826,25 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                       previewGuestName={previewGuestName}
                       containerHeight={845}
                       decorPreviewKey={decorPreviewKey}
+                      previewMode={coverPreviewMode}
                     />
                   </div>
                 </div>
+
+                {/* ── Moodboard overlay — drag decoration assets ── */}
+                {decorEditMode && previewMode === 'cover' && !previewPlaying && (
+                  <DecorationMoodboard
+                    assets={cfg.opening.decoration_assets ?? []}
+                    onUpdate={assets => updateOpening({ decoration_assets: assets })}
+                    selectedId={selectedAssetId}
+                    onSelect={setSelectedAssetId}
+                    containerWidth={340}
+                    containerHeight={736}
+                    bgColor={cfg.meta.color_scheme.primary}
+                    bgImage={cfg.opening.cover_photo_url || cfg.opening.background_image}
+                    bgOpacity={cfg.opening.cover_photo_opacity}
+                  />
+                )}
 
                 {/* ── Invitation preview — scroll-snap, satu section = satu layar ── */}
                 <div key={previewKey} style={{
@@ -2828,11 +3149,11 @@ const ENTRY_LABELS: Record<string, string> = {
   none: 'Langsung', 'fade-in': 'Fade In', 'slide-left': 'Geser Kiri', 'slide-right': 'Geser Kanan',
   'slide-up': 'Naik', 'slide-down': 'Turun', 'zoom-in': 'Zoom In', 'rotate-in': 'Putar Masuk',
 }
-const POSITIONS_GRID = [
-  ['top-left','↖'],['top-center','↑'],['top-right','↗'],
-  ['center-left','←'],['center','○'],['center-right','→'],
-  ['bottom-left','↙'],['bottom-center','↓'],['bottom-right','↘'],
-] as [import('@/lib/types').AssetPosition, string][]
+const EXIT_LABELS: Record<string, string> = {
+  none: 'Tidak Ada', 'fade-out': 'Fade Out', 'slide-out-left': 'Keluar Kiri', 'slide-out-right': 'Keluar Kanan',
+  'slide-out-up': 'Keluar Atas', 'slide-out-down': 'Keluar Bawah', 'zoom-out': 'Zoom Out', 'rotate-out': 'Putar Keluar',
+  shrink: 'Mengecil', 'blur-out': 'Blur Keluar',
+}
 
 function updateAsset(
   assets: import('@/lib/types').DecorationAsset[],
@@ -2842,180 +3163,225 @@ function updateAsset(
   return assets.map(a => a.id === id ? { ...a, ...patch } : a)
 }
 
+type SettingsTab = 'transform' | 'animation'
+
 function DecorationLayerList({
-  assets, onUpdate, onPreview,
+  assets, onUpdate, onPreview, onPreviewExit, focusedId, onFocusChange,
 }: {
   assets: import('@/lib/types').DecorationAsset[]
   onUpdate: (a: import('@/lib/types').DecorationAsset[]) => void
   onPreview: () => void
+  onPreviewExit?: () => void
+  focusedId?: string | null
+  onFocusChange?: (id: string | null) => void
 }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('transform')
   const up = (id: string, patch: Partial<import('@/lib/types').DecorationAsset>) =>
     onUpdate(updateAsset(assets, id, patch))
 
+  const asset = focusedId ? assets.find(a => a.id === focusedId) : null
+  if (!asset) return null
+
+  // Layer order helpers
+  const maxZ = Math.max(0, ...assets.map(a => a.z_layer ?? 0))
+  const minZ = Math.min(0, ...assets.map(a => a.z_layer ?? 0))
+
   return (
-    <div className="space-y-1.5">
-      {/* Layer list header */}
-      <div className="flex items-center gap-2 px-2 py-1 text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
-        <span className="w-7" />
-        <span className="flex-1">Nama</span>
-        <span className="w-12 text-center">Posisi</span>
-        <span className="w-12 text-center">Layer</span>
-        <span className="w-14 text-center">Aksi</span>
+    <div className="rounded-xl border border-indigo-200 bg-white overflow-hidden">
+      {/* Asset header */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border-b border-indigo-100">
+        <img src={asset.url} alt="" className="w-8 h-8 object-contain rounded-lg border border-indigo-200 bg-white p-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <input
+            type="text" value={asset.label ?? ''} placeholder="Nama aset..."
+            onChange={e => up(asset.id, { label: e.target.value })}
+            className="w-full text-xs font-semibold text-gray-800 bg-transparent focus:outline-none placeholder:text-gray-400"
+          />
+          <div className="flex items-center gap-2 text-[8px] text-gray-400 font-mono mt-0.5">
+            <span>x:{asset.offset_x ?? 0} y:{asset.offset_y ?? 0}</span>
+            <span>{Math.round((asset.scale ?? 1) * 100)}%</span>
+            <span>{asset.rotation ?? 0}°</span>
+            <span className="text-indigo-500 font-bold">L{asset.z_layer ?? 0}</span>
+          </div>
+        </div>
+        <button onClick={() => onFocusChange?.(null)} className="text-gray-400 hover:text-gray-600 p-1">
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {[...assets].sort((a, b) => (b.z_layer ?? 0) - (a.z_layer ?? 0)).map(asset => {
-        const isExpanded = expandedId === asset.id
-        return (
-          <div key={asset.id} className={`rounded-xl overflow-hidden border transition-all ${isExpanded ? 'border-indigo-300 shadow-sm' : 'border-gray-200'}`}>
-            {/* Layer row */}
-            <div
-              className={`flex items-center gap-2 px-2.5 py-2 cursor-pointer select-none ${isExpanded ? 'bg-indigo-50' : 'bg-white hover:bg-gray-50'}`}
-              onClick={() => setExpandedId(isExpanded ? null : asset.id)}
-            >
-              <img src={asset.url} alt="" className="w-7 h-7 object-contain rounded border border-gray-200 bg-gray-50 shrink-0" />
-              <span className="flex-1 text-xs font-medium text-gray-700 truncate min-w-0">{asset.label || 'Aset'}</span>
-              <span className="w-12 text-center text-[9px] text-gray-400 font-mono shrink-0">{asset.position?.replace('-', '\n')}</span>
-              <span className="w-7 text-center text-[9px] font-bold text-indigo-500 shrink-0">L{asset.z_layer ?? 0}</span>
-              <div className="flex items-center gap-1 shrink-0">
-                <button onClick={e => { e.stopPropagation(); onPreview() }}
-                  className="p-1 text-emerald-600 hover:bg-emerald-100 rounded transition-colors" title="Preview animasi">
-                  <Play className="w-2.5 h-2.5 fill-current" />
-                </button>
-                <button onClick={e => { e.stopPropagation(); onUpdate(assets.filter(a => a.id !== asset.id)) }}
-                  className="p-1 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded transition-colors">
-                  <Trash2 className="w-2.5 h-2.5" />
-                </button>
-                <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+      {/* Layer ordering — icon bar */}
+      <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-gray-100">
+        <LayerBtn label="Paling Depan" onClick={() => up(asset.id, { z_layer: maxZ + 1 })} icon="⤒" />
+        <LayerBtn label="Maju" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) + 1 })} icon="↑" />
+        <LayerBtn label="Mundur" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) - 1 })} icon="↓" />
+        <LayerBtn label="Paling Belakang" onClick={() => up(asset.id, { z_layer: minZ - 1 })} icon="⤓" />
+        <div className="w-px h-4 bg-gray-200 mx-1" />
+        <LayerBtn label="Flip H" onClick={() => up(asset.id, { flip_h: !asset.flip_h })} icon="↔" active={asset.flip_h} />
+        <LayerBtn label="Flip V" onClick={() => up(asset.id, { flip_v: !asset.flip_v })} icon="↕" active={asset.flip_v} />
+        <div className="flex-1" />
+        <button onClick={e => { e.stopPropagation(); onUpdate(assets.filter(a => a.id !== asset.id)); onFocusChange?.(null) }}
+          className="p-1 text-gray-300 hover:text-red-500 rounded transition-colors" title="Hapus">
+          <Trash2 className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex border-b border-gray-100">
+        <TabBtn label="Transform" active={settingsTab === 'transform'} onClick={() => setSettingsTab('transform')} />
+        <TabBtn label="Animasi" active={settingsTab === 'animation'} onClick={() => setSettingsTab('animation')} />
+      </div>
+
+      {/* Tab content */}
+      <div className="px-3 py-3 space-y-3">
+        {settingsTab === 'transform' && (
+          <>
+            {/* Scale + Opacity — sliders */}
+            <SliderRow label="Ukuran" value={Math.round((asset.scale ?? 1) * 100)} min={10} max={300} step={5} unit="%"
+              onChange={v => up(asset.id, { scale: v / 100 })} />
+            <SliderRow label="Opacity" value={asset.opacity ?? 100} min={5} max={100} step={5} unit="%"
+              onChange={v => up(asset.id, { opacity: v })} />
+            <SliderRow label="Rotasi" value={asset.rotation ?? 0} min={-180} max={180} step={5} unit="°"
+              onChange={v => up(asset.id, { rotation: v })} />
+
+            {/* Position — fine tune with number inputs */}
+            <div className="grid grid-cols-2 gap-2">
+              <NumRow label="Posisi X" value={asset.offset_x ?? 0} step={4} onChange={v => up(asset.id, { offset_x: v })} />
+              <NumRow label="Posisi Y" value={asset.offset_y ?? 0} step={4} onChange={v => up(asset.id, { offset_y: v })} />
+            </div>
+
+            <p className="text-[8px] text-gray-400 text-center pt-1">Drag langsung di mockup untuk menggeser posisi</p>
+          </>
+        )}
+
+        {settingsTab === 'animation' && (
+          <>
+            {/* Efek masuk */}
+            <div>
+              <p className="text-[9px] font-bold text-emerald-600 mb-1">Efek Masuk</p>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={asset.animation ?? 'fade-in'}
+                  onChange={e => up(asset.id, { animation: e.target.value as import('@/lib/types').AssetAnimation })}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50">
+                  {Object.entries(ENTRY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <div className="flex items-center gap-1">
+                  <input type="number" min={0} max={4000} step={100}
+                    value={asset.animation_delay ?? 0}
+                    onChange={e => up(asset.id, { animation_delay: Number(e.target.value) })}
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
+                  />
+                  <span className="text-[8px] text-gray-400 shrink-0">ms</span>
+                </div>
               </div>
             </div>
 
-            {/* Expanded controls */}
-            {isExpanded && (
-              <div className="px-3 pb-4 pt-3 space-y-3 bg-white border-t border-indigo-100">
-
-                {/* Posisi grid */}
-                <div>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Posisi Anchor</p>
-                  <div className="grid grid-cols-3 gap-1 w-28">
-                    {POSITIONS_GRID.map(([pos, icon]) => (
-                      <button key={pos}
-                        onClick={() => up(asset.id, { position: pos })}
-                        className={`py-1.5 text-sm font-bold rounded-lg border transition-colors ${asset.position === pos ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-50 text-gray-400 border-gray-200 hover:border-indigo-300'}`}
-                      >{icon}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Geser + ukuran + rotasi */}
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    ['Geser X (px)', 'offset_x', -300, 300, 4, 0],
-                    ['Geser Y (px)', 'offset_y', -300, 300, 4, 0],
-                    ['Ukuran (px)', 'width', 10, 400, 10, 80],
-                    ['Rotasi (°)', 'rotation', -180, 180, 5, 0],
-                  ] as [string, string, number, number, number, number][]).map(([lbl, key, min, max, step, def]) => (
-                    <div key={key}>
-                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{lbl}</p>
-                      <input type="number" min={min} max={max} step={step}
-                        value={(asset as unknown as Record<string, number>)[key] ?? def}
-                        onChange={e => up(asset.id, { [key]: Number(e.target.value) } as Partial<import('@/lib/types').DecorationAsset>)}
-                        className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Layer + Opacity + Flip */}
-                <div className="flex gap-2 items-end">
-                  <div style={{ width: 60 }}>
-                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Layer Z</p>
-                    <input type="number" min={-10} max={20}
-                      value={asset.z_layer ?? 0}
-                      onChange={e => up(asset.id, { z_layer: Number(e.target.value) })}
-                      className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Opacity {asset.opacity ?? 100}%</p>
-                    <input type="range" min={5} max={100} step={5}
-                      value={asset.opacity ?? 100}
-                      onChange={e => up(asset.id, { opacity: Number(e.target.value) })}
-                      className="w-full accent-indigo-600"
-                    />
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => up(asset.id, { flip_h: !asset.flip_h })}
-                      className={`text-[9px] font-bold px-2 py-1.5 rounded-lg border transition-colors ${asset.flip_h ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                      ↔H
-                    </button>
-                    <button onClick={() => up(asset.id, { flip_v: !asset.flip_v })}
-                      className={`text-[9px] font-bold px-2 py-1.5 rounded-lg border transition-colors ${asset.flip_v ? 'bg-indigo-600 text-white' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                      ↕V
-                    </button>
-                  </div>
-                </div>
-
-                {/* Animasi masuk + delay */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">✦ Efek Masuk</p>
-                    <select value={asset.animation ?? 'fade-in'}
-                      onChange={e => up(asset.id, { animation: e.target.value as import('@/lib/types').AssetAnimation })}
-                      className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50">
-                      {Object.entries(ENTRY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Delay (ms)</p>
-                    <input type="number" min={0} max={4000} step={100}
-                      value={asset.animation_delay ?? 0}
-                      onChange={e => up(asset.id, { animation_delay: Number(e.target.value) })}
-                      className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                    />
-                  </div>
-                </div>
-
-                {/* Animasi berkelanjutan (idle) */}
-                <div>
-                  <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider mb-1.5">∞ Animasi Berkelanjutan</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <select value={asset.idle_animation ?? 'none'}
-                        onChange={e => up(asset.id, { idle_animation: e.target.value as import('@/lib/types').AssetIdleAnimation })}
-                        className="w-full text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
-                        {Object.entries(IDLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
-                    </div>
-                    {(asset.idle_animation ?? 'none') !== 'none' && (
-                      <div>
-                        <select value={asset.idle_speed ?? 'normal'}
-                          onChange={e => up(asset.id, { idle_speed: e.target.value as 'slow' | 'normal' | 'fast' })}
-                          className="w-full text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
-                          <option value="slow">Lambat</option>
-                          <option value="normal">Normal</option>
-                          <option value="fast">Cepat</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Label */}
-                <div>
-                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Layer</p>
-                  <input type="text"
-                    value={asset.label ?? ''}
-                    onChange={e => up(asset.id, { label: e.target.value })}
-                    className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                    placeholder="Nama aset (untuk identifikasi)"
+            {/* Efek keluar */}
+            <div>
+              <p className="text-[9px] font-bold text-rose-500 mb-1">Efek Keluar</p>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={asset.exit_animation ?? 'none'}
+                  onChange={e => up(asset.id, { exit_animation: e.target.value as import('@/lib/types').AssetExitAnimation })}
+                  className="text-xs border border-rose-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-rose-400 bg-rose-50">
+                  {Object.entries(EXIT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <div className="flex items-center gap-1">
+                  <input type="number" min={0} max={4000} step={100}
+                    value={asset.exit_delay ?? 0}
+                    onChange={e => up(asset.id, { exit_delay: Number(e.target.value) })}
+                    className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
                   />
+                  <span className="text-[8px] text-gray-400 shrink-0">ms</span>
                 </div>
               </div>
-            )}
-          </div>
-        )
-      })}
+            </div>
+
+            {/* Animasi berkelanjutan */}
+            <div>
+              <p className="text-[9px] font-bold text-indigo-500 mb-1">Animasi Loop</p>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={asset.idle_animation ?? 'none'}
+                  onChange={e => up(asset.id, { idle_animation: e.target.value as import('@/lib/types').AssetIdleAnimation })}
+                  className="text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
+                  {Object.entries(IDLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                {(asset.idle_animation ?? 'none') !== 'none' && (
+                  <select value={asset.idle_speed ?? 'normal'}
+                    onChange={e => up(asset.id, { idle_speed: e.target.value as 'slow' | 'normal' | 'fast' })}
+                    className="text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
+                    <option value="slow">Lambat</option>
+                    <option value="normal">Normal</option>
+                    <option value="fast">Cepat</option>
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* Preview buttons */}
+            <div className="flex gap-2 pt-1">
+              <button onClick={e => { e.stopPropagation(); onPreview() }}
+                className="flex-1 py-1.5 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors">
+                ▶ Preview Masuk
+              </button>
+              {onPreviewExit && (
+                <button onClick={e => { e.stopPropagation(); onPreviewExit() }}
+                  className="flex-1 py-1.5 text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors">
+                  ◀ Preview Keluar
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function LayerBtn({ label, onClick, icon, active }: { label: string; onClick: () => void; icon: string; active?: boolean }) {
+  return (
+    <button onClick={onClick} title={label}
+      className={`w-6 h-6 text-xs font-bold rounded-md border transition-colors flex items-center justify-center ${
+        active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-400 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+      }`}>
+      {icon}
+    </button>
+  )
+}
+
+function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className={`flex-1 py-2 text-[10px] font-semibold transition-colors ${
+        active ? 'text-indigo-700 border-b-2 border-indigo-600 bg-white' : 'text-gray-400 hover:text-gray-600 bg-gray-50'
+      }`}>
+      {label}
+    </button>
+  )
+}
+
+function SliderRow({ label, value, min, max, step, unit, onChange }: {
+  label: string; value: number; min: number; max: number; step: number; unit: string; onChange: (v: number) => void
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[9px] font-semibold text-gray-500">{label}</p>
+        <span className="text-[9px] font-mono text-indigo-600">{value}{unit}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full accent-indigo-600 h-1.5" />
+    </div>
+  )
+}
+
+function NumRow({ label, value, step, onChange }: { label: string; value: number; step: number; onChange: (v: number) => void }) {
+  return (
+    <div>
+      <p className="text-[9px] font-semibold text-gray-500 mb-1">{label}</p>
+      <input type="number" step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50 font-mono"
+      />
     </div>
   )
 }

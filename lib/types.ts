@@ -211,10 +211,19 @@ export type AssetPosition =
   | 'top-left' | 'top-center' | 'top-right'
   | 'center-left' | 'center' | 'center-right'
   | 'bottom-left' | 'bottom-center' | 'bottom-right'
+  | 'top-quarter-left' | 'top-quarter-right'
+  | 'bottom-quarter-left' | 'bottom-quarter-right'
+  | 'edge-left' | 'edge-right'
+  | 'edge-top' | 'edge-bottom'
 
 export type AssetAnimation =
   | 'none' | 'fade-in' | 'slide-left' | 'slide-right'
   | 'slide-up' | 'slide-down' | 'zoom-in' | 'rotate-in'
+
+export type AssetExitAnimation =
+  | 'none' | 'fade-out' | 'slide-out-left' | 'slide-out-right'
+  | 'slide-out-up' | 'slide-out-down' | 'zoom-out' | 'rotate-out'
+  | 'shrink' | 'blur-out'
 
 export type AssetIdleAnimation =
   | 'none' | 'float' | 'pulse' | 'shimmer' | 'sway' | 'spin-slow' | 'heartbeat' | 'drift-right'
@@ -227,12 +236,15 @@ export interface DecorationAsset {
   offset_x?: number        // px, geser dari anchor
   offset_y?: number
   width?: number           // px, default 80
+  scale?: number           // 0.1-3, default 1
   rotation?: number        // derajat
   flip_h?: boolean
   flip_v?: boolean
   opacity?: number         // 0-100
   animation?: AssetAnimation     // animasi masuk
   animation_delay?: number       // ms, delay animasi masuk
+  exit_animation?: AssetExitAnimation  // animasi keluar saat transisi ke loading
+  exit_delay?: number            // ms, delay animasi keluar
   idle_animation?: AssetIdleAnimation  // animasi on-the-spot setelah masuk
   idle_speed?: 'slow' | 'normal' | 'fast'  // kecepatan idle, default 'normal'
   z_layer?: number         // z-order/layer, default 0
@@ -262,11 +274,48 @@ export interface OpeningConfig {
   show_opening?: boolean           // default: true
 }
 
+export type LoadingVariant =
+  | 'dual-ring'
+  | 'heartbeat'
+  | 'elegant-spinner'
+  | 'petal-cascade'
+  | 'wave-dots'
+  | 'letter-reveal'
+  | 'arch-gate'
+  | 'candle-glow'
+  | 'infinity-ribbon'
+  | 'shimmer-bar'
+  | 'orbit-rings'
+  | 'ripple-pulse'
+  | 'diamond-spin'
+  | 'hourglass'
+  | 'crescent-moon'
+  | 'spiral-gold'
+
+export type LoadingBgType = 'solid' | 'gradient' | 'radial' | 'image' | 'pattern'
+
 export interface LoadingConfig {
   background_color: string
   logo_image?: string
   text: string
   animation?: string
+  variant?: LoadingVariant
+  duration_ms?: number
+  accent_color?: string
+  text_color?: string
+  show_progress?: boolean
+  blur_background?: boolean
+  particle_count?: number
+  font_family?: string
+  text_size?: 'sm' | 'base' | 'lg'
+  animation_speed?: 'slow' | 'normal' | 'fast'
+  overlay_opacity?: number
+  bg_type?: LoadingBgType
+  bg_gradient_from?: string
+  bg_gradient_to?: string
+  bg_gradient_angle?: number
+  bg_image_url?: string
+  bg_pattern?: 'none' | 'dots' | 'lines' | 'cross' | 'moroccan'
 }
 
 export interface ColorScheme {
@@ -366,11 +415,15 @@ export interface TimelineItem {
   date: string
   title: string
   description?: string
+  photo_url?: string
 }
 
 export interface GiftRegistryLink {
   label: string
   url: string
+  image_url?: string
+  description?: string
+  price?: string
   marketplace?: 'tokopedia' | 'shopee' | 'bukalapak' | 'lazada' | 'other'
 }
 
@@ -390,24 +443,32 @@ export interface NewInvitationData {
   bride_parents?: string
   groom_parents?: string
   tagline?: string
-  // Individual profile photos + bios (for profiles section)
   groom_photo_url?: string
   bride_photo_url?: string
   groom_bio?: string
   bride_bio?: string
-  // Couple photo (used in hero background)
   couple_photo_url?: string
+  // Colors
+  primary_color?: string
+  accent_color?: string
+  text_color?: string
+  background_color?: string
+  // Opening
+  opening_greeting?: string
+  opening_subtitle?: string
+  // Story
   story_title?: string
   story_text?: string
   story_timeline?: TimelineItem[]
-  // Kisah Cinta bergambar: beberapa bab, masing-masing full-screen + foto
   story_chapters?: StoryChapter[]
   // Hero
-  hero_video_url?: string           // Video pendek background hero (mp4/webm)
+  hero_video_url?: string
   akad?: EventDetail
   resepsi?: EventDetail
   gallery_photos?: string[]
+  // Music
   music_url?: string
+  music_title?: string
   gift_accounts?: GiftAccount[]
   livestream_url?: string
   closing_text?: string

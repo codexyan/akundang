@@ -17,9 +17,11 @@ export default function ImageUploadField({ value, onChange, label, hint }: Props
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function uploadFile(file: File) {
-    if (file.size > 5 * 1024 * 1024) { toast.error('File terlalu besar (maks 5MB)'); return }
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowed.includes(file.type)) { toast.error('Format tidak didukung. Gunakan JPG, PNG, atau WebP.'); return }
+    const isGif = file.type === 'image/gif'
+    const maxSize = isGif ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) { toast.error(`File terlalu besar (maks ${isGif ? '10' : '5'}MB)`); return }
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowed.includes(file.type)) { toast.error('Format tidak didukung. Gunakan JPG, PNG, WebP, atau GIF.'); return }
 
     setUploading(true)
     try {
@@ -95,11 +97,11 @@ export default function ImageUploadField({ value, onChange, label, hint }: Props
           <p className="text-xs font-medium text-gray-500">
             {uploading ? 'Mengupload...' : 'Klik atau seret foto ke sini'}
           </p>
-          <p className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP · Maks 5MB</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP, GIF · Maks 5MB (GIF 10MB)</p>
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
             className="hidden"
             onChange={handleFileChange}
             disabled={uploading}

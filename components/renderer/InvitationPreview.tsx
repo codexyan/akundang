@@ -53,7 +53,7 @@ export default function InvitationPreview({
       }}>
         {activeSections.map(section => (
           <SectionRenderer
-            key={section.id}
+            key={`${section.id}-${section.style_variant ?? 'default'}`}
             sectionConfig={section}
             invitationData={data}
             templateMeta={meta}

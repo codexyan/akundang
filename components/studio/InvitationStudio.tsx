@@ -16,8 +16,8 @@
 
 import { useState, useRef, useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { Clock, Image, Gift, CheckSquare, MessageSquare, Heart, BookOpen } from 'lucide-react'
-import type { Invitation, NewInvitationData, TemplateRecord, GiftAccount } from '@/lib/types'
+import { Clock, Image as ImageIcon, Gift, CheckSquare, MessageSquare, BookOpen } from 'lucide-react'
+import type { Invitation, NewInvitationData, TemplateRecord, GiftAccount, LoadingConfig } from '@/lib/types'
 import InvitationPreview from '@/components/renderer/InvitationPreview'
 
 // New modular components
@@ -26,10 +26,12 @@ import ColorPaletteForm from './forms/ColorPaletteForm'
 import OpeningForm from './forms/OpeningForm'
 import MusicForm from './forms/MusicForm'
 import QuoteForm from './forms/QuoteForm'
+import LoadingForm from './forms/LoadingForm'
 import BasicInfoForm from './forms/BasicInfoForm'
 import EventDetailsForm from './forms/EventDetailsForm'
 import ProfilesForm from './forms/ProfilesForm'
 import GiftForm from './forms/GiftForm'
+import StoryForm from './forms/StoryForm'
 import InfoCard from './ui/InfoCard'
 import FormField, { textareaClass } from './ui/FormField'
 import SectionCard from './ui/SectionCard'
@@ -109,14 +111,14 @@ function calculateProgress(data: NewInvitationData) {
     data.groom_name,
     data.bride_name,
     data.couple_photo_url,
-    data.akad.date,
-    data.akad.time,
-    data.akad.venue_name,
-    data.akad.venue_address,
-    data.resepsi.date,
-    data.resepsi.time,
-    data.resepsi.venue_name,
-    data.resepsi.venue_address,
+    data.akad?.date,
+    data.akad?.time,
+    data.akad?.venue_name,
+    data.akad?.venue_address,
+    data.resepsi?.date,
+    data.resepsi?.time,
+    data.resepsi?.venue_name,
+    data.resepsi?.venue_address,
   ]
 
   const filled = required.filter(Boolean).length
@@ -126,10 +128,10 @@ function calculateProgress(data: NewInvitationData) {
   if (!data.groom_name) missing.push('Nama Mempelai Pria')
   if (!data.bride_name) missing.push('Nama Mempelai Wanita')
   if (!data.couple_photo_url) missing.push('Foto Pembuka')
-  if (!data.akad.date) missing.push('Tanggal Akad')
-  if (!data.akad.venue_name) missing.push('Tempat Akad')
-  if (!data.resepsi.date) missing.push('Tanggal Resepsi')
-  if (!data.resepsi.venue_name) missing.push('Tempat Resepsi')
+  if (!data.akad?.date) missing.push('Tanggal Akad')
+  if (!data.akad?.venue_name) missing.push('Tempat Akad')
+  if (!data.resepsi?.date) missing.push('Tanggal Resepsi')
+  if (!data.resepsi?.venue_name) missing.push('Tempat Resepsi')
 
   return {
     percentage: Math.round((filled / total) * 100),
@@ -247,8 +249,8 @@ export default function InvitationStudio({ invitation, template, onSaved }: Prop
             <EventDetailsForm
               akad={data.akad}
               resepsi={data.resepsi}
-              onAkadChange={(patch) => updateData({ akad: { ...data.akad, ...patch } })}
-              onResepsiChange={(patch) => updateData({ resepsi: { ...data.resepsi, ...patch } })}
+              onAkadChange={(patch) => updateData({ akad: { ...(data.akad ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['akad'] })}
+              onResepsiChange={(patch) => updateData({ resepsi: { ...(data.resepsi ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['resepsi'] })}
             />
 
             {/* ━━━ SUASANA (Atmosphere) ━━━ */}
@@ -259,6 +261,15 @@ export default function InvitationStudio({ invitation, template, onSaved }: Prop
               openingSubtitle={(data as any).opening_subtitle || ''}
               onOpeningGreetingChange={(val) => updateData({ ...data, opening_greeting: val } as any)}
               onOpeningSubtitleChange={(val) => updateData({ ...data, opening_subtitle: val } as any)}
+            />
+
+            {/* Loading Screen */}
+            <LoadingForm
+              config={template.config.loading}
+              onChange={(loadingConfig: LoadingConfig) => {
+                // Loading config is part of template — for now save as data override
+                updateData({ ...data, loading_config: loadingConfig } as any)
+              }}
             />
 
             {/* Music */}
@@ -304,30 +315,20 @@ export default function InvitationStudio({ invitation, template, onSaved }: Prop
               onBrideBioChange={(val) => updateData({ bride_bio: val })}
             />
 
-            {/* OPTIONAL: Love Story (SIMPLIFIED - single text) */}
-            <SectionCard
-              title="Kisah Cinta"
-              icon={Heart}
-              description="Cerita pertemuan atau perjalanan cinta Anda (opsional)"
-            >
-              <FormField
-                label="Cerita Cinta Anda"
-                hint="Tulis cerita singkat tentang bagaimana Anda berdua bertemu dan jatuh cinta"
-              >
-                <textarea
-                  className={textareaClass}
-                  rows={6}
-                  value={data.story_text}
-                  onChange={(e) => updateData({ story_text: e.target.value })}
-                  placeholder="Kami pertama kali bertemu di..."
-                />
-              </FormField>
-            </SectionCard>
+            {/* OPTIONAL: Love Story (chapters-based IG Stories) */}
+            <StoryForm
+              storyTitle={data.story_title ?? ''}
+              storyText={data.story_text ?? ''}
+              chapters={data.story_chapters ?? []}
+              onStoryTitleChange={(val) => updateData({ story_title: val })}
+              onStoryTextChange={(val) => updateData({ story_text: val })}
+              onChaptersChange={(chapters) => updateData({ story_chapters: chapters })}
+            />
 
             {/* OPTIONAL: Gallery */}
             <InfoCard
               title="Galeri Foto"
-              icon={Image}
+              icon={ImageIcon}
               message="Upload dan kelola foto galeri undangan Anda di tab Galeri."
               actionText="Buka Galeri"
               actionHref="#"
@@ -335,7 +336,7 @@ export default function InvitationStudio({ invitation, template, onSaved }: Prop
 
             {/* OPTIONAL: Gift Accounts (max 3) */}
             <GiftForm
-              accounts={data.gift_accounts as GiftAccount[]}
+              accounts={data.gift_accounts ?? []}
               onAccountsChange={(accounts) => updateData({ gift_accounts: accounts })}
             />
 

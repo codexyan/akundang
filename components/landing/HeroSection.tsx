@@ -157,9 +157,9 @@ export default function HeroSection() {
       {/* ── Main Content ── */}
       <motion.div
         style={{ y: contentY }}
-        className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 pb-20 lg:pt-32 lg:pb-24"
+        className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-16 pb-12 sm:pt-24 sm:pb-20 lg:pt-32 lg:pb-24"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-12 lg:gap-20 items-center">
           {/* ── Left: Premium Copy ── */}
           <div className="max-w-2xl">
             {/* 🎯 Headline - POWER STATEMENT */}
@@ -228,7 +228,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="mt-8 flex items-center gap-6 flex-wrap"
+              className="mt-6 sm:mt-8 flex items-center gap-4 sm:gap-6 flex-wrap"
             >
               {/* Avatars */}
               <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export default function HeroSection() {
                         type: "spring",
                         stiffness: 300,
                       }}
-                      className="w-10 h-10 rounded-full border-3 border-white bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center shadow-lg"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 sm:border-3 border-white bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center shadow-lg"
                       style={{ zIndex: 5 - i }}
                     >
                       <span className="text-lg">{e}</span>
@@ -307,13 +307,13 @@ export default function HeroSection() {
                 delay: 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mt-10 flex flex-col sm:flex-row gap-4"
+              className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4"
             >
               <Link href="/templates" className="group">
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="relative w-full sm:w-auto px-8 py-4 rounded-2xl text-white text-button-lg overflow-hidden shadow-2xl"
+                  className="relative w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-white text-button-lg overflow-hidden shadow-2xl"
                   style={{
                     background:
                       "linear-gradient(135deg, #2c4a34 0%, #3a4e44 15%, #5d7a6a 40%, #8fa99a 65%, #b8954d 85%, #c9a961 100%)",
@@ -351,7 +351,7 @@ export default function HeroSection() {
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl text-button-lg backdrop-blur-xl border-2 transition-all text-stone-700"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-button-lg backdrop-blur-xl border-2 transition-all text-stone-700"
                   style={{
                     background:
                       "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))",
@@ -377,7 +377,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 60, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="flex justify-center lg:justify-end mt-12 lg:mt-0"
+            className="flex justify-center lg:justify-end mt-4 sm:mt-12 lg:mt-0"
           >
             <div className="relative">
               {/* Subtle glow */}
@@ -430,12 +430,11 @@ export default function HeroSection() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="relative"
-                style={{ width: 280 }}
+                className="relative w-[220px] sm:w-[280px]"
               >
                 {/* iPhone frame */}
                 <div
-                  className="relative rounded-[52px] overflow-hidden"
+                  className="relative rounded-[40px] sm:rounded-[52px] overflow-hidden"
                   style={{
                     padding: 12,
                     background:
@@ -460,7 +459,7 @@ export default function HeroSection() {
 
                   {/* Screen */}
                   <div
-                    className="rounded-[42px] overflow-hidden bg-black relative"
+                    className="rounded-[32px] sm:rounded-[42px] overflow-hidden bg-black relative"
                     style={{ aspectRatio: "9/19.5" }}
                   >
                     {/* Background Photo */}

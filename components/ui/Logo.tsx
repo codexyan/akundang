@@ -14,22 +14,22 @@ interface LogoProps {
 
 const sizeConfig = {
   sm: {
-    horizontal: { width: 140, height: 40 },
+    horizontal: { width: 120, height: 36 },
     vertical: { width: 100, height: 100 },
     icon: { width: 32, height: 32 },
   },
   md: {
-    horizontal: { width: 180, height: 52 },
+    horizontal: { width: 160, height: 46 },
     vertical: { width: 140, height: 140 },
     icon: { width: 48, height: 48 },
   },
   lg: {
-    horizontal: { width: 240, height: 70 },
+    horizontal: { width: 200, height: 58 },
     vertical: { width: 180, height: 180 },
     icon: { width: 64, height: 64 },
   },
   xl: {
-    horizontal: { width: 320, height: 92 },
+    horizontal: { width: 280, height: 80 },
     vertical: { width: 240, height: 240 },
     icon: { width: 96, height: 96 },
   },
@@ -56,7 +56,7 @@ export default function Logo({
       }}
     >
       <Image
-        src={variant === 'vertical' ? '/logos/logo-vertical.png' : '/logos/logo-horizontal.png'}
+        src={variant === 'icon-only' ? '/logos/icons.png' : variant === 'vertical' ? '/logos/logo-vertical.png' : '/logos/logo-horizontal.png'}
         alt="Iaundang - Digital Wedding Invitation"
         fill
         className="object-contain"

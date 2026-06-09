@@ -101,7 +101,7 @@ export default function InvitationRenderer({
           height: '100dvh',
           overflowY: 'scroll',
           overflowX: 'hidden',
-          scrollSnapType: 'y mandatory',
+          scrollSnapType: 'y proximity',
           scrollbarWidth: 'none',
         }}
       >

@@ -35,7 +35,7 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section id="faq" className="py-20 sm:py-24 bg-white">
+    <section id="faq" className="py-14 sm:py-20 lg:py-24 bg-white">
       <div className="max-w-xl mx-auto px-5 sm:px-8">
 
         <motion.div

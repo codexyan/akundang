@@ -54,6 +54,14 @@ export default async function AdminPage() {
         qrisImageUrl: appSettings.qrisImageUrl,
         paymentInstructions: appSettings.paymentInstructions,
         confirmationWhatsapp: appSettings.confirmationWhatsapp,
+        siteName: appSettings.siteName ?? 'Akundang',
+        siteTagline: appSettings.siteTagline ?? 'Digital Wedding Invitation',
+        logoHorizontalUrl: appSettings.logoHorizontalUrl ?? '/logos/logo-horizontal.png',
+        logoVerticalUrl: appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png',
+        contactEmail: appSettings.contactEmail ?? 'halo@akundang.id',
+        socialInstagram: appSettings.socialInstagram ?? 'akundang.id',
+        socialTwitter: appSettings.socialTwitter ?? 'akundang',
+        socialGithub: appSettings.socialGithub ?? 'akundang',
       }}
       templateRecords={allTemplateRecords}
       adminEmail={session.email}

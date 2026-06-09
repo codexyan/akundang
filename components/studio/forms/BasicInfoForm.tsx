@@ -7,7 +7,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, Loader2, Trash2, Image } from 'lucide-react'
+import { Upload, Loader2, Trash2, Image as ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import FormField, { inputClass, textareaClass } from '../ui/FormField'
 import SectionCard from '../ui/SectionCard'
@@ -16,8 +16,8 @@ import { Sparkles } from 'lucide-react'
 interface BasicInfoFormProps {
   groomName: string
   brideName: string
-  couplePhotoUrl: string
-  tagline: string
+  couplePhotoUrl?: string
+  tagline?: string
   onGroomNameChange: (value: string) => void
   onBrideNameChange: (value: string) => void
   onCouplePhotoChange: (url: string) => void
@@ -157,7 +157,7 @@ export default function BasicInfoForm({
             ) : (
               <>
                 <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center">
-                  <Image size={28} />
+                  <ImageIcon size={28} />
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-stone-700">

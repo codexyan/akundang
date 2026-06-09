@@ -1,50 +1,118 @@
 ﻿'use client'
 
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
+
+const COUPLE_PHOTO = '/logos/foto-mockup.png'
 
 // ─── Mini visual components ──────────────────────────────────────
 
 function VisualPersonal() {
   return (
-    <div className="relative w-full max-w-[300px] mx-auto">
+    <div className="relative w-full max-w-[280px] mx-auto">
       {/* Phone shell */}
-      <div className="rounded-[36px] overflow-hidden shadow-2xl shadow-stone-200/80 border border-stone-100"
-        style={{ background: 'linear-gradient(145deg, #1c1c1e, #2c2c2e)', padding: 8 }}>
-        <div className="rounded-[30px] overflow-hidden bg-stone-900" style={{ aspectRatio: '9/17' }}>
-          {/* Background photo placeholder */}
-          <div className="absolute inset-0 bg-gradient-to-b from-stone-700 to-stone-900" />
-          <div className="relative h-full flex flex-col">
-            {/* Top label */}
-            <div className="absolute inset-x-0 top-0 pt-5 text-center z-10">
-              <p className="text-white/50 text-[7px] tracking-[0.2em] uppercase">Undangan Pernikahan</p>
+      <div
+        className="relative rounded-[40px] sm:rounded-[44px] overflow-hidden shadow-2xl shadow-stone-200/80"
+        style={{
+          padding: 10,
+          background: 'linear-gradient(145deg, #2c2c2e 0%, #1c1c1e 50%, #0a0a0a 100%)',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05), inset 0 0 0 1.5px rgba(255,255,255,0.1)',
+        }}
+      >
+        {/* Dynamic Island */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full"
+          style={{ top: 13, width: 80, height: 22, backgroundColor: '#000' }}
+        />
+
+        {/* Screen */}
+        <div className="rounded-[32px] sm:rounded-[36px] overflow-hidden bg-black relative" style={{ aspectRatio: '9/19.5' }}>
+          {/* Background Photo */}
+          <Image
+            src={COUPLE_PHOTO}
+            alt="Preview undangan personalisasi"
+            fill
+            className="object-cover"
+            sizes="280px"
+            quality={90}
+          />
+
+          {/* Overlay Gradient */}
+          <div
+            className="absolute inset-0 z-10"
+            style={{
+              background: `linear-gradient(180deg,
+                rgba(0,0,0,0.65) 0%,
+                rgba(0,0,0,0.35) 15%,
+                rgba(0,0,0,0.08) 35%,
+                rgba(0,0,0,0.08) 60%,
+                rgba(0,0,0,0.5) 80%,
+                rgba(0,0,0,0.9) 100%)`,
+            }}
+          />
+
+          {/* Invitation Cover Content */}
+          <div className="absolute inset-0 z-20 flex flex-col">
+            {/* Top Section */}
+            <div className="flex-shrink-0 pt-12 px-5 text-center">
+              <p className="font-serif text-gold-200 text-[9px] tracking-[0.25em] uppercase mb-2">
+                The Wedding Of
+              </p>
+              <h2 className="font-serif text-white text-xl leading-tight drop-shadow-2xl mb-1">
+                Rizky &amp; Aulia
+              </h2>
+              <div
+                className="w-12 h-px mx-auto"
+                style={{ background: 'linear-gradient(90deg, transparent, #c9a961, transparent)' }}
+              />
+              <p className="text-white/40 text-[8px] tracking-widest uppercase mt-2">
+                Sabtu, 12 April 2026
+              </p>
             </div>
-            {/* Couple names */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6">
-              <p className="font-serif italic text-white text-2xl">Rizky</p>
-              <p className="font-serif text-amber-400 text-sm my-1">&amp;</p>
-              <p className="font-serif italic text-white text-2xl">Aulia</p>
-              <p className="text-white/40 text-[8px] tracking-widest uppercase mt-2">Sabtu, 12 April 2026</p>
-            </div>
-            {/* Guest name highlight */}
-            <div className="absolute bottom-0 inset-x-0 p-4 z-10"
-              style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
-              <p className="text-white/40 text-[7px] text-center tracking-wide">Kepada Yth.</p>
-              <div className="mt-1 bg-white/10 backdrop-blur rounded-xl px-3 py-2 border border-white/20">
-                <p className="text-white text-[10px] font-semibold text-center">Bapak Andi &amp; Keluarga</p>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Bottom Section - Guest Name & CTA */}
+            <div className="flex-shrink-0 pb-6 px-4">
+              <div className="text-center mb-3">
+                <p className="text-white/60 text-[8px] tracking-[0.15em] uppercase mb-2">
+                  Kepada Yth.
+                </p>
+                <div
+                  className="px-3 py-2 rounded-xl backdrop-blur-md mx-auto inline-block"
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <p className="text-white font-semibold text-[11px]">
+                    Bapak Andi &amp; Keluarga
+                  </p>
+                </div>
               </div>
-              <button className="w-full mt-2 py-2 rounded-full text-white text-[8px] font-semibold tracking-wider"
-                style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}>
+
+              <button
+                className="w-full py-2.5 rounded-xl font-semibold text-[10px] text-white tracking-wider"
+                style={{
+                  background: 'linear-gradient(135deg, #2c4a34 0%, #4a6355 50%, #c9a961 100%)',
+                  boxShadow: '0 4px 16px rgba(201,169,97,0.35)',
+                }}
+              >
                 BUKA UNDANGAN
               </button>
             </div>
           </div>
         </div>
       </div>
+
       {/* Floating badge */}
       <motion.div
-        animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -right-4 top-1/3 bg-white rounded-2xl px-3 py-2 shadow-xl shadow-stone-200 border border-stone-100 flex items-center gap-2"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute right-0 sm:-right-4 top-1/4 bg-white rounded-2xl px-3 py-2 shadow-xl shadow-stone-200 border border-stone-100 flex items-center gap-2 max-sm:scale-90"
       >
         <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-xs">✅</div>
         <div>
@@ -98,7 +166,7 @@ function VisualRSVP() {
       </div>
       <motion.div
         animate={{ y: [0, -5, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute -left-4 bottom-8 bg-white rounded-2xl px-3 py-2 shadow-xl shadow-stone-200 border border-stone-100"
+        className="absolute left-0 sm:-left-4 bottom-8 bg-white rounded-2xl px-3 py-2 shadow-xl shadow-stone-200 border border-stone-100 max-sm:scale-90"
       >
         <p className="text-[9px] font-bold text-stone-800">500 tamu</p>
         <p className="text-[8px] text-stone-400">bisa ditambahkan</p>
@@ -201,7 +269,7 @@ function VisualDomain() {
       {/* Share via WA mock */}
       <motion.div
         animate={{ y: [0, -6, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -bottom-4 -right-2 bg-white rounded-2xl px-3.5 py-2.5 shadow-xl shadow-stone-200 border border-stone-100 max-w-[160px]"
+        className="absolute -bottom-4 right-0 sm:-right-2 bg-white rounded-2xl px-3.5 py-2.5 shadow-xl shadow-stone-200 border border-stone-100 max-w-[160px] max-sm:scale-90"
       >
         <div className="flex items-center gap-2 mb-1">
           <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
@@ -259,7 +327,7 @@ function VisualGallery() {
       </div>
       <motion.div
         animate={{ y: [0, -5, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute -left-3 top-1/3 bg-white rounded-2xl px-3 py-2 shadow-xl border border-stone-100"
+        className="absolute left-0 sm:-left-3 top-1/3 bg-white rounded-2xl px-3 py-2 shadow-xl border border-stone-100 max-sm:scale-90"
       >
         <p className="text-[9px] font-bold text-stone-800">Lightbox</p>
         <p className="text-[8px] text-stone-400">foto full screen</p>
@@ -344,8 +412,8 @@ export default function FeatureShowcase() {
   return (
     <section id="fitur" className="overflow-hidden">
       {/* Section header */}
-      <div className="py-16 sm:py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
+      <div className="py-12 sm:py-16 lg:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -365,9 +433,9 @@ export default function FeatureShowcase() {
 
       {/* Feature rows */}
       {features.map((f, i) => (
-        <div key={f.tag} className={`py-16 sm:py-20 ${f.bg}`}>
-          <div className="max-w-6xl mx-auto px-5 sm:px-8">
-            <div className={`flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-12 lg:gap-20`}>
+        <div key={f.tag} className={`py-12 sm:py-16 lg:py-20 ${f.bg}`}>
+          <div className="max-w-6xl mx-auto px-4 sm:px-8">
+            <div className={`flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-8 sm:gap-12 lg:gap-20`}>
 
               {/* Text side */}
               <motion.div
@@ -418,8 +486,8 @@ export default function FeatureShowcase() {
       ))}
 
       {/* Bottom CTA */}
-      <div className="py-14 bg-white border-t border-stone-100">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
+      <div className="py-10 sm:py-14 bg-white border-t border-stone-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}

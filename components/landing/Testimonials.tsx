@@ -39,7 +39,7 @@ const reviews = [
 
 export default function Testimonials() {
   return (
-    <section className="py-20 sm:py-28 bg-white overflow-hidden">
+    <section className="py-14 sm:py-20 lg:py-28 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
 
         <motion.div
@@ -66,7 +66,7 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-30px' }}
               transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative rounded-3xl p-7 border border-stone-100 bg-stone-50 hover:border-stone-200 hover:bg-white transition-all duration-300 hover:shadow-lg hover:shadow-stone-100"
+              className="group relative rounded-3xl p-5 sm:p-7 border border-stone-100 bg-stone-50 hover:border-stone-200 hover:bg-white transition-all duration-300 hover:shadow-lg hover:shadow-stone-100"
             >
               {/* Quote mark */}
               <div className="font-serif text-6xl leading-none text-stone-200 absolute top-4 right-6 select-none pointer-events-none">&ldquo;</div>

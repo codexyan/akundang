@@ -355,19 +355,307 @@ function HeroMinimal({ section, data, font, accent, text }: {
   )
 }
 
+// ─── Variant: Split (foto kiri, nama kanan — visual editorial) ───────────
+function HeroSplit({ section, data, font, accent, text }: {
+  section: SectionConfig
+  data: NewInvitationData
+  font: ReturnType<typeof resolveFont>
+  accent: string
+  text: string
+}) {
+  const titleSz   = section.hero_title_size   ?? 28
+  const taglineSz = section.hero_tagline_size ?? 10
+  const dur       = section.hero_anim_duration  ?? 0.8
+  const stagger   = section.hero_anim_stagger   ?? 0.15
+  const padT      = section.hero_padding_top    ?? 0
+  const padB      = section.hero_padding_bottom ?? 0
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
+
+  return (
+    <div style={{
+      display: 'flex', width: '100%', minHeight: 400, paddingTop: padT, paddingBottom: padB,
+    }}>
+      {data.couple_photo_url && (
+        <motion.div
+          variants={{ hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: ts(1) } }}
+          style={{
+            flex: 1, backgroundImage: `url(${data.couple_photo_url})`,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+          }}
+        />
+      )}
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', padding: '32px 24px', textAlign: 'left',
+      }}>
+        <Bismillah section={section} font={font} accent={accent} delay={stagger * 1} />
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: ts(2) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
+        >{data.groom_name}</motion.h1>
+
+        <motion.div
+          variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1, transition: ts(3) } }}
+          style={{ height: 1, width: 40, backgroundColor: `${accent}77`, margin: '10px 0', transformOrigin: 'left' }}
+        />
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: ts(4) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
+        >{data.bride_name}</motion.h1>
+
+        {data.tagline && (
+          <motion.p
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}
+            style={{ fontSize: taglineSz, lineHeight: 1.8, marginTop: 14, fontStyle: 'italic', color: `${text}88`, fontFamily: `'${font.body}', serif` }}
+          >{data.tagline}</motion.p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Variant: Overlay Card (nama di dalam card transparan mengambang) ─────
+function HeroOverlayCard({ section, data, font, accent, text }: {
+  section: SectionConfig
+  data: NewInvitationData
+  font: ReturnType<typeof resolveFont>
+  accent: string
+  text: string
+}) {
+  const titleSz   = section.hero_title_size   ?? 30
+  const andSz     = section.hero_and_size     ?? 18
+  const taglineSz = section.hero_tagline_size ?? 10
+  const dur       = section.hero_anim_duration  ?? 0.9
+  const stagger   = section.hero_anim_stagger   ?? 0.15
+  const shadow    = section.hero_text_shadow !== false
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
+
+  return (
+    <div style={{ textAlign: 'center', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <motion.div
+        variants={{ hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: ts(1) } }}
+        style={{
+          background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          borderRadius: 16, border: `1px solid rgba(255,255,255,0.18)`,
+          padding: '40px 28px', maxWidth: 320, width: '100%',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        }}
+      >
+        <Bismillah section={section} font={font} accent={accent} delay={stagger * 2} />
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: ts(3) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: '#fff', fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
+        >{data.groom_name}</motion.h1>
+
+        <motion.p
+          variants={{ hidden: { opacity: 0, scale: 0.7 }, visible: { opacity: 1, scale: 1, transition: ts(4) } }}
+          style={{ fontSize: andSz, margin: '8px 0', fontStyle: 'italic', color: accent, fontFamily: `'${font.heading}', serif` }}
+        >&amp;</motion.p>
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: ts(5) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: '#fff', fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
+        >{data.bride_name}</motion.h1>
+
+        <Divider accent={accent} delay={stagger * 6} dur={dur * 0.8} />
+
+        {data.tagline && (
+          <motion.p
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(7) } }}
+            style={{ fontSize: taglineSz, lineHeight: 1.8, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', fontFamily: `'${font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
+          >{data.tagline}</motion.p>
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Variant: Editorial (teks besar dramatis, satu baris per nama) ───────
+function HeroEditorial({ section, data, font, accent, text }: {
+  section: SectionConfig
+  data: NewInvitationData
+  font: ReturnType<typeof resolveFont>
+  accent: string
+  text: string
+}) {
+  const titleSz   = section.hero_title_size   ?? 44
+  const taglineSz = section.hero_tagline_size ?? 10
+  const labelSz   = section.hero_label_size   ?? 8
+  const dur       = section.hero_anim_duration  ?? 1.0
+  const stagger   = section.hero_anim_stagger   ?? 0.18
+  const shadow    = section.hero_text_shadow !== false
+  const padT      = section.hero_padding_top    ?? 0
+  const padB      = section.hero_padding_bottom ?? 0
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
+
+  return (
+    <div style={{
+      textAlign: 'center', width: '100%', maxWidth: 360, margin: '0 auto',
+      paddingTop: padT, paddingBottom: padB,
+    }}>
+      <motion.p
+        variants={{ hidden: { opacity: 0, y: -8 }, visible: { opacity: 1, y: 0, transition: ts(1) } }}
+        style={{ fontSize: labelSz, letterSpacing: '0.4em', textTransform: 'uppercase', color: `${accent}99`, fontFamily: `'${font.body}', serif`, marginBottom: 24 }}
+      >The Wedding of</motion.p>
+
+      <motion.h1
+        variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: ts(2) } }}
+        style={{ fontSize: titleSz, fontWeight: 300, lineHeight: 0.95, color: text, fontFamily: `'${font.heading}', serif`, margin: 0, letterSpacing: '0.05em', textShadow: shadow ? '0 2px 24px rgba(0,0,0,0.25)' : 'none' }}
+      >{data.groom_name}</motion.h1>
+
+      <motion.div
+        variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1, transition: ts(3) } }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, margin: '14px 0' }}
+      >
+        <div style={{ flex: 1, maxWidth: 60, height: '0.5px', backgroundColor: `${accent}55` }} />
+        <span style={{ fontSize: 10, color: `${accent}aa`, fontFamily: `'${font.body}', serif`, letterSpacing: '0.3em' }}>&amp;</span>
+        <div style={{ flex: 1, maxWidth: 60, height: '0.5px', backgroundColor: `${accent}55` }} />
+      </motion.div>
+
+      <motion.h1
+        variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: ts(4) } }}
+        style={{ fontSize: titleSz, fontWeight: 300, lineHeight: 0.95, color: text, fontFamily: `'${font.heading}', serif`, margin: 0, letterSpacing: '0.05em', textShadow: shadow ? '0 2px 24px rgba(0,0,0,0.25)' : 'none' }}
+      >{data.bride_name}</motion.h1>
+
+      {data.tagline && (
+        <motion.p
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}
+          style={{ fontSize: taglineSz, lineHeight: 1.9, marginTop: 28, fontStyle: 'italic', color: `${text}77`, fontFamily: `'${font.body}', serif`, maxWidth: 250, margin: '28px auto 0' }}
+        >{data.tagline}</motion.p>
+      )}
+    </div>
+  )
+}
+
+// ─── Variant: Arch (frame lengkung elegan, ornamental) ───────────────────
+function HeroArch({ section, data, font, accent, text }: {
+  section: SectionConfig
+  data: NewInvitationData
+  font: ReturnType<typeof resolveFont>
+  accent: string
+  text: string
+}) {
+  const titleSz   = section.hero_title_size   ?? 30
+  const andSz     = section.hero_and_size     ?? 16
+  const taglineSz = section.hero_tagline_size ?? 10
+  const dur       = section.hero_anim_duration  ?? 0.8
+  const stagger   = section.hero_anim_stagger   ?? 0.15
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
+
+  return (
+    <div style={{ textAlign: 'center', width: '100%', maxWidth: 320, margin: '0 auto', padding: '0 16px' }}>
+      <motion.div
+        variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: ts(1) } }}
+        style={{ position: 'relative', padding: '48px 20px 36px' }}
+      >
+        {/* Arch frame SVG */}
+        <svg viewBox="0 0 280 400" fill="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          <path d="M40,400 L40,120 Q40,20 140,20 Q240,20 240,120 L240,400"
+            stroke={`${accent}55`} strokeWidth="1.5" fill="none" />
+          <path d="M50,400 L50,130 Q50,35 140,35 Q230,35 230,130 L230,400"
+            stroke={`${accent}22`} strokeWidth="0.8" fill="none" />
+        </svg>
+
+        <Bismillah section={section} font={font} accent={accent} delay={stagger * 2} />
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: ts(3) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
+        >{data.groom_name}</motion.h1>
+
+        <motion.p
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(4) } }}
+          style={{ fontSize: andSz, margin: '8px 0', fontStyle: 'italic', color: accent, fontFamily: `'${font.heading}', serif` }}
+        >&amp;</motion.p>
+
+        <motion.h1
+          variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: ts(5) } }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
+        >{data.bride_name}</motion.h1>
+
+        {data.tagline && (
+          <motion.p
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(7) } }}
+            style={{ fontSize: taglineSz, lineHeight: 1.8, marginTop: 16, fontStyle: 'italic', color: `${text}88`, fontFamily: `'${font.body}', serif` }}
+          >{data.tagline}</motion.p>
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Variant: Magazine (foto circle + layout majalah) ────────────────────
+function HeroMagazine({ section, data, font, accent, text }: {
+  section: SectionConfig
+  data: NewInvitationData
+  font: ReturnType<typeof resolveFont>
+  accent: string
+  text: string
+}) {
+  const titleSz   = section.hero_title_size   ?? 28
+  const taglineSz = section.hero_tagline_size ?? 10
+  const labelSz   = section.hero_label_size   ?? 8
+  const dur       = section.hero_anim_duration  ?? 0.8
+  const stagger   = section.hero_anim_stagger   ?? 0.15
+  const padT      = section.hero_padding_top    ?? 0
+  const padB      = section.hero_padding_bottom ?? 0
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
+
+  return (
+    <div style={{
+      textAlign: 'center', width: '100%', maxWidth: 340, margin: '0 auto',
+      paddingTop: padT, paddingBottom: padB,
+    }}>
+      {data.couple_photo_url && (
+        <motion.div
+          variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: ts(1) } }}
+          style={{
+            width: 120, height: 120, borderRadius: '50%', margin: '0 auto 20px',
+            backgroundImage: `url(${data.couple_photo_url})`,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+            border: `2px solid ${accent}66`,
+            boxShadow: `0 0 0 6px ${accent}11, 0 8px 24px rgba(0,0,0,0.15)`,
+          }}
+        />
+      )}
+
+      <motion.p
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(2) } }}
+        style={{ fontSize: labelSz, letterSpacing: '0.35em', textTransform: 'uppercase', color: `${accent}88`, fontFamily: `'${font.body}', serif`, marginBottom: 12 }}
+      >Undangan Pernikahan</motion.p>
+
+      <motion.h1
+        variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: ts(3) } }}
+        style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
+      >{data.groom_name} &amp; {data.bride_name}</motion.h1>
+
+      <Divider accent={accent} delay={stagger * 4} dur={dur * 0.8} />
+
+      {data.tagline && (
+        <motion.p
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(5) } }}
+          style={{ fontSize: taglineSz, lineHeight: 1.8, fontStyle: 'italic', color: `${text}88`, fontFamily: `'${font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
+        >{data.tagline}</motion.p>
+      )}
+    </div>
+  )
+}
+
 // ─── Main HeroSection ─────────────────────────────────────────────────────
 export default function HeroSection({ section, data, meta }: Props) {
   const { primary, accent, text } = meta.color_scheme
   const variant = section.style_variant ?? 'default'
   const font = resolveFont(meta, section)
 
-  const overlay = section.hero_overlay ?? (variant === 'bottom' ? 0.15 : 0.52)
+  const overlay = section.hero_overlay ?? (variant === 'bottom' ? 0.15 : variant === 'overlay-card' ? 0.4 : 0.52)
   const hasVideo = !!data.hero_video_url
   const hasPhoto = !!data.couple_photo_url && !hasVideo
 
-  // Build section config — inject background (photo or video handled separately)
   let sectionCfg: SectionConfig = { ...section }
-  if (hasPhoto) {
+  if (hasPhoto && variant !== 'magazine') {
     sectionCfg = { ...sectionCfg, background: { type: 'image', url: data.couple_photo_url, overlay_opacity: overlay } }
   }
   if (variant === 'bottom') {
@@ -391,15 +679,20 @@ export default function HeroSection({ section, data, meta }: Props) {
         </>
       )}
 
-      {/* Content — bottom variant must stretch to fill the full section height */}
+      {/* Content */}
       <div style={{
         position: 'relative', zIndex: 2, width: '100%',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         ...(variant === 'bottom' ? { flex: 1, alignSelf: 'stretch' } : {}),
       }}>
-        {variant === 'default' && <HeroDefault {...sharedProps} />}
-        {variant === 'bottom'  && <HeroBottom  {...sharedProps} primary={primary} />}
-        {variant === 'minimal' && <HeroMinimal {...sharedProps} />}
+        {variant === 'default'      && <HeroDefault {...sharedProps} />}
+        {variant === 'bottom'       && <HeroBottom  {...sharedProps} primary={primary} />}
+        {variant === 'minimal'      && <HeroMinimal {...sharedProps} />}
+        {variant === 'split'        && <HeroSplit   {...sharedProps} />}
+        {variant === 'overlay-card' && <HeroOverlayCard {...sharedProps} />}
+        {variant === 'editorial'    && <HeroEditorial   {...sharedProps} />}
+        {variant === 'arch'         && <HeroArch        {...sharedProps} />}
+        {variant === 'magazine'     && <HeroMagazine    {...sharedProps} />}
       </div>
     </SectionWrapper>
   )

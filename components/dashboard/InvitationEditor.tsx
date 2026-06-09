@@ -5,7 +5,7 @@ import { Reorder, motion, AnimatePresence, useDragControls } from 'framer-motion
 import toast from 'react-hot-toast'
 import {
   GripVertical, ChevronDown, ToggleLeft, ToggleRight, Loader2, Check,
-  ExternalLink, Sparkles, Users, Timer, Heart, MapPin, Image, Gift,
+  ExternalLink, Sparkles, Users, Timer, Heart, MapPin, Image as ImageIcon, Gift,
   CheckSquare, MessageSquare, Video, BookOpen, Clock,
   Upload, Trash2, ChevronUp, Plus,
 } from 'lucide-react'
@@ -32,7 +32,7 @@ interface Props {
 
 const SICONS: Record<string, React.ElementType> = {
   hero: Sparkles, profiles: Users, countdown: Timer, story: Heart,
-  events: MapPin, gallery: Image, gift: Gift, rsvp: CheckSquare,
+  events: MapPin, gallery: ImageIcon, gift: Gift, rsvp: CheckSquare,
   wishes: MessageSquare, livestream: Video, closing: BookOpen,
 }
 
@@ -210,7 +210,7 @@ function SectionForm({ type, data, onChange }: {
     case 'story': return <StoryForm data={data} onChange={onChange} />
 
     case 'gallery': return (
-      <InfoBox icon={Image} text="Kelola foto di tab Galeri (upload, hapus, lihat limit)." />
+      <InfoBox icon={ImageIcon} text="Kelola foto di tab Galeri (upload, hapus, lihat limit)." />
     )
 
     case 'gift': return <GiftForm data={data} onChange={onChange} />
@@ -331,7 +331,7 @@ function HeroForm({ data, onChange }: { data: NewInvitationData; onChange: (p: P
             <button onClick={() => photoRef.current?.click()} disabled={!!uploading}
               className="flex-1 py-5 border border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-1.5 text-gray-400 hover:border-rose-300 hover:text-rose-400 transition-colors disabled:opacity-50">
               {uploading === 'photo' ? <><Loader2 size={16} className="animate-spin" /><span className="text-[9px]">Upload...</span></>
-                : <><Image size={16} /><span className="text-[9px] font-medium">Upload Foto</span></>}
+                : <><ImageIcon size={16} /><span className="text-[9px] font-medium">Upload Foto</span></>}
             </button>
             <button onClick={() => videoRef.current?.click()} disabled={!!uploading}
               className="flex-1 py-5 border border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-1.5 text-gray-400 hover:border-indigo-300 hover:text-indigo-400 transition-colors disabled:opacity-50">
@@ -539,7 +539,7 @@ function StoryForm({ data, onChange }: { data: NewInvitationData; onChange: (p: 
                     ? <span className="w-5 h-5 rounded bg-gray-900 flex items-center justify-center shrink-0 text-[8px] text-white font-bold">▶</span>
                     : ch.photo_url
                       ? <img src={ch.photo_url} alt="Foto bab kisah" className="w-5 h-5 rounded object-cover border border-gray-200 shrink-0" />
-                      : <div className="w-5 h-5 rounded bg-gray-100 shrink-0 flex items-center justify-center"><Image size={9} className="text-gray-400" /></div>
+                      : <div className="w-5 h-5 rounded bg-gray-100 shrink-0 flex items-center justify-center"><ImageIcon size={9} className="text-gray-400" /></div>
                   }
                   <span className="text-[10px] font-medium text-gray-600 truncate">
                     {ch.title || `Bab ${i + 1}`}

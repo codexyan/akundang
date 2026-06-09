@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, Wish } from '@/lib/types'
-import SectionWrapper, { resolveFont, fsb } from '../SectionWrapper'
-import { Send, MessageCircle, Loader2, Feather } from 'lucide-react'
+import SectionWrapper, { resolveFont, fsh, fsb, hasMediaBg, cardBg } from '../SectionWrapper'
+import { Loader2 } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 
@@ -16,25 +16,139 @@ interface Props {
   initialWishes?: Wish[]
 }
 
-// Warna avatar berputar sesuai index
-const AVATAR_GRADIENTS: [string, string][] = [
-  ['#8B5CF6', '#6D28D9'],
-  ['#EC4899', '#BE185D'],
-  ['#3B82F6', '#1D4ED8'],
-  ['#10B981', '#047857'],
-  ['#F59E0B', '#B45309'],
-  ['#EF4444', '#B91C1C'],
-  ['#06B6D4', '#0E7490'],
-  ['#84CC16', '#4D7C0F'],
-]
+function makePreviewWishes(): Wish[] {
+  const now = Date.now()
+  return [
+    { id: 'pw1', invitation_id: 'preview', name: 'Aisyah Rahman', message: 'Barakallahu lakuma wa baraka alaikuma wa jama\'a bainakuma fi khair. Semoga menjadi keluarga sakinah mawaddah warahmah.', created_at: new Date(now - 1000 * 60 * 3).toISOString() },
+    { id: 'pw2', invitation_id: 'preview', name: 'Budi Santoso', message: 'Selamat menempuh hidup baru! Semoga selalu bahagia dan dilimpahkan rezeki yang berkah. Aamiin.', created_at: new Date(now - 1000 * 60 * 12).toISOString() },
+    { id: 'pw3', invitation_id: 'preview', name: 'Citra Dewi', message: 'Masya Allah, turut bahagia melihat kalian bersatu. Semoga cinta kalian abadi hingga Jannah. Selamat ya!', created_at: new Date(now - 1000 * 60 * 45).toISOString() },
+    { id: 'pw4', invitation_id: 'preview', name: 'Dimas Pratama', message: 'Happy wedding! Semoga pernikahan ini menjadi awal dari perjalanan indah yang penuh keberkahan.', created_at: new Date(now - 1000 * 60 * 120).toISOString() },
+    { id: 'pw5', invitation_id: 'preview', name: 'Fatimah Zahra', message: 'Selamat atas pernikahannya, semoga menjadi keluarga yang sakinah dan dikaruniai keturunan yang sholih sholihah.', created_at: new Date(now - 1000 * 60 * 300).toISOString() },
+  ]
+}
 
-function avatarGradient(_name: string, idx: number): [string, string] {
-  return AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
+function Ornament({ accent }: { accent: string }) {
+  return (
+    <div className="flex items-center justify-center gap-3">
+      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
+      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
+      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
+    </div>
+  )
+}
+
+function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
+  wish: Wish; accent: string; text: string; headingFont: string; bodyFont: string
+}) {
+  const initial = wish.name.trim().charAt(0).toUpperCase()
+  let timeStr: string
+  try {
+    timeStr = formatDistanceToNow(parseISO(wish.created_at), { addSuffix: true, locale: localeId })
+  } catch {
+    timeStr = ''
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '0 2px' }}>
+      {/* Avatar */}
+      <div style={{
+        width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+        background: `${accent}10`, border: `1px solid ${accent}15`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginTop: 2,
+      }}>
+        <span style={{ fontSize: fsb(10.5), fontWeight: 600, color: accent, fontFamily: headingFont }}>
+          {initial}
+        </span>
+      </div>
+
+      {/* Bubble */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          position: 'relative',
+          background: `${accent}06`,
+          borderRadius: '2px 14px 14px 14px',
+          padding: '10px 14px 8px',
+          border: `1px solid ${accent}08`,
+        }}>
+          {/* Tail */}
+          <div style={{
+            position: 'absolute', top: 0, left: -6, width: 0, height: 0,
+            borderTop: `6px solid ${accent}06`,
+            borderLeft: '6px solid transparent',
+          }} />
+
+          {/* Name + time header */}
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+            <p style={{
+              fontSize: fsb(10), fontWeight: 600, color: accent,
+              fontFamily: headingFont, letterSpacing: '0.01em',
+            }}>
+              {wish.name}
+            </p>
+            <p
+              suppressHydrationWarning
+              style={{
+                fontSize: fsb(7), color: `${text}40`,
+                fontFamily: bodyFont, whiteSpace: 'nowrap', flexShrink: 0,
+              }}>
+              {timeStr}
+            </p>
+          </div>
+
+          {/* Message */}
+          <p style={{
+            fontSize: fsb(10.5), color: `${text}80`,
+            fontFamily: bodyFont, lineHeight: 1.75,
+          }}>
+            {wish.message}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WishMarquee({ wishes, accent, text, headingFont, bodyFont }: {
+  wishes: Wish[]; accent: string; text: string; headingFont: string; bodyFont: string
+}) {
+  const speed = Math.max(wishes.length * 5, 20)
+
+  const animName = useMemo(() => `wish-scroll-${Math.random().toString(36).slice(2, 8)}`, [])
+
+  return (
+    <div style={{
+      height: 340, overflow: 'hidden', position: 'relative',
+      maskImage: 'linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%)',
+      WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%)',
+    }}>
+      <style>{`
+        @keyframes ${animName} {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
+        }
+      `}</style>
+
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 14,
+        animation: `${animName} ${speed}s linear infinite`,
+      }}>
+        {wishes.map((w) => (
+          <StaticBubble key={w.id} wish={w} accent={accent} text={text} headingFont={headingFont} bodyFont={bodyFont} />
+        ))}
+        {wishes.map((w) => (
+          <StaticBubble key={`dup-${w.id}`} wish={w} accent={accent} text={text} headingFont={headingFont} bodyFont={bodyFont} />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function WishesSection({ section, data, meta, invitationId, initialWishes = [] }: Props) {
-  const { accent, text, primary } = meta.color_scheme
+  const { accent, text } = meta.color_scheme
   const font = resolveFont(meta, section)
+
+  const isPreview = !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invitationId)
 
   const [wishes,  setWishes]  = useState<Wish[]>(initialWishes)
   const [name,    setName]    = useState('')
@@ -43,10 +157,32 @@ export default function WishesSection({ section, data, meta, invitationId, initi
   const [error,   setError]   = useState('')
   const [justSent, setJustSent] = useState(false)
 
+  useEffect(() => {
+    if (wishes.length === 0 && isPreview) setWishes(makePreviewWishes())
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !message.trim()) { setError('Mohon isi nama dan ucapan terlebih dahulu'); return }
     setLoading(true); setError('')
+
+    if (isPreview) {
+      await new Promise(r => setTimeout(r, 400))
+      const localWish: Wish = {
+        id: `local-${Date.now()}`,
+        invitation_id: 'preview',
+        name: name.trim(),
+        message: message.trim(),
+        created_at: new Date().toISOString(),
+      }
+      setWishes(prev => [localWish, ...prev])
+      setName(''); setMessage('')
+      setJustSent(true)
+      setTimeout(() => setJustSent(false), 3000)
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/wishes', {
         method: 'POST',
@@ -64,198 +200,174 @@ export default function WishesSection({ section, data, meta, invitationId, initi
   }
 
   const MAX_MSG = 300
+  const headingFont = `'${font.heading}', serif`
+  const bodyFont = `'${font.body}', serif`
+
+  const shouldMarquee = wishes.length >= 3
 
   return (
     <SectionWrapper section={section} className="px-6">
-      <div className="max-w-sm mx-auto w-full py-12">
+      <div className="max-w-[300px] mx-auto w-full py-14">
 
-        {/* ── Header ── */}
-        <div className="text-center mb-8">
-          <motion.div className="flex items-center justify-center gap-3 mb-5"
-            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-            <div className="h-px flex-1 max-w-10" style={{ background: `linear-gradient(to right, transparent, ${accent}55)` }} />
-            <p style={{ fontSize: fsb(10), letterSpacing: '0.36em', textTransform: 'uppercase', color: `${accent}80`, fontFamily: `'${font.body}', serif` }}>
-              Buku Ucapan
-            </p>
-            <div className="h-px flex-1 max-w-10" style={{ background: `linear-gradient(to left, transparent, ${accent}55)` }} />
+        {/* Header */}
+        <div className="text-center" style={{ marginBottom: 36 }}>
+          <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
+            <Ornament accent={accent} />
           </motion.div>
-          <motion.p style={{ fontSize: fsb(13), color: `${text}70`, fontFamily: `'${font.body}', serif`, lineHeight: 1.7 }}
-            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.1 } } }}>
-            Tuliskan doa dan harapan terbaik<br />untuk pasangan yang berbahagia ini
+
+          <motion.p
+            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginTop: 20, marginBottom: 10 }}
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
+            Buku Ucapan
+          </motion.p>
+
+          <motion.h2
+            style={{ fontSize: fsh(20), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', marginBottom: 12, lineHeight: 1.3 }}
+            variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
+            Doa &amp; Harapan
+          </motion.h2>
+
+          <motion.p
+            style={{ fontSize: fsb(10), color: `${text}60`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
+            Tuliskan doa dan ucapan terbaik<br />untuk kedua mempelai.
           </motion.p>
         </div>
 
-        {/* ── Form card ── */}
+        {/* ── Form container ── */}
         <motion.div
-          variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.18 } } }}
-          className="rounded-3xl overflow-hidden mb-7"
+          variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { delay: 0.15 } } }}
           style={{
-            background: `linear-gradient(145deg, ${accent}0e, ${accent}06)`,
-            border: `1.5px solid ${accent}22`,
-            boxShadow: `0 4px 24px ${accent}12`,
+            padding: '24px 20px',
+            ...(hasMediaBg(section.background)
+              ? { ...cardBg(section.background) }
+              : { border: `1px solid ${accent}15`, background: `${accent}04` }),
+            marginBottom: 28,
           }}>
-
-          {/* Form header */}
-          <div className="flex items-center gap-2.5 px-4 pt-4 pb-3"
-            style={{ borderBottom: `1px solid ${accent}15` }}>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}aa)` }}>
-              <Feather size={13} color="white" />
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 20 }}>
+              <input
+                type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="Nama Anda"
+                style={{
+                  width: '100%', padding: '10px 0',
+                  background: 'transparent', border: 'none',
+                  borderBottom: `1px solid ${accent}18`,
+                  color: text, fontSize: fsb(12), fontFamily: headingFont,
+                  outline: 'none', transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.target.style.borderBottomColor = `${accent}50`)}
+                onBlur={e => (e.target.style.borderBottomColor = `${accent}18`)}
+              />
             </div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: accent, letterSpacing: '0.04em', fontFamily: `'${font.body}', serif` }}>
-              Kirim Ucapan
-            </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="p-4 space-y-3">
-            {/* Name */}
-            <input
-              type="text" value={name} onChange={e => setName(e.target.value)}
-              placeholder="Nama Anda..."
-              className="w-full px-4 py-2.5 rounded-xl text-sm transition-all"
-              style={{
-                background: `${accent}10`, border: `1.5px solid ${accent}20`,
-                color: text, fontFamily: `'${font.body}', serif`, outline: 'none',
-                fontSize: 13,
-              }}
-              onFocus={e => { e.target.style.borderColor = `${accent}55`; e.target.style.background = `${accent}16` }}
-              onBlur={e  => { e.target.style.borderColor = `${accent}20`; e.target.style.background = `${accent}10` }}
-            />
-
-            {/* Message */}
-            <div className="relative">
+            <div style={{ marginBottom: 20, position: 'relative' }}>
               <textarea
                 value={message} onChange={e => setMessage(e.target.value.slice(0, MAX_MSG))}
-                placeholder="Tuliskan doa, harapan, dan ucapan selamat untuk pasangan yang berbahagia..."
+                placeholder="Tuliskan doa dan ucapan selamat..."
                 rows={3}
-                className="w-full px-4 pt-3 pb-8 rounded-xl text-sm resize-none transition-all"
                 style={{
-                  background: `${accent}10`, border: `1.5px solid ${accent}20`,
-                  color: text, fontFamily: `'${font.body}', serif`, outline: 'none',
-                  fontSize: 13, lineHeight: 1.6,
+                  width: '100%', padding: '10px 0',
+                  background: 'transparent', border: 'none',
+                  borderBottom: `1px solid ${accent}18`,
+                  color: text, fontSize: fsb(11), fontFamily: bodyFont,
+                  outline: 'none', transition: 'border-color 0.2s',
+                  resize: 'none', lineHeight: 1.8,
                 }}
-                onFocus={e => { e.target.style.borderColor = `${accent}55`; e.target.style.background = `${accent}16` }}
-                onBlur={e  => { e.target.style.borderColor = `${accent}20`; e.target.style.background = `${accent}10` }}
+                onFocus={e => (e.target.style.borderBottomColor = `${accent}50`)}
+                onBlur={e => (e.target.style.borderBottomColor = `${accent}18`)}
               />
-              {/* Char count */}
-              <p className="absolute bottom-2.5 left-4"
-                style={{ fontSize: 9, color: message.length > MAX_MSG * 0.9 ? '#f87171' : `${text}35` }}>
+              <span style={{
+                position: 'absolute', bottom: 4, right: 0,
+                fontSize: fsb(7.5), color: message.length > MAX_MSG * 0.9 ? '#c45' : `${text}35`,
+              }}>
                 {message.length}/{MAX_MSG}
-              </p>
+              </span>
             </div>
 
-            {error && <p style={{ fontSize: 11, color: '#ef4444' }}>{error}</p>}
+            {error && (
+              <p style={{ fontSize: fsb(9), color: '#c45', marginBottom: 12, fontFamily: bodyFont }}>{error}</p>
+            )}
 
-            {/* Send button */}
-            <button type="submit" disabled={loading || !name.trim() || !message.trim()}
-              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-semibold transition-all disabled:opacity-40 active:scale-[0.98]"
+            <motion.button
+              type="submit"
+              disabled={loading || !name.trim() || !message.trim()}
+              whileTap={{ scale: 0.97 }}
               style={{
-                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                color: 'white', fontSize: 13,
-                boxShadow: `0 3px 14px ${accent}40`,
-                fontFamily: `'${font.body}', serif`,
+                width: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '12px 0',
+                background: 'transparent',
+                border: `1px solid ${!name.trim() || !message.trim() ? `${accent}12` : `${accent}30`}`,
+                color: !name.trim() || !message.trim() ? `${text}35` : text,
+                fontSize: fsb(9.5), fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase',
+                fontFamily: bodyFont,
+                cursor: !name.trim() || !message.trim() ? 'default' : 'pointer',
+                transition: 'all 0.3s',
               }}>
               {loading
-                ? <><Loader2 size={14} className="animate-spin" />Mengirim...</>
-                : <><Send size={13} />Kirim Ucapan</>
+                ? <><Loader2 size={11} className="animate-spin" /> Mengirim</>
+                : 'Kirim Ucapan'
               }
-            </button>
+            </motion.button>
 
-            {/* Just sent toast */}
             <AnimatePresence>
               {justSent && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                  className="flex items-center justify-center gap-1.5"
-                  style={{ color: accent }}>
-                  <span style={{ fontSize: 14 }}>💌</span>
-                  <p style={{ fontSize: 11, fontWeight: 600 }}>Terima kasih! Ucapan Anda sangat berarti 🤍</p>
-                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="text-center"
+                  style={{ fontSize: fsb(9), color: `${accent}70`, fontFamily: bodyFont, fontStyle: 'italic', marginTop: 12 }}>
+                  Terima kasih, ucapan Anda telah tersimpan.
+                </motion.p>
               )}
             </AnimatePresence>
           </form>
         </motion.div>
 
-        {/* ── Wish list ── */}
-        {wishes.length === 0 ? (
+        {/* ── Chat wish list (below form) ── */}
+        {wishes.length > 0 && (
           <motion.div
-            className="text-center py-8"
-            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.3 } } }}>
-            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
-              style={{ background: `${accent}10` }}>
-              <MessageCircle size={22} color={`${accent}60`} />
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.25 } } }}>
+
+            <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
+              <div style={{ flex: 1, height: '0.5px', background: `${accent}15` }} />
+              <span style={{ fontSize: fsb(8), color: `${text}45`, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: bodyFont }}>
+                {wishes.length} Ucapan
+              </span>
+              <div style={{ flex: 1, height: '0.5px', background: `${accent}15` }} />
             </div>
-            <p style={{ fontSize: 12, color: `${text}44`, fontFamily: `'${font.body}', serif` }}>
-              Jadilah yang pertama<br />mengucapkan selamat! ✨
-            </p>
-          </motion.div>
-        ) : (
-          <motion.div
-            className="space-y-4"
-            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.25, staggerChildren: 0.07 } } }}>
 
-            {wishes.map((wish, i) => {
-              const [g1, g2] = avatarGradient(wish.name, i)
-              const initial  = wish.name.trim().charAt(0).toUpperCase()
-
-              return (
-                <motion.div key={wish.id}
-                  variants={{ hidden: { opacity: 0, x: -12 }, visible: { opacity: 1, x: 0 } }}
-                  className="flex gap-3 items-start">
-
-                  {/* Avatar */}
-                  <div className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                    style={{
-                      background: `linear-gradient(135deg, ${g1}, ${g2})`,
-                      boxShadow: `0 2px 8px ${g1}55`,
-                      fontSize: 13,
-                    }}>
-                    {initial}
-                  </div>
-
-                  {/* Bubble */}
-                  <div className="flex-1 min-w-0">
-                    {/* Name + time row */}
-                    <div className="flex items-baseline justify-between mb-1.5 gap-2">
-                      <p style={{ fontSize: 12, fontWeight: 700, color: accent, fontFamily: `'${font.body}', serif`, flexShrink: 0 }}>
-                        {wish.name}
-                      </p>
-                      <p style={{ fontSize: 9, color: `${text}38`, whiteSpace: 'nowrap' }}>
-                        {formatDistanceToNow(parseISO(wish.created_at), { addSuffix: true, locale: localeId })}
-                      </p>
-                    </div>
-
-                    {/* Message bubble */}
-                    <div className="relative rounded-2xl rounded-tl-md px-4 py-3"
-                      style={{
-                        background: `${accent}0c`,
-                        border: `1px solid ${accent}18`,
-                      }}>
-                      {/* Opening quote */}
-                      <span className="absolute" style={{ top: 2, left: 12, fontSize: 22, color: `${accent}30`, lineHeight: 1, fontFamily: 'Georgia, serif', userSelect: 'none' }}>&ldquo;</span>
-                      <p style={{
-                        fontSize: 13, color: `${text}cc`,
-                        lineHeight: 1.65, fontFamily: `'${font.body}', serif`,
-                        paddingLeft: 10, paddingTop: 6,
-                      }}>
-                        {wish.message}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )
-            })}
-
-            {/* Footer flourish */}
-            {wishes.length >= 3 && (
-              <motion.div className="text-center pt-2"
-                variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-                <p style={{ fontSize: 10, color: `${accent}55`, letterSpacing: '0.14em', fontFamily: `'${font.body}', serif` }}>
-                  ✦ {wishes.length} orang telah mengucapkan selamat ✦
-                </p>
-              </motion.div>
+            {shouldMarquee ? (
+              <WishMarquee
+                wishes={wishes}
+                accent={accent}
+                text={text}
+                headingFont={headingFont}
+                bodyFont={bodyFont}
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {wishes.map((wish) => (
+                  <StaticBubble
+                    key={wish.id}
+                    wish={wish}
+                    accent={accent}
+                    text={text}
+                    headingFont={headingFont}
+                    bodyFont={bodyFont}
+                  />
+                ))}
+              </div>
             )}
           </motion.div>
+        )}
+
+        {wishes.length === 0 && (
+          <motion.p className="text-center"
+            style={{ fontSize: fsb(10), color: `${text}40`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8, marginTop: 20 }}
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.3 } } }}>
+            Belum ada ucapan.
+          </motion.p>
         )}
 
       </div>

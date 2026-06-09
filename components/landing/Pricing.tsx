@@ -2,19 +2,132 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, ShieldCheck, MessageSquare, ExternalLink } from 'lucide-react'
+import { Check, ArrowRight, ShieldCheck, MessageCircle } from 'lucide-react'
 import { PRICING_CONFIG } from '@/lib/pricing-config'
 
-const PROMO_END = '31 Agustus 2026'
+function PricingCard({
+  name,
+  badge,
+  badgeStyle,
+  price,
+  duration,
+  features,
+  highlightedFeature,
+  ctaLabel,
+  ctaHint,
+  variant,
+  delay = 0,
+}: {
+  name: string
+  badge: string
+  badgeStyle: 'dark' | 'gold'
+  price: string
+  duration: string
+  features: readonly string[]
+  highlightedFeature?: string
+  ctaLabel: string
+  ctaHint: string
+  variant: 'dark' | 'outline'
+  delay?: number
+}) {
+  const isDark = variant === 'dark'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={`relative rounded-2xl h-full flex flex-col ${
+        isDark
+          ? 'bg-stone-900 text-white'
+          : 'bg-white border border-stone-200'
+      }`}
+    >
+      {/* Header */}
+      <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-stone-200/10">
+        <span
+          className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full mb-3 ${
+            badgeStyle === 'dark'
+              ? 'bg-white/10 text-white/80 border border-white/15'
+              : 'bg-gold-500 text-white'
+          }`}
+        >
+          {badge}
+        </span>
+
+        <div className="flex items-baseline gap-1.5">
+          <span className={`text-2xl sm:text-[28px] font-bold tracking-tight ${
+            isDark ? 'text-white' : 'text-stone-900'
+          }`}>
+            {price}
+          </span>
+        </div>
+        <p className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>
+          sekali bayar · aktif {duration}
+        </p>
+      </div>
+
+      {/* Features */}
+      <div className="px-5 sm:px-6 py-4 flex-1">
+        <ul className="space-y-2.5">
+          {features.map((feature) => {
+            const isHL = feature === highlightedFeature
+            return (
+              <li
+                key={feature}
+                className={`flex items-start gap-2.5 ${
+                  isHL ? 'bg-gold-500/10 rounded-lg px-2.5 py-1.5 -mx-2.5' : ''
+                }`}
+              >
+                <div className={`shrink-0 mt-0.5 w-4 h-4 rounded-full flex items-center justify-center ${
+                  isDark ? 'bg-white/10' : 'bg-forest-500/10'
+                }`}>
+                  <Check
+                    size={10}
+                    strokeWidth={3}
+                    className={isDark ? 'text-white/80' : 'text-forest-500'}
+                  />
+                </div>
+                <span className={`text-[13px] leading-snug ${
+                  isHL
+                    ? 'font-semibold ' + (isDark ? 'text-gold-400' : 'text-stone-900')
+                    : isDark ? 'text-white/75' : 'text-stone-600'
+                }`}>
+                  {feature}
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+
+      {/* CTA */}
+      <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+        <Link href="/templates">
+          <button className={`w-full font-semibold py-3 px-5 rounded-xl text-[13px] transition-all flex items-center justify-center gap-1.5 ${
+            isDark
+              ? 'bg-white text-stone-900 hover:bg-stone-100 shadow-sm'
+              : 'bg-forest-500 text-white hover:bg-forest-600 shadow-sm'
+          }`}>
+            {ctaLabel}
+            <ArrowRight size={14} />
+          </button>
+        </Link>
+        <p className={`text-[11px] mt-2.5 text-center ${
+          isDark ? 'text-white/40' : 'text-stone-400'
+        }`}>
+          {ctaHint}
+        </p>
+      </div>
+    </motion.div>
+  )
+}
 
 export default function Pricing() {
   return (
-    <section
-      id="harga"
-      className="py-20 sm:py-24"
-      style={{ background: PRICING_CONFIG.colors.background }}
-    >
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+    <section id="harga" className="py-14 sm:py-20 lg:py-24 bg-stone-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8">
 
         {/* Header */}
         <motion.div
@@ -22,259 +135,94 @@ export default function Pricing() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-10 sm:mb-14"
         >
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900">
-            Semua yang kalian butuhkan,
-            <br />
-            dalam satu harga
+          <p className="text-xs font-semibold tracking-[.18em] uppercase text-stone-400 mb-3">Harga</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
+            Satu harga, tanpa kejutan
           </h2>
-          <p className="mt-4 text-stone-600 text-base sm:text-lg max-w-2xl mx-auto">
-            Bayar sekali. Tidak ada tagihan bulanan. Tidak ada biaya kejutan.
+          <p className="mt-3 text-stone-400 text-sm max-w-sm mx-auto">
+            Bayar sekali, tidak ada tagihan bulanan. Coba gratis dulu sebelum memutuskan.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-3xl mx-auto">
 
-          {/* LEFT/TOP: Two-Package Comparison */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <PricingCard
+            name="Premium"
+            badge={PRICING_CONFIG.premium.badge}
+            badgeStyle="dark"
+            price={PRICING_CONFIG.premium.priceFormatted}
+            duration={PRICING_CONFIG.premium.durationLabel}
+            features={PRICING_CONFIG.premium.features}
+            ctaLabel="Pilih Premium"
+            ctaHint="Coba dulu gratis, bayar kalau cocok"
+            variant="dark"
+            delay={0}
+          />
 
-            {/* ═══ PAKET PREMIUM ═══ */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="relative rounded-3xl p-8 text-white h-full flex flex-col"
-              style={{ background: PRICING_CONFIG.colors.darkCharcoal }}
-            >
-              {/* Badge */}
-              <div className="mb-6">
-                <span className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white">
-                  {PRICING_CONFIG.premium.badge}
-                </span>
-              </div>
-
-              {/* Price */}
-              <div className="mb-6">
-                <div className="flex items-end gap-2 mb-2">
-                  <span className="text-4xl sm:text-5xl font-bold">
-                    {PRICING_CONFIG.premium.priceFormatted}
-                  </span>
-                </div>
-                <p className="text-sm text-white/60">
-                  sekali bayar • aktif {PRICING_CONFIG.premium.durationLabel}
-                </p>
-                <p className="text-xs text-white/40 mt-1">
-                  s/d {PROMO_END}
-                </p>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-3.5 mb-8 flex-1">
-                {PRICING_CONFIG.premium.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-                      <Check size={12} className="text-white" strokeWidth={3} />
-                    </div>
-                    <p className="text-sm text-white/90 leading-snug">
-                      {feature}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <div>
-                <Link href="/templates">
-                  <button className="w-full bg-white text-stone-900 font-semibold py-4 px-6 rounded-xl text-sm transition-all hover:bg-stone-100 shadow-lg hover:shadow-xl">
-                    Buat Undangan Kami Sekarang →
-                  </button>
-                </Link>
-                <p className="text-xs text-white/50 mt-3 text-center">
-                  Coba dulu gratis, bayar hanya kalau sudah cocok
-                </p>
-              </div>
-            </motion.div>
-
-            {/* ═══ PAKET PRO ═══ */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative rounded-3xl p-8 bg-white h-full flex flex-col"
-              style={{
-                border: `2px solid ${PRICING_CONFIG.colors.darkOlive}`,
-              }}
-            >
-              {/* Badge */}
-              <div className="mb-6">
-                <span
-                  className="inline-block text-[10px] font-bold tracking-[0.15em] uppercase px-3 py-1.5 rounded-full text-white"
-                  style={{
-                    background: PRICING_CONFIG.pro.badgeColor,
-                  }}
-                >
-                  {PRICING_CONFIG.pro.badge}
-                </span>
-              </div>
-
-              {/* Price */}
-              <div className="mb-6">
-                <div className="flex items-end gap-2 mb-2">
-                  <span className="text-4xl sm:text-5xl font-bold text-stone-900">
-                    {PRICING_CONFIG.pro.priceFormatted}
-                  </span>
-                </div>
-                <p className="text-sm text-stone-600">
-                  sekali bayar • aktif {PRICING_CONFIG.pro.durationLabel}
-                </p>
-                <p className="text-xs text-stone-400 mt-1">
-                  s/d {PROMO_END}
-                </p>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-3.5 mb-8 flex-1">
-                {PRICING_CONFIG.pro.features.map((feature) => {
-                  const isHighlighted = feature === PRICING_CONFIG.pro.highlightedFeature
-
-                  return (
-                    <li
-                      key={feature}
-                      className={`flex items-start gap-3 ${
-                        isHighlighted
-                          ? 'rounded-lg px-3 py-2 -mx-3'
-                          : ''
-                      }`}
-                      style={isHighlighted ? {
-                        background: `${PRICING_CONFIG.pro.badgeColor}15`,
-                        border: `1px solid ${PRICING_CONFIG.pro.badgeColor}30`,
-                      } : {}}
-                    >
-                      <div
-                        className="shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{
-                          background: `${PRICING_CONFIG.colors.darkOlive}15`,
-                        }}
-                      >
-                        <Check
-                          size={12}
-                          style={{ color: PRICING_CONFIG.colors.darkOlive }}
-                          strokeWidth={3}
-                        />
-                      </div>
-                      <p className={`text-sm leading-snug ${
-                        isHighlighted
-                          ? 'font-semibold text-stone-900'
-                          : 'text-stone-700'
-                      }`}>
-                        {feature}
-                      </p>
-                    </li>
-                  )
-                })}
-              </ul>
-
-              {/* CTA */}
-              <div>
-                <Link href="/templates">
-                  <button
-                    className="w-full text-white font-semibold py-4 px-6 rounded-xl text-sm transition-all shadow-lg hover:shadow-xl hover:opacity-90"
-                    style={{
-                      background: PRICING_CONFIG.colors.darkOlive,
-                    }}
-                  >
-                    Pilih Paket Pro →
-                  </button>
-                </Link>
-                <p className="text-xs text-stone-500 mt-3 text-center">
-                  Ideal untuk pernikahan dengan tamu besar
-                </p>
-              </div>
-            </motion.div>
-
-          </div>
-
-          {/* RIGHT: Trust Cards */}
-          <div className="space-y-6">
-
-            {/* Trust Card 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200"
-            >
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center">
-                  <ShieldCheck size={24} className="text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-stone-900 text-base mb-1.5">
-                    Lihat hasilnya dulu, bayar kalau suka
-                  </h3>
-                  <p className="text-sm text-stone-600 leading-relaxed">
-                    Masukkan nama kalian, pilih gayanya, dan lihat sendiri hasilnya. Bayar hanya kalau sudah yakin.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Trust Card 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200"
-            >
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <MessageSquare size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-stone-900 text-base mb-1.5">
-                    Ada yang siap membantu
-                  </h3>
-                  <p className="text-sm text-stone-600 leading-relaxed">
-                    Kalian bisa tanya apa saja lewat WhatsApp. Kami balas dalam 1 hari kerja.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-          </div>
+          <PricingCard
+            name="Pro"
+            badge={PRICING_CONFIG.pro.badge}
+            badgeStyle="gold"
+            price={PRICING_CONFIG.pro.priceFormatted}
+            duration={PRICING_CONFIG.pro.durationLabel}
+            features={PRICING_CONFIG.pro.features}
+            highlightedFeature={PRICING_CONFIG.pro.highlightedFeature}
+            ctaLabel="Pilih Pro"
+            ctaHint="Ideal untuk pernikahan dengan tamu besar"
+            variant="outline"
+            delay={0.1}
+          />
 
         </div>
 
-        {/* Bottom Footer */}
+        {/* Trust Signals */}
         <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto"
+        >
+          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3.5 border border-stone-100">
+            <div className="shrink-0 w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <ShieldCheck size={18} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-stone-800 leading-snug">
+                Lihat hasilnya dulu, bayar kalau suka
+              </p>
+              <p className="text-[11px] text-stone-400 mt-0.5">Tanpa risiko, tanpa komitmen</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3.5 border border-stone-100">
+            <div className="shrink-0 w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+              <MessageCircle size={18} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-stone-800 leading-snug">
+                Tim kami siap membantu via WhatsApp
+              </p>
+              <p className="text-[11px] text-stone-400 mt-0.5">Balas dalam 1 hari kerja</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Bottom link */}
+        <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 pt-8 border-t border-stone-300 text-center"
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className="mt-8 text-center text-sm text-stone-400"
         >
-          <p className="text-sm text-stone-600">
-            Ada pertanyaan?{' '}
-            <Link href="/#faq" className="font-semibold text-stone-900 hover:underline">
-              Lihat FAQ
-            </Link>
-            {' '}atau{' '}
-            <a
-              href="https://wa.me/628123456789"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-stone-900 hover:underline inline-flex items-center gap-1"
-            >
-              chat kami di WhatsApp
-              <ExternalLink size={12} />
-            </a>
-          </p>
-        </motion.div>
+          Ada pertanyaan?{' '}
+          <Link href="/#faq" className="font-medium text-stone-600 hover:text-stone-900 underline underline-offset-2 transition-colors">
+            Lihat FAQ
+          </Link>
+        </motion.p>
 
       </div>
     </section>

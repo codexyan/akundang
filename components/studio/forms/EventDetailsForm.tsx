@@ -19,18 +19,22 @@ interface EventData {
 }
 
 interface EventDetailsFormProps {
-  akad: EventData
-  resepsi: EventData
+  akad?: EventData
+  resepsi?: EventData
   onAkadChange: (data: Partial<EventData>) => void
   onResepsiChange: (data: Partial<EventData>) => void
 }
 
+const EMPTY_EVENT: EventData = { date: '', time: '', venue_name: '', venue_address: '' }
+
 export default function EventDetailsForm({
-  akad,
-  resepsi,
+  akad: akadProp,
+  resepsi: resepsiProp,
   onAkadChange,
   onResepsiChange,
 }: EventDetailsFormProps) {
+  const akad = akadProp ?? EMPTY_EVENT
+  const resepsi = resepsiProp ?? EMPTY_EVENT
   return (
     <SectionCard
       title="Detail Acara"

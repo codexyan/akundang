@@ -63,8 +63,14 @@ export interface AppSettings {
   paymentInstructions: string
   confirmationWhatsapp: string
   siteName: string
+  siteTagline: string
+  logoHorizontalUrl: string
+  logoVerticalUrl: string
   contactWhatsapp: string
   contactEmail: string
+  socialInstagram: string
+  socialTwitter: string
+  socialGithub: string
   maintenanceMode: boolean
 }
 
@@ -439,8 +445,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   templates: BUILT_IN_TEMPLATES, categories: BUILT_IN_CATEGORIES, colorPalettes: BUILT_IN_PALETTES,
   bankAccounts: [], qrisImageUrl: '',
   paymentInstructions: 'Transfer ke salah satu rekening di bawah ini, kemudian kirimkan bukti transfer.',
-  confirmationWhatsapp: '628123456789', siteName: 'Akundang',
-  contactWhatsapp: '628123456789', contactEmail: 'halo@akundang.id', maintenanceMode: false,
+  confirmationWhatsapp: '628123456789', siteName: 'Akundang', siteTagline: 'Digital Wedding Invitation',
+  logoHorizontalUrl: '/logos/logo-horizontal.png', logoVerticalUrl: '/logos/logo-vertical.png',
+  contactWhatsapp: '628123456789', contactEmail: 'halo@akundang.id',
+  socialInstagram: 'akundang.id', socialTwitter: 'akundang', socialGithub: 'akundang',
+  maintenanceMode: false,
 }
 
 export const settings = {

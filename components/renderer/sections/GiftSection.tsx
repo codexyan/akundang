@@ -3,8 +3,8 @@
 import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, GiftAccount } from '@/lib/types'
-import SectionWrapper, { resolveFont, fsb } from '../SectionWrapper'
-import { Copy, Check, ChevronLeft, ChevronRight, Upload, X, ImageIcon, Loader2, Heart } from 'lucide-react'
+import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import { Copy, Check, ChevronLeft, ChevronRight, Upload, X, ImageIcon, Loader2, Heart, Send } from 'lucide-react'
 
 interface Props {
   section: SectionConfig
@@ -54,6 +54,10 @@ function detectBrand(acc: GiftAccount): Brand {
   if (raw.includes('shopee'))                         return BRANDS.shopee
   if (raw.includes('ovo'))                            return BRANDS.ovo
   return BRANDS.default
+}
+
+function accountKey(acc: GiftAccount): string {
+  return `${acc.type}-${acc.type === 'bank' ? acc.bank : acc.platform}-${acc.number}`
 }
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -114,25 +118,41 @@ function CardBg({ pattern, accent }: { pattern: Brand['pattern']; accent: string
   return null
 }
 
-function CopyBtn({ isCopied, onClick, g1 }: { isCopied: boolean; onClick: () => void; g1: string }) {
+// ─── Copy button with animation ──────────────────────────────────────────────
+
+function CopyBtn({ isCopied, onClick, g1, size = 'md' }: { isCopied: boolean; onClick: () => void; g1: string; size?: 'sm' | 'md' }) {
+  const pad = size === 'sm' ? '4px 8px' : '6px 10px'
+  const radius = size === 'sm' ? 8 : 10
   return (
-    <button onClick={onClick} style={{
-      background: isCopied ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.18)',
-      border: '1px solid rgba(255,255,255,0.28)',
-      borderRadius: 9, padding: '5px 9px',
-      display: 'flex', alignItems: 'center', gap: 4,
-      cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
-      backdropFilter: 'blur(6px)',
-    }}>
-      {isCopied
-        ? <><Check size={10} color={g1} /><span style={{ fontSize: 8, fontWeight: 700, color: g1 }}>Tersalin</span></>
-        : <><Copy size={10} color="rgba(255,255,255,0.9)" /><span style={{ fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>Salin</span></>
-      }
-    </button>
+    <motion.button
+      onClick={onClick}
+      whileTap={{ scale: 0.92 }}
+      style={{
+        background: isCopied ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.18)',
+        border: '1px solid rgba(255,255,255,0.28)',
+        borderRadius: radius, padding: pad,
+        display: 'flex', alignItems: 'center', gap: 4,
+        cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
+        backdropFilter: 'blur(6px)',
+      }}>
+      <AnimatePresence mode="wait">
+        {isCopied ? (
+          <motion.span key="done" className="flex items-center gap-1" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+            <Check size={size === 'sm' ? 9 : 10} color={g1} />
+            <span style={{ fontSize: size === 'sm' ? 7 : 8, fontWeight: 700, color: g1 }}>Tersalin!</span>
+          </motion.span>
+        ) : (
+          <motion.span key="copy" className="flex items-center gap-1" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+            <Copy size={size === 'sm' ? 9 : 10} color="rgba(255,255,255,0.9)" />
+            <span style={{ fontSize: size === 'sm' ? 7 : 8, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>Salin</span>
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
   )
 }
 
-// ─── Full gradient card (Stack / Default) ─────────────────────────────────────
+// ─── Full gradient card ───────────────────────────────────────────────────────
 
 function BrandCard({ acc, index, copied, onCopy, showLogo, ratio = 1.75 }: {
   acc: GiftAccount; index: number; copied: string | null
@@ -140,12 +160,13 @@ function BrandCard({ acc, index, copied, onCopy, showLogo, ratio = 1.75 }: {
 }) {
   const brand   = detectBrand(acc)
   const [g1, g2] = brand.gradient
-  const name     = acc.type === 'bank' ? (acc.bank ?? '') : (acc.platform ?? '')
   const isCopied = copied === acc.number
 
   return (
     <motion.div
       variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: 0.08 + index * 0.1, duration: 0.5, ease: 'easeOut' } } }}
+      initial="hidden"
+      animate="visible"
       className="relative overflow-hidden rounded-2xl select-none w-full"
       style={{
         background: `linear-gradient(135deg, ${g1} 0%, ${g2} 100%)`,
@@ -193,156 +214,10 @@ function BrandCard({ acc, index, copied, onCopy, showLogo, ratio = 1.75 }: {
   )
 }
 
-// ─── Grid card (compact, premium 2-col) ───────────────────────────────────────
-
-function GridCard({ acc, index, copied, onCopy, showLogo }: {
-  acc: GiftAccount; index: number; copied: string | null
-  onCopy: (n: string) => void; showLogo: boolean
-}) {
-  const brand    = detectBrand(acc)
-  const [g1, g2] = brand.gradient
-  const name     = acc.type === 'bank' ? (acc.bank ?? '') : (acc.platform ?? '')
-  const formatted = formatNum(acc.number)
-  const isCopied  = copied === acc.number
-
-  return (
-    <motion.div
-      variants={{ hidden: { opacity: 0, scale: 0.94 }, visible: { opacity: 1, scale: 1, transition: { delay: 0.06 + index * 0.08, duration: 0.45, ease: 'easeOut' } } }}
-      className="relative overflow-hidden rounded-2xl select-none flex flex-col"
-      style={{
-        background: `linear-gradient(150deg, ${g1} 0%, ${g2} 100%)`,
-        boxShadow: `0 6px 20px -2px ${g1}55, 0 1px 6px rgba(0,0,0,0.15)`,
-      }}
-    >
-      <CardBg pattern={brand.pattern} accent={brand.accentColor} />
-
-      {/* Top section: logo + chip */}
-      <div className="relative flex items-start justify-between p-3 pb-2">
-        <Chip accent={brand.accentColor} size="sm" />
-        <div className="flex flex-col items-end gap-0.5">
-          {showLogo && brand.logoFile
-            ? <img src={brand.logoFile} alt={brand.label} style={{ height: 16, width: 'auto', maxWidth: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
-            : <p style={{ fontSize: 11, fontWeight: 900, color: '#fff', letterSpacing: '0.06em' }}>{brand.logoText}</p>
-          }
-          <p style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.14em' }}>
-            {acc.type === 'bank' ? 'BANK' : 'EWALLET'}
-          </p>
-        </div>
-      </div>
-
-      {/* Number */}
-      <div className="relative px-3 pb-1">
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.95)', fontFamily: 'monospace', textShadow: '0 1px 4px rgba(0,0,0,0.3)', lineHeight: 1.3 }}>
-          {formatted || '—'}
-        </p>
-      </div>
-
-      {/* Name + copy */}
-      <div className="relative flex items-center justify-between px-3 pb-3 mt-auto">
-        <div style={{ minWidth: 0, flex: 1, marginRight: 6 }}>
-          <p style={{ fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.04em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {acc.name || name}
-          </p>
-        </div>
-        <button onClick={() => onCopy(acc.number)} style={{
-          background: isCopied ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.2)',
-          border: '1px solid rgba(255,255,255,0.3)',
-          borderRadius: 7, padding: '4px 7px',
-          display: 'flex', alignItems: 'center', gap: 3,
-          cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
-          backdropFilter: 'blur(6px)',
-        }}>
-          {isCopied
-            ? <><Check size={9} color={g1} /><span style={{ fontSize: 7, fontWeight: 700, color: g1 }}>OK!</span></>
-            : <Copy size={9} color="rgba(255,255,255,0.9)" />
-          }
-        </button>
-      </div>
-    </motion.div>
-  )
-}
-
-// ─── List row (premium) ───────────────────────────────────────────────────────
-
-function ListCard({ acc, index, copied, onCopy, showLogo }: {
-  acc: GiftAccount; index: number; copied: string | null
-  onCopy: (n: string) => void; showLogo: boolean
-}) {
-  const brand    = detectBrand(acc)
-  const [g1, g2] = brand.gradient
-  const name     = acc.type === 'bank' ? (acc.bank ?? '') : (acc.platform ?? '')
-  const formatted = formatNum(acc.number)
-  const isCopied  = copied === acc.number
-
-  return (
-    <motion.div
-      variants={{ hidden: { opacity: 0, x: -12 }, visible: { opacity: 1, x: 0, transition: { delay: 0.05 + index * 0.07, duration: 0.4, ease: 'easeOut' } } }}
-      className="relative overflow-hidden rounded-2xl flex items-stretch"
-      style={{ boxShadow: `0 2px 12px ${g1}22, 0 1px 4px rgba(0,0,0,0.06)`, border: `1px solid ${g1}1a` }}
-    >
-      {/* Left gradient strip with logo */}
-      <div className="relative overflow-hidden flex items-center justify-center shrink-0"
-        style={{ width: 62, background: `linear-gradient(160deg, ${g1}, ${g2})` }}>
-        <CardBg pattern={brand.pattern} accent={brand.accentColor} />
-        <div className="relative z-10 flex flex-col items-center gap-1">
-          {showLogo && brand.logoFile
-            ? <img src={brand.logoFile} alt={brand.label} style={{ height: 20, width: 'auto', maxWidth: 50, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
-            : <p style={{ fontSize: 11, fontWeight: 900, color: '#fff', letterSpacing: '0.05em' }}>{brand.logoText.slice(0, 3)}</p>
-          }
-          <p style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', textAlign: 'center', lineHeight: 1 }}>
-            {acc.type === 'bank' ? 'BANK' : 'WALLET'}
-          </p>
-        </div>
-      </div>
-
-      {/* Right info area */}
-      <div className="flex-1 flex items-center gap-2 px-3 py-3" style={{ background: `linear-gradient(to right, ${g1}08, transparent)` }}>
-        <div className="flex-1 min-w-0">
-          <p style={{ fontSize: 9, fontWeight: 700, color: g1, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>
-            {name}
-          </p>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace', letterSpacing: '0.13em', lineHeight: 1.2 }}>
-            {formatted || '—'}
-          </p>
-          <p style={{ fontSize: 9, color: '#9ca3af', marginTop: 3, letterSpacing: '0.04em' }}>
-            {acc.type === 'bank' ? 'a.n.' : 'akun'} {acc.name}
-          </p>
-        </div>
-
-        {/* Copy pill */}
-        <button onClick={() => onCopy(acc.number)}
-          className="shrink-0 flex items-center gap-1.5 rounded-xl transition-all"
-          style={{
-            padding: '8px 12px',
-            background: isCopied ? `linear-gradient(135deg, ${g1}, ${g2})` : `${g1}12`,
-            border: `1.5px solid ${isCopied ? 'transparent' : `${g1}25`}`,
-            cursor: 'pointer',
-          }}>
-          <AnimatePresence mode="wait">
-            {isCopied ? (
-              <motion.span key="done" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex items-center gap-1.5">
-                <Check size={11} color="#fff" />
-                <span style={{ fontSize: 9, fontWeight: 700, color: '#fff' }}>Tersalin</span>
-              </motion.span>
-            ) : (
-              <motion.span key="copy" initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex items-center gap-1.5">
-                <Copy size={11} color={g1} />
-                <span style={{ fontSize: 9, fontWeight: 600, color: g1 }}>Salin</span>
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
-      </div>
-    </motion.div>
-  )
-}
-
 // ─── Card Stack (swipe variant) ───────────────────────────────────────────────
 
-const STACK_OFFSET = 16 // px each card peeks above the one in front
-const STACK_SCALE  = 0.05 // scale reduction per level
+const STACK_OFFSET = 14
+const STACK_SCALE  = 0.04
 const MAX_VISIBLE  = 3
 
 function CardStack({ accounts, copied, onCopy, showLogo, accent }: {
@@ -350,36 +225,27 @@ function CardStack({ accounts, copied, onCopy, showLogo, accent }: {
   onCopy: (n: string) => void; showLogo: boolean; accent: string
 }) {
   const [idx, setIdx] = useState(0)
-
-  // visible[0] = front card, visible[1] = first behind, visible[2] = furthest behind
   const visible = accounts.slice(idx, idx + MAX_VISIBLE)
   const behind  = visible.length - 1
 
   function goNext() { if (idx < accounts.length - 1) setIdx(i => i + 1) }
   function goPrev() { if (idx > 0) setIdx(i => i - 1) }
 
-  // Container height = card height (from aspect ratio) + stack peek space on top
-  // Using padding-bottom trick: paddingBottom = (1/ratio * 100)% gives the card height
   const cardRatio = 1.75
   const containerPB = `calc(${((1 / cardRatio) * 100).toFixed(2)}% + ${behind * STACK_OFFSET}px)`
 
   return (
     <div className="px-6">
-      {/* Stack */}
       <div className="relative" style={{ paddingBottom: containerPB }}>
-        {/* Render back→front so front card is on top in DOM stacking order */}
         {[...visible].reverse().map((acc, ri) => {
-          // ri=0 is the furthest back card, ri=behind is the front card
-          const fromFront = behind - ri      // 0=front, behind=furthest back
+          const fromFront = behind - ri
           const isFront   = fromFront === 0
-
-          // top: front card is at (behind * OFFSET), back card is at 0
           const topPx = (behind - fromFront) * STACK_OFFSET
           const scale = 1 - fromFront * STACK_SCALE
 
           return (
             <motion.div
-              key={`${accounts.indexOf(acc)}`}
+              key={accountKey(acc)}
               className="absolute left-0 right-0"
               animate={{ top: topPx, scale, opacity: 1 - fromFront * 0.18 }}
               transition={{ type: 'spring', stiffness: 280, damping: 28 }}
@@ -399,63 +265,85 @@ function CardStack({ accounts, copied, onCopy, showLogo, accent }: {
         })}
       </div>
 
-      {/* Nav row */}
-      <div className="flex items-center justify-center gap-3 mt-5">
-        <button onClick={goPrev} disabled={idx === 0}
-          className="flex items-center justify-center rounded-full transition-all"
-          style={{ width: 30, height: 30, background: `${accent}18`, opacity: idx === 0 ? 0.35 : 1 }}>
-          <ChevronLeft size={16} color={accent} />
-        </button>
+      {/* Nav */}
+      {accounts.length > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-5">
+          <motion.button onClick={goPrev} disabled={idx === 0} whileTap={{ scale: 0.85 }}
+            className="flex items-center justify-center rounded-full transition-all"
+            style={{ width: 32, height: 32, background: `${accent}14`, opacity: idx === 0 ? 0.35 : 1, border: `1px solid ${accent}22` }}>
+            <ChevronLeft size={16} color={accent} />
+          </motion.button>
 
-        {/* Pill dots */}
-        <div className="flex items-center gap-1.5">
-          {accounts.map((_, i) => (
-            <button key={i} onClick={() => setIdx(i)} style={{
-              height: 5, width: i === idx ? 22 : 5, borderRadius: 3,
-              background: i === idx ? accent : `${accent}38`,
-              transition: 'all 0.28s ease',
-              border: 'none', padding: 0, cursor: 'pointer',
-            }} />
-          ))}
+          <div className="flex items-center gap-1.5">
+            {accounts.map((_, i) => (
+              <motion.button key={i} onClick={() => setIdx(i)}
+                animate={{ width: i === idx ? 20 : 6, background: i === idx ? accent : `${accent}38` }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                style={{ height: 6, borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer' }} />
+            ))}
+          </div>
+
+          <motion.button onClick={goNext} disabled={idx >= accounts.length - 1} whileTap={{ scale: 0.85 }}
+            className="flex items-center justify-center rounded-full transition-all"
+            style={{ width: 32, height: 32, background: `${accent}14`, opacity: idx >= accounts.length - 1 ? 0.35 : 1, border: `1px solid ${accent}22` }}>
+            <ChevronRight size={16} color={accent} />
+          </motion.button>
         </div>
+      )}
 
-        <button onClick={goNext} disabled={idx >= accounts.length - 1}
-          className="flex items-center justify-center rounded-full transition-all"
-          style={{ width: 30, height: 30, background: `${accent}18`, opacity: idx >= accounts.length - 1 ? 0.35 : 1 }}>
-          <ChevronRight size={16} color={accent} />
-        </button>
-      </div>
-
-      <p className="text-center mt-1.5" style={{ fontSize: 9.5, color: `${accent}70`, letterSpacing: '0.1em' }}>
-        Rekening {idx + 1} / {accounts.length}
-      </p>
+      {accounts.length > 1 && (
+        <p className="text-center mt-2" style={{ fontSize: 9, color: `${accent}60`, letterSpacing: '0.12em' }}>
+          Geser kartu atau tekan panah
+        </p>
+      )}
     </div>
   )
 }
 
 // ─── Section header ───────────────────────────────────────────────────────────
 
-function GiftHeader({ accent, text, font }: { accent: string; text: string; font: { body: string } }) {
+function GiftHeader({ accent, text, font }: { accent: string; text: string; font: { heading: string; body: string } }) {
   return (
     <div className="text-center mb-8">
-      <motion.div className="flex items-center justify-center gap-3 mb-5"
-        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-        <div className="h-px flex-1 max-w-10" style={{ background: `linear-gradient(to right, transparent, ${accent}55)` }} />
-        <p style={{ fontSize: fsb(10), letterSpacing: '0.36em', textTransform: 'uppercase', color: `${accent}80`, fontFamily: `'${font.body}', serif` }}>
-          Amplop Digital
-        </p>
-        <div className="h-px flex-1 max-w-10" style={{ background: `linear-gradient(to left, transparent, ${accent}55)` }} />
+      {/* Subtle ornament */}
+      <motion.div
+        className="flex items-center justify-center gap-2 mb-5"
+        variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1, transition: { duration: 0.5 } } }}
+      >
+        <div style={{ width: 28, height: 0.5, background: `linear-gradient(to right, transparent, ${accent}55)` }} />
+        <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: `${accent}44` }} />
+        <div style={{ width: 28, height: 0.5, background: `linear-gradient(to left, transparent, ${accent}55)` }} />
       </motion.div>
+
+      {/* Title */}
       <motion.p
-        style={{ fontSize: fsb(12), color: `${text}70`, fontFamily: `'${font.body}', serif`, lineHeight: 1.75 }}
-        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.15 } } }}>
-        Kirimkan tanda kasih sayang Anda<br />melalui rekening berikut 💝
+        style={{
+          fontSize: fsb(9), letterSpacing: '0.32em', textTransform: 'uppercase',
+          color: `${accent}80`, fontFamily: `'${font.body}', serif`, marginBottom: 10,
+        }}
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.06 } } }}
+      >
+        Kirim Hadiah
+      </motion.p>
+
+      <motion.h2
+        style={{ fontSize: fsh(18), fontWeight: 600, color: text, fontFamily: `'${font.heading}', serif`, marginBottom: 10, letterSpacing: '-0.01em' }}
+        variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { delay: 0.1 } } }}
+      >
+        Amplop Digital
+      </motion.h2>
+
+      {/* UX copy */}
+      <motion.p
+        style={{ fontSize: fsb(10.5), color: `${text}66`, fontFamily: `'${font.body}', serif`, lineHeight: 1.8, maxWidth: 250, margin: '0 auto' }}
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.18 } } }}>
+        Bagi yang berhalangan hadir, doa restu Anda sudah lebih dari cukup. Namun jika ingin mengirimkan tanda kasih, bisa melalui rekening di bawah ini.
       </motion.p>
     </div>
   )
 }
 
-// ─── Upload bukti modal ───────────────────────────────────────────────────────
+// ─── Proof upload bottom sheet (minimal redesign) ─────────────────────────────
 
 type ProofStep = 'form' | 'uploading-img' | 'success'
 
@@ -467,6 +355,8 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
 }) {
   const [step, setStep]         = useState<ProofStep>('form')
   const [name, setName]         = useState('')
+  const [amount, setAmount]     = useState('')
+  const [message, setMessage]   = useState('')
   const [proofUrl, setProofUrl] = useState<string | null>(null)
   const [submitting, setSubmit] = useState(false)
   const [imgErr, setImgErr]     = useState('')
@@ -486,152 +376,188 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
   }
 
   async function submit() {
-    if (!name.trim())  { setImgErr('Mohon isi nama pengirim terlebih dahulu'); return }
-    if (!proofUrl)     { setImgErr('Silakan unggah foto bukti transfer terlebih dahulu'); return }
+    if (!name.trim())  { setImgErr('Mohon isi nama pengirim'); return }
+    if (!proofUrl)     { setImgErr('Silakan unggah foto bukti transfer'); return }
     setSubmit(true)
     await fetch('/api/gift-proof', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ invitationId, name: name.trim(), proofUrl }),
+      body: JSON.stringify({ invitationId, name: name.trim(), amount: amount.trim(), message: message.trim(), proofUrl }),
     })
     setSubmit(false)
     setStep('success')
   }
 
+  const fieldStyle: React.CSSProperties = {
+    width: '100%', padding: '10px 14px', borderRadius: 12,
+    border: '1px solid #e5e7eb', fontSize: 13, color: '#1f2937',
+    outline: 'none', transition: 'border-color 0.15s',
+    background: '#fafafa',
+  }
+
   return (
     <AnimatePresence>
-      {/* Backdrop — absolute, confined to section bounds */}
       <motion.div
         key="backdrop"
         className="absolute inset-0 z-50"
-        style={{ background: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(2px)' }}
+        style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
       />
 
-      {/* Bottom sheet — slides up inside section */}
       <motion.div
         key="sheet"
-        className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl overflow-hidden"
+        className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-[28px] overflow-hidden"
         style={{ maxHeight: '88%' }}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 320, damping: 34 }}
       >
         {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-9 h-1 rounded-full bg-gray-200" />
         </div>
 
         {step === 'success' ? (
-          /* ── Success state ── */
           <motion.div
-            className="flex flex-col items-center px-8 pt-6 pb-10 text-center"
-            initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center px-8 pt-4 pb-10 text-center"
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}>
-            {/* Animated check */}
             <motion.div
               className="flex items-center justify-center rounded-full mb-5"
-              style={{ width: 72, height: 72, background: `linear-gradient(135deg, ${accent}22, ${accent}44)` }}
+              style={{ width: 56, height: 56, background: `${accent}12` }}
               initial={{ scale: 0 }} animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.15 }}>
-              <Heart size={32} color={accent} fill={accent} />
+              <Heart size={24} color={accent} fill={accent} />
             </motion.div>
 
-            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
-              Jazakallahu Khairan
-            </h3>
-            <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.75 }}>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 6 }}>
+              Terima Kasih
+            </p>
+            <p style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.75, whiteSpace: 'pre-line', maxWidth: 260 }}>
               {thankyouText}
             </p>
 
             <button onClick={onClose}
-              className="mt-8 w-full py-3.5 rounded-2xl text-white font-semibold text-sm transition-all"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+              className="mt-7 px-8 py-2.5 rounded-full text-sm font-medium transition-all active:scale-[0.97]"
+              style={{ color: accent, border: `1px solid ${accent}33`, background: `${accent}08` }}>
               Tutup
             </button>
           </motion.div>
         ) : (
-          /* ── Form state ── */
-          <div className="overflow-y-auto px-6 pt-2 pb-8" style={{ maxHeight: 'calc(90dvh - 32px)' }}>
+          <div className="overflow-y-auto px-6 pt-1 pb-8" style={{ maxHeight: 'calc(85dvh - 40px)' }}>
+
+            {/* Compact header */}
             <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 style={{ fontSize: 17, fontWeight: 700, color: '#111827' }}>Konfirmasi Transfer</h3>
-                <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>Alhamdulillah! Silakan isi form berikut sebagai konfirmasi</p>
-              </div>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Konfirmasi Transfer</p>
               <button onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
-                <X size={15} color="#6b7280" />
+                className="w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+                style={{ background: '#f3f4f6' }}>
+                <X size={13} color="#9ca3af" />
               </button>
             </div>
 
-            {/* Name */}
-            <div className="mb-4">
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Nama Pengirim
-              </label>
-              <input
-                value={name} onChange={e => setName(e.target.value)}
-                placeholder="Nama pengirim transfer"
-                className="w-full mt-1.5 px-4 py-3 rounded-2xl border border-gray-200 text-sm text-gray-800 focus:outline-none transition-all"
-                style={{ fontSize: 14 }}
-                onFocus={e => (e.target.style.borderColor = accent)}
-                onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
-              />
-            </div>
+            {/* Fields — clean, breathing room */}
+            <div className="space-y-3.5">
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 5 }}>
+                  Nama pengirim
+                </label>
+                <input
+                  value={name} onChange={e => setName(e.target.value)}
+                  placeholder="Nama Anda"
+                  style={fieldStyle}
+                  onFocus={e => (e.target.style.borderColor = accent)}
+                  onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
+                />
+              </div>
 
-            {/* Image upload */}
-            <div className="mb-4">
-              <label style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                Foto Bukti Transfer
-              </label>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 5 }}>
+                  Nominal <span style={{ color: '#d1d5db' }}>(opsional)</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#9ca3af' }}>Rp</span>
+                  <input
+                    value={amount} onChange={e => setAmount(e.target.value)}
+                    placeholder="100.000"
+                    style={{ ...fieldStyle, paddingLeft: 36 }}
+                    onFocus={e => (e.target.style.borderColor = accent)}
+                    onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
+                  />
+                </div>
+              </div>
 
-              {proofUrl ? (
-                <div className="mt-1.5 relative rounded-2xl overflow-hidden border border-gray-100" style={{ height: 160 }}>
-                  <img src={proofUrl} alt="Bukti" className="w-full h-full object-cover" />
-                  <button onClick={() => setProofUrl(null)}
-                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5">
-                    <X size={13} />
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 5 }}>
+                  Pesan <span style={{ color: '#d1d5db' }}>(opsional)</span>
+                </label>
+                <textarea
+                  value={message} onChange={e => setMessage(e.target.value)}
+                  placeholder="Selamat menempuh hidup baru..."
+                  rows={2}
+                  style={{ ...fieldStyle, resize: 'none' }}
+                  onFocus={e => (e.target.style.borderColor = accent)}
+                  onBlur={e => (e.target.style.borderColor = '#e5e7eb')}
+                />
+              </div>
+
+              {/* Upload area */}
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 5 }}>
+                  Bukti transfer
+                </label>
+
+                {proofUrl ? (
+                  <div className="relative rounded-xl overflow-hidden" style={{ height: 120, border: '1px solid #e5e7eb' }}>
+                    <img src={proofUrl} alt="Bukti" className="w-full h-full object-cover" />
+                    <button onClick={() => setProofUrl(null)}
+                      className="absolute top-2 right-2 rounded-full p-1"
+                      style={{ background: 'rgba(0,0,0,0.5)' }}>
+                      <X size={11} color="white" />
+                    </button>
+                  </div>
+                ) : step === 'uploading-img' ? (
+                  <div className="rounded-xl flex items-center justify-center py-8"
+                    style={{ border: '1.5px dashed #d1d5db', background: '#fafafa' }}>
+                    <Loader2 size={18} color={accent} className="animate-spin" />
+                  </div>
+                ) : (
+                  <button onClick={() => fileRef.current?.click()}
+                    className="w-full rounded-xl flex items-center justify-center gap-2 py-5 transition-all"
+                    style={{ border: '1.5px dashed #d1d5db', background: '#fafafa' }}>
+                    <ImageIcon size={15} color="#9ca3af" />
+                    <span style={{ fontSize: 12, color: '#9ca3af' }}>Upload foto bukti</span>
                   </button>
-                  <div className="absolute bottom-2 left-2 bg-black/55 text-white text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <Check size={10} />
-                    <span>Foto berhasil diupload</span>
-                  </div>
-                </div>
-              ) : step === 'uploading-img' ? (
-                <div className="mt-1.5 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center py-10"
-                  style={{ borderColor: `${accent}44` }}>
-                  <Loader2 size={24} color={accent} className="animate-spin mb-2" />
-                  <p style={{ fontSize: 12, color: '#9ca3af' }}>Mengupload foto...</p>
-                </div>
-              ) : (
-                <button onClick={() => fileRef.current?.click()}
-                  className="mt-1.5 w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center py-8 transition-all"
-                  style={{ borderColor: `${accent}33` }}>
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                    style={{ background: `${accent}15` }}>
-                    <ImageIcon size={22} color={accent} />
-                  </div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Unggah foto bukti transfer</p>
-                  <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>JPG, PNG · Maks 10MB</p>
-                </button>
-              )}
+                )}
 
-              <input ref={fileRef} type="file" accept="image/*" className="hidden"
-                onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }} />
+                <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }} />
+              </div>
             </div>
 
             {imgErr && (
-              <p className="text-xs text-red-500 -mt-2 mb-3">{imgErr}</p>
+              <p className="flex items-center gap-1 mt-3" style={{ fontSize: 11, color: '#ef4444' }}>
+                <X size={10} /> {imgErr}
+              </p>
             )}
 
-            <button onClick={submit} disabled={submitting || !name.trim() || !proofUrl}
-              className="w-full py-4 rounded-2xl text-white font-semibold text-sm transition-all disabled:opacity-40"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}>
+            {/* Submit — clean pill */}
+            <motion.button
+              onClick={submit}
+              disabled={submitting || !name.trim() || !proofUrl}
+              whileTap={{ scale: 0.97 }}
+              className="w-full mt-5 flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-35"
+              style={{
+                padding: '12px 0',
+                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                color: '#fff', fontSize: 13, fontWeight: 600,
+                boxShadow: `0 2px 10px ${accent}28`,
+              }}>
               {submitting
-                ? <span className="flex items-center justify-center gap-2"><Loader2 size={15} className="animate-spin" />Mengirim...</span>
-                : 'Konfirmasi Sekarang ✓'
+                ? <><Loader2 size={13} className="animate-spin" /> Mengirim...</>
+                : <><Send size={13} /> Kirim Konfirmasi</>
               }
-            </button>
+            </motion.button>
           </div>
         )}
       </motion.div>
@@ -639,15 +565,55 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
   )
 }
 
+// ─── Minimal proof CTA ────────────────────────────────────────────────────────
+
+function ProofCTA({ accent, text, onClick }: { accent: string; text: string; onClick: () => void }) {
+  return (
+    <motion.div
+      className="mt-8"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.4 } } }}
+    >
+      {/* Soft divider */}
+      <div className="flex items-center gap-3 mb-4">
+        <div style={{ flex: 1, height: 0.5, background: `${accent}18` }} />
+        <span style={{ fontSize: 8, color: `${text}50`, letterSpacing: '0.2em', textTransform: 'uppercase' }}>sudah transfer?</span>
+        <div style={{ flex: 1, height: 0.5, background: `${accent}18` }} />
+      </div>
+
+      <motion.button
+        onClick={onClick}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center justify-center gap-2 mx-auto transition-all"
+        style={{
+          padding: '8px 20px',
+          borderRadius: 999,
+          border: `1px solid ${accent}25`,
+          background: 'transparent',
+          cursor: 'pointer',
+        }}
+      >
+        <Upload size={12} color={`${accent}88`} />
+        <span style={{ fontSize: 10, fontWeight: 600, color: `${accent}aa`, letterSpacing: '0.03em' }}>
+          Konfirmasi &amp; kirim bukti
+        </span>
+      </motion.button>
+    </motion.div>
+  )
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAX_CARDS = 3
+
 // ─── Main section ──────────────────────────────────────────────────────────────
 
 const DEFAULT_THANKYOU =
-  'Terima kasih telah memberikan hadiah yang sangat berarti bagi kami.\n\nSemoga Allah SWT membalas kebaikan Bapak/Ibu/Saudara dengan keberkahan yang berlimpah, rezeki yang tidak putus, dan kebahagiaan yang tak ternilai. Barakallahu fiikum. 🤍'
+  'Terima kasih telah memberikan hadiah yang sangat berarti bagi kami.\n\nSemoga Allah SWT membalas kebaikan Bapak/Ibu/Saudara dengan keberkahan yang berlimpah. Barakallahu fiikum.'
 
 export default function GiftSection({ section, data, meta, invitationId = 'preview' }: Props) {
   const { accent, text } = meta.color_scheme
   const font       = resolveFont(meta, section)
-  const accounts   = data.gift_accounts ?? []
+  const accounts   = (data.gift_accounts ?? []).slice(0, MAX_CARDS)
   const variant    = section.style_variant ?? 'default'
   const showLogo   = section.gift_show_logo ?? true
   const proofEnabled = section.gift_proof_enabled ?? true
@@ -667,48 +633,18 @@ export default function GiftSection({ section, data, meta, invitationId = 'previ
 
   const shared = { copied, onCopy: copyNumber, showLogo }
 
-  // Upload bukti button — premium card-row style
-  const proofButton = proofEnabled && (
-    <motion.div
-      className="mt-5"
-      variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { delay: 0.4 } } }}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="h-px flex-1" style={{ background: `${accent}20` }} />
-        <p style={{ fontSize: 9, color: `${accent}60`, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Sudah mengirim hadiah?</p>
-        <div className="h-px flex-1" style={{ background: `${accent}20` }} />
-      </div>
-
-      <button
-        onClick={() => setShowModal(true)}
-        className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-all active:scale-[0.98]"
-        style={{
-          background: `linear-gradient(135deg, ${accent}12, ${accent}06)`,
-          border: `1.5px solid ${accent}28`,
-          boxShadow: `0 2px 16px ${accent}14`,
-        }}
-      >
-        {/* Icon pill */}
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)`, boxShadow: `0 3px 10px ${accent}44` }}>
-          <Upload size={17} color="white" />
-        </div>
-        {/* Text */}
-        <div className="flex-1 text-left">
-          <p style={{ fontSize: 13, fontWeight: 700, color: accent, lineHeight: 1.25 }}>Konfirmasi Transfer Hadiah</p>
-          <p style={{ fontSize: 10, color: `${accent}80`, marginTop: 1 }}>Beritahu kami setelah mengirim hadiah</p>
-        </div>
-        {/* Arrow */}
-        <ChevronRight size={15} color={`${accent}55`} strokeWidth={2.5} />
-      </button>
-    </motion.div>
+  const proofCta = proofEnabled && (
+    <ProofCTA accent={accent} text={text} onClick={() => setShowModal(true)} />
   )
 
-  // ── Swipe (card stack): full-bleed ─────────────────────────────────────────
   const modal = showModal
     ? <ProofModal onClose={() => setShowModal(false)} invitationId={invitationId} accent={accent} thankyouText={thankyouText} />
     : undefined
 
+  // Stable key that changes when account list changes — forces re-render with animations
+  const accountsFingerprint = accounts.map(accountKey).join('|')
+
+  // ── Variant: Swipe (card stack) ────────────────────────────────────────────
   if (variant === 'swipe') {
     return (
       <SectionWrapper section={section} overlay={modal}>
@@ -717,13 +653,13 @@ export default function GiftSection({ section, data, meta, invitationId = 'previ
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-40px' }}>
             <GiftHeader accent={accent} text={text} font={font} />
           </motion.div>
-          <div className="max-w-sm mx-auto">
+          <div className="max-w-sm mx-auto" key={accountsFingerprint}>
             <CardStack accounts={accounts} {...shared} accent={accent} />
           </div>
           {proofEnabled && (
             <div className="px-6 max-w-sm mx-auto">
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                {proofButton}
+                {proofCta}
               </motion.div>
             </div>
           )}
@@ -732,33 +668,31 @@ export default function GiftSection({ section, data, meta, invitationId = 'previ
     )
   }
 
+  // ── Default: Stack ────────────────────────────────────────────────────────
   return (
     <SectionWrapper section={section} className="px-6" overlay={modal}>
       <div className="max-w-sm mx-auto w-full py-10">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-40px' }}>
-
           <GiftHeader accent={accent} text={text} font={font} />
+        </motion.div>
 
-          {variant === 'grid' && (
-            <div className="grid grid-cols-2 gap-3">
-              {accounts.map((acc, i) => <GridCard key={i} acc={acc} index={i} {...shared} />)}
-            </div>
-          )}
+        <AnimatePresence mode="popLayout">
+          {accounts.map((acc, i) => (
+            <motion.div
+              key={accountKey(acc)}
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+              transition={{ delay: 0.06 * i, duration: 0.4, ease: 'easeOut' }}
+              style={{ marginBottom: i < accounts.length - 1 ? 16 : 0 }}
+            >
+              <BrandCard acc={acc} index={i} {...shared} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
-          {variant === 'list' && (
-            <div className="space-y-2.5">
-              {accounts.map((acc, i) => <ListCard key={i} acc={acc} index={i} {...shared} />)}
-            </div>
-          )}
-
-          {(variant === 'default' || !['grid','list','swipe'].includes(variant)) && (
-            <div className="space-y-4">
-              {accounts.map((acc, i) => <BrandCard key={i} acc={acc} index={i} {...shared} />)}
-            </div>
-          )}
-
-          {proofButton}
-
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+          {proofCta}
         </motion.div>
       </div>
     </SectionWrapper>

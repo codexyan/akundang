@@ -5,9 +5,10 @@ import toast from 'react-hot-toast'
 import {
   LayoutDashboard, Users, Mail, ShoppingCart, Settings, LogOut,
   TrendingUp, CheckCircle2, Clock, Trash2, Eye, EyeOff, Search,
-  Save, Crown, AlertCircle, ExternalLink, Ban,
+  Save, Crown, AlertCircle, ExternalLink, Ban, Globe,
   ToggleLeft, ToggleRight, Package, CreditCard, FlaskConical,
 } from 'lucide-react'
+import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
 import { TEMPLATES } from '@/lib/types'
 import type { AdminTemplateConfig, BankAccount, PaymentProof } from '@/lib/db'
@@ -15,6 +16,9 @@ import type { TemplateRecord, TemplateCategory, ColorPalette } from '@/lib/types
 import TemplatesTab from './tabs/TemplatesTab'
 import PaymentTab from './tabs/PaymentTab'
 import TemplateLab from './tabs/TemplateLab'
+import WebsiteTab from './tabs/WebsiteTab'
+import NewSettingsTab from './tabs/SettingsTab'
+import type { SiteSettings } from './tabs/SettingsTab'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -67,6 +71,14 @@ interface LocalAppSettings {
   qrisImageUrl: string
   paymentInstructions: string
   confirmationWhatsapp: string
+  siteName: string
+  siteTagline: string
+  logoHorizontalUrl: string
+  logoVerticalUrl: string
+  contactEmail: string
+  socialInstagram: string
+  socialTwitter: string
+  socialGithub: string
 }
 
 interface Stats {
@@ -89,9 +101,9 @@ interface Props {
   adminEmail: string
 }
 
-type NavTab = 'dashboard' | 'users' | 'invitations' | 'template' | 'lab' | 'orders' | 'payment' | 'settings'
+type NavTab = 'dashboard' | 'users' | 'invitations' | 'template' | 'lab' | 'orders' | 'payment' | 'website' | 'settings'
 
-const VALID_TABS: NavTab[] = ['dashboard', 'users', 'invitations', 'template', 'lab', 'orders', 'payment', 'settings']
+const VALID_TABS: NavTab[] = ['dashboard', 'users', 'invitations', 'template', 'lab', 'orders', 'payment', 'website', 'settings']
 
 // ─── Main Component ───────────────────────────────────────────
 
@@ -257,6 +269,8 @@ export default function AdminPanel({
         onLogout={handleLogout}
         stats={stats}
         pendingProofs={pendingProofs}
+        siteName={appSettings.siteName ?? 'Akundang'}
+        logoVerticalUrl={appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png'}
       />
 
       <main className={`flex-1 ${activeTab === 'lab' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
@@ -306,8 +320,36 @@ export default function AdminPanel({
             onProofReview={handleProofReview}
           />
         )}
+        {activeTab === 'website' && <WebsiteTab />}
         {activeTab === 'settings' && (
-          <SettingsTab settings={appSettings} onSave={handleSaveSettings} />
+          <NewSettingsTab
+            settings={{
+              siteName: appSettings.siteName ?? 'Akundang',
+              siteTagline: appSettings.siteTagline ?? 'Digital Wedding Invitation',
+              logoHorizontalUrl: appSettings.logoHorizontalUrl ?? '/logos/logo-horizontal.png',
+              logoVerticalUrl: appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png',
+              contactEmail: appSettings.contactEmail ?? 'halo@akundang.id',
+              contactWhatsapp: appSettings.confirmationWhatsapp ?? '628123456789',
+              socialInstagram: appSettings.socialInstagram ?? 'akundang.id',
+              socialTwitter: appSettings.socialTwitter ?? 'akundang',
+              socialGithub: appSettings.socialGithub ?? 'akundang',
+            }}
+            adminEmail={adminEmail}
+            onSave={async (siteSettings) => {
+              await handleSaveSettings({
+                ...appSettings,
+                siteName: siteSettings.siteName,
+                siteTagline: siteSettings.siteTagline,
+                logoHorizontalUrl: siteSettings.logoHorizontalUrl,
+                logoVerticalUrl: siteSettings.logoVerticalUrl,
+                contactEmail: siteSettings.contactEmail,
+                confirmationWhatsapp: siteSettings.contactWhatsapp,
+                socialInstagram: siteSettings.socialInstagram,
+                socialTwitter: siteSettings.socialTwitter,
+                socialGithub: siteSettings.socialGithub,
+              })
+            }}
+          />
         )}
       </main>
     </div>
@@ -342,13 +384,14 @@ const NAV_GROUPS = [
   {
     label: 'Sistem',
     items: [
-      { id: 'settings'    as NavTab, label: 'Pengaturan',         icon: Settings,        desc: 'Info & panduan modul' },
+      { id: 'website'     as NavTab, label: 'Landing Page',       icon: Globe,           desc: 'Konten & struktur website' },
+      { id: 'settings'    as NavTab, label: 'Pengaturan',         icon: Settings,        desc: 'Branding, akun & kontak' },
     ],
   },
 ]
 
 function Sidebar({
-  activeTab, onTabChange, adminEmail, onLogout, stats, pendingProofs,
+  activeTab, onTabChange, adminEmail, onLogout, stats, pendingProofs, siteName, logoVerticalUrl,
 }: {
   activeTab: NavTab
   onTabChange: (t: NavTab) => void
@@ -356,17 +399,23 @@ function Sidebar({
   onLogout: () => void
   stats: Stats
   pendingProofs: number
+  siteName: string
+  logoVerticalUrl: string
 }) {
   return (
     <aside className="w-52 flex flex-col shrink-0 border-r border-gray-100 bg-white">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
-            <Crown className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0 overflow-hidden">
+            {logoVerticalUrl ? (
+              <Image src={logoVerticalUrl} alt={siteName} width={20} height={20} className="object-contain" />
+            ) : (
+              <Crown className="w-3.5 h-3.5 text-white" />
+            )}
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-sm leading-none">Akundang</p>
+            <p className="font-bold text-gray-900 text-sm leading-none">{siteName}</p>
             <p className="text-gray-400 text-[10px] mt-0.5">Admin Console</p>
           </div>
         </div>
@@ -999,47 +1048,3 @@ function OrdersTab({ orders }: { orders: AdminOrder[] }) {
   )
 }
 
-// ─── Settings Tab ─────────────────────────────────────────────
-
-function SettingsTab({
-  settings,
-  onSave,
-}: {
-  settings: LocalAppSettings
-  onSave: (s: LocalAppSettings) => Promise<void>
-}) {
-  // Settings hanya untuk info sistem — harga & paket pindah ke Manajemen Template
-
-  return (
-    <div>
-      <PageHeader title="Pengaturan" subtitle="Informasi sistem — harga & template dikelola di modul masing-masing" />
-      <div className="p-8 max-w-xl space-y-4">
-
-        {/* Panduan modul */}
-        <div className="grid grid-cols-1 gap-3">
-          {[
-            { icon: '🎨', tab: 'lab', title: 'Template Lab', desc: 'Desain & eksperimen template baru. Rilis ke Manajemen saat siap.', color: 'indigo' },
-            { icon: '📦', tab: 'template', title: 'Manajemen Template', desc: 'Atur harga, paket akses, dan aktifkan template untuk user.', color: 'purple' },
-            { icon: '💳', tab: 'payment', title: 'Pembayaran', desc: 'Rekening bank, QRIS, instruksi bayar, dan verifikasi bukti transfer.', color: 'emerald' },
-          ].map(item => (
-            <div key={item.tab} className={`flex items-center gap-4 p-4 rounded-2xl border bg-${item.color}-50 border-${item.color}-200`}>
-              <span className="text-2xl">{item.icon}</span>
-              <div className="flex-1">
-                <p className={`text-sm font-bold text-${item.color}-800`}>{item.title}</p>
-                <p className={`text-xs text-${item.color}-600 mt-0.5`}>{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Info Konfigurasi</p>
-          <div className="space-y-2 text-xs text-gray-500">
-            <p>Tidak ada pengaturan yang bisa diubah di halaman ini.</p>
-            <p>Semua konfigurasi penting sudah dipindahkan ke modul yang relevan di atas untuk memudahkan navigasi.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}

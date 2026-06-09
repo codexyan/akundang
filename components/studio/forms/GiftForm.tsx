@@ -8,13 +8,7 @@
 import { Gift, Plus, Trash2 } from 'lucide-react'
 import FormField, { inputClass } from '../ui/FormField'
 import SectionCard from '../ui/SectionCard'
-
-interface GiftAccount {
-  id: string
-  bank_name: string
-  account_number: string
-  account_name: string
-}
+import type { GiftAccount } from '@/lib/types'
 
 interface GiftFormProps {
   accounts: GiftAccount[]
@@ -29,24 +23,24 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
     }
 
     const newAccount: GiftAccount = {
-      id: Date.now().toString(),
-      bank_name: '',
-      account_number: '',
-      account_name: '',
+      type: 'bank',
+      bank: '',
+      number: '',
+      name: '',
     }
 
     onAccountsChange([...accounts, newAccount])
   }
 
-  function updateAccount(id: string, field: keyof GiftAccount, value: string) {
-    const updated = accounts.map((acc) =>
-      acc.id === id ? { ...acc, [field]: value } : acc
+  function updateAccount(index: number, field: keyof GiftAccount, value: string) {
+    const updated = accounts.map((acc, i) =>
+      i === index ? { ...acc, [field]: value } : acc
     )
     onAccountsChange(updated)
   }
 
-  function removeAccount(id: string) {
-    onAccountsChange(accounts.filter((acc) => acc.id !== id))
+  function removeAccount(index: number) {
+    onAccountsChange(accounts.filter((_, i) => i !== index))
   }
 
   return (
@@ -58,13 +52,12 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
       <div className="space-y-3">
         {accounts.map((account, index) => (
           <div
-            key={account.id}
+            key={index}
             className="p-4 border border-stone-200 rounded-xl space-y-3 relative group hover:border-gold-300 transition-colors"
           >
-            {/* Remove button */}
             <button
               type="button"
-              onClick={() => removeAccount(account.id)}
+              onClick={() => removeAccount(index)}
               className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-red-50 text-red-600 hover:bg-red-500 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
               title="Hapus rekening"
             >
@@ -84,8 +77,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
               <input
                 type="text"
                 className={inputClass}
-                value={account.bank_name}
-                onChange={(e) => updateAccount(account.id, 'bank_name', e.target.value)}
+                value={account.bank ?? ''}
+                onChange={(e) => updateAccount(index, 'bank', e.target.value)}
                 placeholder="BCA"
               />
             </FormField>
@@ -94,8 +87,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
               <input
                 type="text"
                 className={inputClass}
-                value={account.account_number}
-                onChange={(e) => updateAccount(account.id, 'account_number', e.target.value)}
+                value={account.number}
+                onChange={(e) => updateAccount(index, 'number', e.target.value)}
                 placeholder="1234567890"
               />
             </FormField>
@@ -104,8 +97,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
               <input
                 type="text"
                 className={inputClass}
-                value={account.account_name}
-                onChange={(e) => updateAccount(account.id, 'account_name', e.target.value)}
+                value={account.name}
+                onChange={(e) => updateAccount(index, 'name', e.target.value)}
                 placeholder="Ahmad Budi Santoso"
               />
             </FormField>

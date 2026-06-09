@@ -40,7 +40,7 @@ const templates = [
 
 export default function TemplatePreview() {
   return (
-    <section id="templates" className="py-20 sm:py-24 bg-white">
+    <section id="templates" className="py-14 sm:py-20 lg:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
 
         <motion.div

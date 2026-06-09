@@ -56,6 +56,24 @@ export function fontW(type: 'heading' | 'body'): string {
   return type === 'heading' ? 'var(--hw, 700)' : 'var(--bw, 400)'
 }
 
+/**
+ * Returns frosted-panel styles for cards/containers on image/video backgrounds.
+ * On solid-color backgrounds returns empty object (card stays transparent).
+ */
+export function cardBg(bg: SectionConfig['background']): React.CSSProperties {
+  if (bg.type !== 'image' && bg.type !== 'video') return {}
+  return {
+    background: 'rgba(0,0,0,0.3)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.08)',
+  }
+}
+
+export function hasMediaBg(bg: SectionConfig['background']): boolean {
+  return bg.type === 'image' || bg.type === 'video'
+}
+
 export default function SectionWrapper({ section, children, className = '', overlay, fontConfig }: Props) {
   const { isPreview, replaySectionId, replaySectionKey } = usePreviewContext()
 
@@ -136,11 +154,11 @@ export default function SectionWrapper({ section, children, className = '', over
         />
       )}
 
-      {/* Dark overlay for photo and video backgrounds */}
-      {(bg.type === 'image' || bg.type === 'video') && (bg.overlay_opacity ?? 0) > 0 && (
+      {/* Dark overlay for photo and video backgrounds — enforce minimum 0.45 */}
+      {(bg.type === 'image' || bg.type === 'video') && (
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: `rgba(0,0,0,${bg.overlay_opacity})`, zIndex: 1 }}
+          style={{ backgroundColor: `rgba(0,0,0,${Math.max(bg.overlay_opacity ?? 0, 0.45)})`, zIndex: 1 }}
         />
       )}
 
@@ -151,6 +169,7 @@ export default function SectionWrapper({ section, children, className = '', over
           ...innerFillStyle,
           ...(isSplitLeft  ? { flexDirection: 'row',        gap: 24, alignItems: 'flex-start' } : {}),
           ...(isSplitRight ? { flexDirection: 'row-reverse', gap: 24, alignItems: 'flex-start' } : {}),
+          ...(hasMediaBg(bg) ? { textShadow: '0 1px 4px rgba(0,0,0,0.4)' } : {}),
         }}
         initial="hidden"
         whileInView="visible"

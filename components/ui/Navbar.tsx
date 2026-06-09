@@ -29,7 +29,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Logo variant="horizontal" size="sm" />
 
-        <div className="flex items-center gap-1 min-w-[160px] justify-end">
+        <div className="flex items-center gap-1 justify-end">
           {!loaded ? (
             <div className="flex gap-2">
               <div className="w-16 h-8 bg-gray-100 rounded-xl animate-pulse" />

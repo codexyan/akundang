@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import type { DecorationAsset, AssetPosition, AssetIdleAnimation } from '@/lib/types'
+import type { DecorationAsset, AssetPosition, AssetIdleAnimation, AssetExitAnimation } from '@/lib/types'
 
 interface LayerProps {
   assets: DecorationAsset[]
   animate?: boolean
+  exiting?: boolean
 }
 
-// Mapping posisi ke CSS absolute positioning
 const ANCHOR: Record<AssetPosition, React.CSSProperties> = {
   'top-left':       { top: 0,    left: 0 },
   'top-center':     { top: 0,    left: '50%', transform: 'translateX(-50%)' },
@@ -20,6 +20,14 @@ const ANCHOR: Record<AssetPosition, React.CSSProperties> = {
   'bottom-left':    { bottom: 0, left: 0 },
   'bottom-center':  { bottom: 0, left: '50%', transform: 'translateX(-50%)' },
   'bottom-right':   { bottom: 0, right: 0 },
+  'top-quarter-left':    { top: '25%', left: 0, transform: 'translateY(-50%)' },
+  'top-quarter-right':   { top: '25%', right: 0, transform: 'translateY(-50%)' },
+  'bottom-quarter-left': { top: '75%', left: 0, transform: 'translateY(-50%)' },
+  'bottom-quarter-right':{ top: '75%', right: 0, transform: 'translateY(-50%)' },
+  'edge-left':      { top: '50%', left: 0, transform: 'translateY(-50%) translateX(-30%)' },
+  'edge-right':     { top: '50%', right: 0, transform: 'translateY(-50%) translateX(30%)' },
+  'edge-top':       { top: 0, left: '50%', transform: 'translateX(-50%) translateY(-30%)' },
+  'edge-bottom':    { bottom: 0, left: '50%', transform: 'translateX(-50%) translateY(30%)' },
 }
 
 function getEntryVariants(anim: string) {
@@ -35,7 +43,21 @@ function getEntryVariants(anim: string) {
   }
 }
 
-// Idle animation props — berulang setelah entry selesai
+function getExitTarget(anim: AssetExitAnimation): Record<string, unknown> {
+  switch (anim) {
+    case 'fade-out':       return { opacity: 0 }
+    case 'slide-out-left': return { opacity: 0, x: -80 }
+    case 'slide-out-right':return { opacity: 0, x: 80 }
+    case 'slide-out-up':   return { opacity: 0, y: -80 }
+    case 'slide-out-down': return { opacity: 0, y: 80 }
+    case 'zoom-out':       return { opacity: 0, scale: 0.2 }
+    case 'rotate-out':     return { opacity: 0, rotate: 120, scale: 0.3 }
+    case 'shrink':         return { opacity: 0, scale: 0 }
+    case 'blur-out':       return { opacity: 0, filter: 'blur(16px)' }
+    default:               return {}
+  }
+}
+
 function getIdleProps(idle: AssetIdleAnimation, speed: string, opacity: number): object {
   const dur = speed === 'slow' ? 4 : speed === 'fast' ? 1.5 : 2.5
   switch (idle) {
@@ -62,17 +84,18 @@ function getIdleProps(idle: AssetIdleAnimation, speed: string, opacity: number):
 interface ItemProps {
   asset: DecorationAsset
   doAnimate: boolean
+  exiting: boolean
 }
 
-function DecorationAssetItem({ asset, doAnimate }: ItemProps) {
+function DecorationAssetItem({ asset, doAnimate, exiting }: ItemProps) {
   const [entryDone, setEntryDone] = useState(!doAnimate || asset.animation === 'none')
 
-  // Reset saat animasi diaktifkan ulang
   useEffect(() => {
     if (doAnimate) setEntryDone(asset.animation === 'none')
   }, [doAnimate, asset.animation])
 
   const w         = asset.width ?? 80
+  const sc        = asset.scale ?? 1
   const rotate    = asset.rotation ?? 0
   const flipH     = asset.flip_h ? -1 : 1
   const flipV     = asset.flip_v ? -1 : 1
@@ -81,12 +104,14 @@ function DecorationAssetItem({ asset, doAnimate }: ItemProps) {
   const idle      = asset.idle_animation ?? 'none'
   const idleSpeed = asset.idle_speed ?? 'normal'
   const zLayer    = asset.z_layer ?? 0
+  const exitAnim  = asset.exit_animation ?? 'none'
+  const exitDelay = (asset.exit_delay ?? 0) / 1000
 
   const anchorStyle = ANCHOR[asset.position] ?? ANCHOR['top-left']
 
   const wrapStyle: React.CSSProperties = {
     position: 'absolute',
-    width: w,
+    width: w * sc,
     zIndex: 15 + zLayer,
     ...anchorStyle,
     ...(asset.offset_x != null ? { marginLeft: asset.offset_x } : {}),
@@ -98,6 +123,20 @@ function DecorationAssetItem({ asset, doAnimate }: ItemProps) {
     opacity,
     transform: `rotate(${rotate}deg) scale(${flipH}, ${flipV})`,
     display: 'block',
+  }
+
+  // Exit animation override
+  if (exiting && exitAnim !== 'none') {
+    const exitTarget = getExitTarget(exitAnim) as import('framer-motion').TargetAndTransition
+    return (
+      <motion.div
+        style={wrapStyle}
+        animate={exitTarget}
+        transition={{ duration: 0.7, delay: exitDelay, ease: [0.4, 0, 0.2, 1] }}
+      >
+        <img src={asset.url} alt="" draggable={false} style={imgStyle} />
+      </motion.div>
+    )
   }
 
   const idleProps = entryDone && idle !== 'none' ? getIdleProps(idle, idleSpeed, asset.opacity ?? 100) : {}
@@ -128,16 +167,15 @@ function DecorationAssetItem({ asset, doAnimate }: ItemProps) {
 }
 
 // ─── Layer container ──────────────────────────────────────────
-export default function DecorationAssetLayer({ assets, animate = true }: LayerProps) {
+export default function DecorationAssetLayer({ assets, animate = true, exiting = false }: LayerProps) {
   if (!assets || assets.length === 0) return null
 
-  // Sort by z_layer
   const sorted = [...assets].sort((a, b) => (a.z_layer ?? 0) - (b.z_layer ?? 0))
 
   return (
     <div className="absolute inset-0 pointer-events-none">
       {sorted.map(asset => (
-        <DecorationAssetItem key={asset.id} asset={asset} doAnimate={animate} />
+        <DecorationAssetItem key={asset.id} asset={asset} doAnimate={animate} exiting={exiting} />
       ))}
     </div>
   )

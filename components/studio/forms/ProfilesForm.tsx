@@ -11,17 +11,17 @@ import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
 interface ProfilesFormProps {
-  groomParents: string
-  groomPhotoUrl: string
-  groomBio: string
-  brideParents: string
-  bridePhotoUrl: string
-  brideBio: string
+  groomParents?: string
+  groomPhotoUrl?: string
+  groomBio?: string
+  brideParents?: string
+  bridePhotoUrl?: string
+  brideBio?: string
   onGroomParentsChange: (value: string) => void
-  onGroomPhotoChange: (url: string) => void
+  onGroomPhotoChange: (url: string | undefined) => void
   onGroomBioChange: (value: string) => void
   onBrideParentsChange: (value: string) => void
-  onBridePhotoChange: (url: string) => void
+  onBridePhotoChange: (url: string | undefined) => void
   onBrideBioChange: (value: string) => void
 }
 

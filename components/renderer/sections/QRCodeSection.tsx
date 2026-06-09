@@ -1,9 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { QrCode } from 'lucide-react'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
-import SectionWrapper from '../SectionWrapper'
+import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -11,63 +10,94 @@ interface Props {
   meta: TemplateMeta
 }
 
-// External QR generator. Swap with self-hosted (e.g. qrcode.react) jika perlu privasi.
 function buildQrUrl(target: string, color: string, bg: string) {
   const palette = color.replace('#', '') + '-' + bg.replace('#', '')
   return `https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=${color.replace('#', '')}&bgcolor=${bg.replace('#', '')}&data=${encodeURIComponent(target)}&format=svg&_=${palette}`
 }
 
+function Ornament({ accent }: { accent: string }) {
+  return (
+    <div className="flex items-center justify-center gap-3">
+      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
+      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
+      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
+    </div>
+  )
+}
+
 export default function QRCodeSection({ section, data, meta }: Props) {
   const { accent, primary, text } = meta.color_scheme
+  const font = resolveFont(meta, section)
   const target = data.qr_target_url
+
+  const headingFont = `'${font.heading}', serif`
+  const bodyFont = `'${font.body}', serif`
 
   if (!target) return null
 
   const qrSrc = buildQrUrl(target, primary, accent === primary ? '#ffffff' : accent)
 
-  return (
-    <SectionWrapper section={section} className="py-24 px-6">
-      <div className="max-w-md mx-auto text-center">
-        <motion.p
-          className="text-xs tracking-[0.3em] uppercase mb-3"
-          style={{ color: `${accent}99`, fontFamily: `'${meta.font.body}', serif` }}
-          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-        >
-          QR Code
-        </motion.p>
-        <motion.div
-          className="h-px w-16 mx-auto mb-8"
-          style={{ backgroundColor: `${accent}55` }}
-          variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1, transition: { delay: 0.1, duration: 0.6 } } }}
-        />
+  const dur = 0.6
+  const stagger = 0.12
+  const ts = (n: number) => ({ delay: n * stagger, duration: dur })
 
+  return (
+    <SectionWrapper section={section} className="px-6">
+      <div className="max-w-[300px] mx-auto text-center w-full py-14">
+
+        <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1, transition: ts(0) } }}>
+          <Ornament accent={accent} />
+        </motion.div>
+
+        <motion.p
+          style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginTop: 20, marginBottom: 10 }}
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(1) } }}>
+          Kartu Tamu
+        </motion.p>
+
+        <motion.h2
+          style={{ fontSize: fsh(20), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', marginBottom: 12, lineHeight: 1.3 }}
+          variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: ts(2) } }}>
+          QR Code Anda
+        </motion.h2>
+
+        <motion.p
+          style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 250, margin: '0 auto' }}
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(3) } }}>
+          Tunjukkan QR code ini saat hadir di lokasi acara sebagai tanda bahwa Anda adalah tamu undangan kami.
+        </motion.p>
+
+        {/* QR Card */}
         <motion.div
-          className="inline-block p-5 rounded-2xl"
-          style={{ backgroundColor: '#ffffff', border: `1px solid ${accent}33`, boxShadow: `0 12px 32px ${accent}20` }}
-          variants={{ hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: { delay: 0.2, duration: 0.55 } } }}
-        >
+          style={{
+            display: 'inline-block', marginTop: 28, padding: '24px',
+            background: '#ffffff',
+            border: `1px solid ${accent}20`,
+            boxShadow: `0 8px 28px ${accent}10`,
+          }}
+          variants={{ hidden: { opacity: 0, scale: 0.92 }, visible: { opacity: 1, scale: 1, transition: ts(4) } }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrSrc} alt="QR Code" width={220} height={220} className="block" />
+          <img src={qrSrc} alt="QR Code Tamu" width={180} height={180} className="block" />
         </motion.div>
 
         {data.qr_label && (
           <motion.p
-            className="mt-6 text-sm"
-            style={{ color: `${text}99`, fontFamily: `'${meta.font.body}', serif` }}
-            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.35 } } }}
-          >
+            style={{ fontSize: fsb(10.5), color: `${text}60`, fontFamily: headingFont, fontWeight: 500, marginTop: 20, letterSpacing: '0.02em' }}
+            variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(5) } }}>
             {data.qr_label}
           </motion.p>
         )}
 
+        {/* Instructions */}
         <motion.div
-          className="mt-8 flex items-center justify-center gap-2 text-xs"
-          style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}
-          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.5 } } }}
-        >
-          <QrCode size={12} />
-          Pindai dengan kamera HP Anda
+          style={{ marginTop: 24 }}
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}>
+          <div style={{ width: 20, height: '0.5px', background: `${accent}25`, margin: '0 auto 14px' }} />
+          <p style={{ fontSize: fsb(8.5), color: `${text}35`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+            Simpan atau screenshot QR code ini<br />dan tunjukkan kepada panitia di lokasi.
+          </p>
         </motion.div>
+
       </div>
     </SectionWrapper>
   )

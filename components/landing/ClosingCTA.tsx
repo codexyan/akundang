@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react'
 
 export default function ClosingCTA() {
   return (
-    <section className="py-24 sm:py-32 relative overflow-hidden"
+    <section className="py-16 sm:py-24 lg:py-32 relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #0f1a12 0%, #1a3320 50%, #0f1a12 100%)' }}>
 
       {/* Ambient glows */}
@@ -23,7 +23,7 @@ export default function ClosingCTA() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-      <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-8 text-center">
 
         <motion.p
           initial={{ opacity: 0, y: 16 }}
