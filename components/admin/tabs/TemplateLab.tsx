@@ -120,7 +120,7 @@ function makeGiftAccount(name: string, b: GiftLabBrand): GiftAccount {
 
 // ─── Constants ─────────────────────────────────────────────────
 const SECTION_TYPES = ['hero', 'profiles', 'countdown', 'events', 'story', 'gallery', 'rsvp', 'wishes', 'closing', 'gift', 'livestream', 'quote', 'video', 'gift-registry', 'ig-story', 'qrcode'] as const
-const OPENING_TYPES = ['fade-reveal', 'envelope', 'curtain', 'gate-open', 'flower-bloom', 'scroll-reveal'] as const
+const OPENING_TYPES = ['fade-reveal', 'envelope', 'curtain', 'gate-open', 'flower-bloom', 'scroll-reveal', 'diamond-split', 'book-open', 'lantern-rise', 'veil-lift', 'mosaic-reveal', 'ring-zoom'] as const
 const TRANSITION_TYPES = ['fade', 'slide-up', 'slide-left', 'slide-right', 'zoom-in'] as const
 
 const OPENING_META: Record<string, { icon: string; label: string }> = {
@@ -130,6 +130,12 @@ const OPENING_META: Record<string, { icon: string; label: string }> = {
   'gate-open':     { icon: '🚪', label: 'Gerbang' },
   'flower-bloom':  { icon: '🌸', label: 'Bunga' },
   'scroll-reveal': { icon: '📜', label: 'Gulungan' },
+  'diamond-split': { icon: '💎', label: 'Berlian' },
+  'book-open':     { icon: '📖', label: 'Buku' },
+  'lantern-rise':  { icon: '🏮', label: 'Lentera' },
+  'veil-lift':     { icon: '👰', label: 'Kerudung' },
+  'mosaic-reveal': { icon: '🔷', label: 'Mosaik' },
+  'ring-zoom':     { icon: '💍', label: 'Cincin' },
 }
 
 // ─── Color Palettes ────────────────────────────────────────────
@@ -883,6 +889,8 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   })
   const [releasing, setReleasing] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
+  const [showFullscreen, setShowFullscreen] = useState(false)
+  const [fullscreenPhase, setFullscreenPhase] = useState<'opening' | 'loading' | 'main'>('opening')
   const [savedLabs, setSavedLabs] = useState<{ id: string; name: string; config: TemplateRecord }[]>(() => {
     try { return JSON.parse(localStorage.getItem('akundang-labs') || '[]') }
     catch { return [] }
@@ -2784,14 +2792,16 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
             >
               <RefreshCw className="w-3 h-3" /> Refresh
             </button>
-            <a
-              href="/demo/renderer"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                const hasOpening = cfg.opening.show_opening !== false
+                setFullscreenPhase(hasOpening ? 'opening' : 'loading')
+                setShowFullscreen(true)
+              }}
               className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 border border-indigo-200 rounded-lg px-3 py-1.5 transition-colors"
             >
               <Maximize2 className="w-3 h-3" /> Full Screen
-            </a>
+            </button>
           </div>
         </div>
 
@@ -2899,6 +2909,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         onDone={() => {
                           setPreviewLoading(false)
                           setPreviewPlaying(false)
+                          setPreviewMode('invitation')
                         }}
                         isPreview={true}
                       />
@@ -2976,6 +2987,92 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
           </div>
         </div>
       </div>
+
+      {/* ── Fullscreen Live Preview ── */}
+      {showFullscreen && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+          {/* Close button */}
+          <button
+            onClick={() => setShowFullscreen(false)}
+            className="absolute top-4 right-4 z-[110] bg-black/60 hover:bg-black/80 text-white rounded-full p-2.5 transition-colors backdrop-blur-sm"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Phone-width container */}
+          <div style={{
+            width: '100%',
+            maxWidth: 430,
+            height: '100dvh',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 0 80px rgba(0,0,0,0.5)',
+          }}>
+            <AnimatePresence mode="wait">
+              {fullscreenPhase === 'opening' && (
+                <motion.div
+                  key="fs-opening"
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  style={{ position: 'absolute', inset: 0 }}
+                >
+                  <OpeningScene
+                    config={cfg.opening}
+                    data={previewData}
+                    meta={cfg.meta}
+                    positionMode="absolute"
+                    onOpen={() => setFullscreenPhase('loading')}
+                  />
+                </motion.div>
+              )}
+
+              {fullscreenPhase === 'loading' && (
+                <motion.div
+                  key="fs-loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  style={{ position: 'absolute', inset: 0 }}
+                >
+                  <LoadingScreen
+                    config={cfg.loading}
+                    onDone={() => setFullscreenPhase('main')}
+                    isPreview
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {fullscreenPhase === 'main' && (
+              <motion.div
+                key="fs-main"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  overflowY: 'scroll',
+                  overflowX: 'hidden',
+                  scrollSnapType: 'y proximity',
+                  scrollbarWidth: 'none',
+                  backgroundColor: cfg.meta.color_scheme.primary,
+                  fontFamily: `'${cfg.meta.font.body}', serif`,
+                }}
+              >
+                <InvitationPreview
+                  template={config}
+                  data={previewData}
+                  invitationId="lab-fullscreen"
+                  initialWishes={PREVIEW_WISHES}
+                  isPreview
+                />
+              </motion.div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Modal Rilis Template ── */}
       {showRelease && (

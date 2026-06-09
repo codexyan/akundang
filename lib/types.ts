@@ -151,6 +151,12 @@ export type OpeningType =
   | 'fade-reveal'
   | 'gate-open'
   | 'scroll-reveal'
+  | 'diamond-split'
+  | 'book-open'
+  | 'lantern-rise'
+  | 'veil-lift'
+  | 'mosaic-reveal'
+  | 'ring-zoom'
 
 export interface BackgroundConfig {
   type: 'image' | 'video' | 'color' | 'gradient'

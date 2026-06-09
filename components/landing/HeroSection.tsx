@@ -457,121 +457,118 @@ export default function HeroSection() {
                     }}
                   />
 
-                  {/* Screen */}
+                  {/* Screen — FadeReveal Opening mockup */}
                   <div
-                    className="rounded-[32px] sm:rounded-[42px] overflow-hidden bg-black relative"
-                    style={{ aspectRatio: "9/19.5" }}
+                    className="rounded-[32px] sm:rounded-[42px] overflow-hidden relative"
+                    style={{ aspectRatio: "9/19.5", backgroundColor: '#0f2d0f' }}
                   >
-                    {/* Background Photo */}
+                    {/* Dark wedding photo — natural vignette */}
                     <Image
-                      src={COUPLE_PHOTO}
+                      src="/images/templates/wedding-bg.jpg"
                       alt="Preview undangan"
                       fill
                       className="object-cover"
                       sizes="280px"
                       quality={95}
                       priority
+                      style={{ opacity: 0.45 }}
                     />
 
-                    {/* Elegant Overlay Gradient */}
-                    <div
-                      className="absolute inset-0 z-10"
-                      style={{
-                        background: `linear-gradient(180deg,
-                          rgba(0,0,0,0.7) 0%,
-                          rgba(0,0,0,0.4) 15%,
-                          rgba(0,0,0,0.1) 35%,
-                          rgba(0,0,0,0.1) 65%,
-                          rgba(0,0,0,0.5) 85%,
-                          rgba(0,0,0,0.9) 100%)`,
-                      }}
-                    />
+                    {/* Heavy dark scrim — guarantees text readability */}
+                    <div className="absolute inset-0 z-[2]" style={{ backgroundColor: 'rgba(10,20,10,0.65)' }} />
 
-                    {/* Elegant Invitation Cover Content */}
-                    <div className="absolute inset-0 z-20 flex flex-col">
-                      {/* Top Section - Greeting */}
-                      <div className="flex-shrink-0 pt-16 px-6 text-center">
+                    {/* Bottom solid gradient — text zone */}
+                    <div className="absolute inset-x-0 bottom-0 z-[3]" style={{
+                      height: '65%',
+                      background: 'linear-gradient(to top, rgba(10,20,10,0.98) 0%, rgba(10,20,10,0.85) 40%, transparent 100%)',
+                    }} />
+
+                    {/* Content */}
+                    <div className="absolute inset-0 z-20 flex flex-col justify-end">
+                      <div className="px-4 sm:px-5 pb-5 sm:pb-7 text-center">
+                        {/* Greeting */}
                         <motion.p
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.2 }}
-                          className="font-serif text-gold-200 text-[10px] tracking-[0.3em] uppercase mb-3"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 1.2, duration: 0.6 }}
+                          className="text-[10px] sm:text-xs italic mb-3 sm:mb-4"
+                          style={{ color: 'rgba(255,255,255,0.85)', fontFamily: "'Cormorant Garamond', serif", textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
                         >
-                          The Wedding Of
+                          Assalamu&apos;alaikum Wr. Wb.
                         </motion.p>
-                        <motion.h2
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 1.4 }}
-                          className="font-serif text-white text-2xl leading-tight drop-shadow-2xl mb-1"
-                        >
-                          Rizky &amp; Aulia
-                        </motion.h2>
+
+                        {/* Separator */}
                         <motion.div
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: 1 }}
-                          transition={{ delay: 1.6, duration: 0.6 }}
-                          className="w-16 h-px mx-auto"
-                          style={{
-                            background: "linear-gradient(90deg, transparent, #c9a961, transparent)"
-                          }}
-                        />
-                      </div>
-
-                      {/* Middle Section - Spacer */}
-                      <div className="flex-1" />
-
-                      {/* Bottom Section - Guest Name & CTA */}
-                      <div className="flex-shrink-0 pb-8 px-5">
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.8 }}
-                          className="text-center mb-4"
+                          transition={{ delay: 1.35, duration: 0.6 }}
+                          className="flex items-center gap-2 justify-center mb-3 sm:mb-4 mx-auto"
+                          style={{ width: '60%' }}
                         >
-                          <p className="text-white/70 text-[9px] tracking-[0.2em] uppercase mb-2.5">
-                            Kepada Yth.
-                          </p>
-                          <div
-                            className="px-4 py-2.5 rounded-xl backdrop-blur-md mx-auto inline-block"
-                            style={{
-                              background: "rgba(255,255,255,0.12)",
-                              border: "1px solid rgba(255,255,255,0.2)",
-                              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                            }}
-                          >
-                            <p className="text-white font-semibold text-sm">
-                              Bapak Andi &amp; Keluarga
-                            </p>
-                          </div>
+                          <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, #d4af3788)' }} />
+                          <div style={{ width: 5, height: 5, transform: 'rotate(45deg)', backgroundColor: '#d4af37', opacity: 0.9 }} />
+                          <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, transparent, #d4af3788)' }} />
                         </motion.div>
 
-                        <motion.button
-                          initial={{ opacity: 0, y: 20 }}
+                        {/* Guest name */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 2.0 }}
-                          className="w-full py-3 rounded-xl font-semibold text-sm text-white relative overflow-hidden"
-                          style={{
-                            background: "linear-gradient(135deg, #2c4a34 0%, #4a6355 50%, #c9a961 100%)",
-                            boxShadow: "0 4px 20px rgba(201,169,97,0.4)",
-                          }}
+                          transition={{ delay: 1.5, duration: 0.5 }}
+                          className="mb-4 sm:mb-5"
                         >
-                          <span className="relative z-10">BUKA UNDANGAN</span>
-                          <motion.div
-                            animate={{
-                              x: ["-100%", "100%"],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              ease: "linear",
-                            }}
-                            className="absolute inset-0 z-0"
-                            style={{
-                              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
-                            }}
-                          />
-                        </motion.button>
+                          <p className="text-[9px] sm:text-[10px] tracking-[0.3em] uppercase mb-1" style={{ color: '#d4af37' }}>
+                            Kepada Yth.
+                          </p>
+                          <p className="text-sm sm:text-base font-semibold" style={{ color: '#ffffff', fontFamily: "'Playfair Display', serif", textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}>
+                            Bapak Andi &amp; Keluarga
+                          </p>
+                        </motion.div>
+
+                        {/* Couple names */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.7, duration: 0.6 }}
+                          className="mb-4 sm:mb-5"
+                        >
+                          <h2 className="text-3xl sm:text-4xl font-bold leading-none" style={{
+                            color: '#ffffff', fontFamily: "'Playfair Display', serif",
+                            letterSpacing: '0.06em',
+                            textShadow: '0 3px 16px rgba(0,0,0,0.7), 0 6px 30px rgba(0,0,0,0.4)',
+                          }}>
+                            Rizky
+                          </h2>
+                          <div className="flex items-center justify-center gap-3 my-2">
+                            <div style={{ width: 28, height: 1, backgroundColor: '#d4af3766' }} />
+                            <span className="text-xl sm:text-2xl" style={{ color: '#d4af37', fontFamily: "'Playfair Display', serif", fontWeight: 300, fontStyle: 'italic' }}>&amp;</span>
+                            <div style={{ width: 28, height: 1, backgroundColor: '#d4af3766' }} />
+                          </div>
+                          <h2 className="text-3xl sm:text-4xl font-bold leading-none" style={{
+                            color: '#ffffff', fontFamily: "'Playfair Display', serif",
+                            letterSpacing: '0.06em',
+                            textShadow: '0 3px 16px rgba(0,0,0,0.7), 0 6px 30px rgba(0,0,0,0.4)',
+                          }}>
+                            Aulia
+                          </h2>
+                          <p className="text-[8px] sm:text-[9px] tracking-[0.2em] uppercase mt-2 sm:mt-3" style={{ color: '#d4af37cc' }}>
+                            Sabtu, 12 April 2026
+                          </p>
+                        </motion.div>
+
+                        {/* Button */}
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 2.0 }}
+                        >
+                          <div className="inline-block px-5 sm:px-6 py-2 sm:py-2.5 text-[9px] sm:text-[10px] tracking-[0.25em] uppercase" style={{
+                            border: '1px solid #d4af3799', color: '#d4af37',
+                            backgroundColor: 'rgba(15,45,15,0.6)', backdropFilter: 'blur(4px)',
+                          }}>
+                            Buka Undangan
+                          </div>
+                        </motion.div>
                       </div>
                     </div>
                   </div>

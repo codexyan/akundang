@@ -4,11 +4,10 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const COUPLE_PHOTO = '/logos/foto-mockup.png'
-
 // ─── Mini visual components ──────────────────────────────────────
 
 function VisualPersonal() {
+  const p = '#0f2d0f', a = '#d4af37', t = '#ffffff'
   return (
     <div className="relative w-full max-w-[280px] mx-auto">
       {/* Phone shell */}
@@ -21,88 +20,54 @@ function VisualPersonal() {
         }}
       >
         {/* Dynamic Island */}
-        <div
-          className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full"
-          style={{ top: 13, width: 80, height: 22, backgroundColor: '#000' }}
-        />
+        <div className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full" style={{ top: 13, width: 80, height: 22, backgroundColor: '#000' }} />
 
-        {/* Screen */}
-        <div className="rounded-[32px] sm:rounded-[36px] overflow-hidden bg-black relative" style={{ aspectRatio: '9/19.5' }}>
-          {/* Background Photo */}
-          <Image
-            src={COUPLE_PHOTO}
-            alt="Preview undangan personalisasi"
-            fill
-            className="object-cover"
-            sizes="280px"
-            quality={90}
-          />
+        {/* Screen — FadeReveal Opening */}
+        <div className="rounded-[32px] sm:rounded-[36px] overflow-hidden relative" style={{ aspectRatio: '9/19.5', backgroundColor: p }}>
+          {/* Background Photo — dark moody bouquet */}
+          <Image src="/images/templates/wedding-bg.jpg" alt="Preview undangan personalisasi" fill className="object-cover" sizes="280px" quality={90} style={{ opacity: 0.45 }} />
+          {/* Heavy dark scrim */}
+          <div className="absolute inset-0 z-[2]" style={{ backgroundColor: 'rgba(10,20,10,0.65)' }} />
+          {/* Solid bottom gradient for text zone */}
+          <div className="absolute inset-x-0 bottom-0 z-[5]" style={{ height: '65%', background: 'linear-gradient(to top, rgba(10,20,10,0.98) 0%, rgba(10,20,10,0.85) 40%, transparent 100%)' }} />
 
-          {/* Overlay Gradient */}
-          <div
-            className="absolute inset-0 z-10"
-            style={{
-              background: `linear-gradient(180deg,
-                rgba(0,0,0,0.65) 0%,
-                rgba(0,0,0,0.35) 15%,
-                rgba(0,0,0,0.08) 35%,
-                rgba(0,0,0,0.08) 60%,
-                rgba(0,0,0,0.5) 80%,
-                rgba(0,0,0,0.9) 100%)`,
-            }}
-          />
-
-          {/* Invitation Cover Content */}
+          {/* Content */}
           <div className="absolute inset-0 z-20 flex flex-col">
-            {/* Top Section */}
-            <div className="flex-shrink-0 pt-12 px-5 text-center">
-              <p className="font-serif text-gold-200 text-[9px] tracking-[0.25em] uppercase mb-2">
-                The Wedding Of
-              </p>
-              <h2 className="font-serif text-white text-xl leading-tight drop-shadow-2xl mb-1">
-                Rizky &amp; Aulia
-              </h2>
-              <div
-                className="w-12 h-px mx-auto"
-                style={{ background: 'linear-gradient(90deg, transparent, #c9a961, transparent)' }}
-              />
-              <p className="text-white/40 text-[8px] tracking-widest uppercase mt-2">
-                Sabtu, 12 April 2026
-              </p>
-            </div>
-
-            {/* Spacer */}
             <div className="flex-1" />
+            <div className="px-5 pb-7 text-center">
+              <p className="text-[10px] italic mb-2" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 8px rgba(0,0,0,0.7)' }}>
+                Assalamu&apos;alaikum Wr. Wb.
+              </p>
+              <div className="flex items-center gap-1.5 justify-center mb-2.5 mx-auto" style={{ width: '60%' }}>
+                <div style={{ flex: 1, height: 0.5, background: `linear-gradient(to right, transparent, ${a}88)` }} />
+                <div style={{ width: 4, height: 4, transform: 'rotate(45deg)', backgroundColor: a, opacity: 0.8 }} />
+                <div style={{ flex: 1, height: 0.5, background: `linear-gradient(to left, transparent, ${a}88)` }} />
+              </div>
 
-            {/* Bottom Section - Guest Name & CTA */}
-            <div className="flex-shrink-0 pb-6 px-4">
-              <div className="text-center mb-3">
-                <p className="text-white/60 text-[8px] tracking-[0.15em] uppercase mb-2">
-                  Kepada Yth.
-                </p>
-                <div
-                  className="px-3 py-2 rounded-xl backdrop-blur-md mx-auto inline-block"
-                  style={{
-                    background: 'rgba(255,255,255,0.12)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  <p className="text-white font-semibold text-[11px]">
+              {/* Guest name */}
+              <div className="mb-3">
+                <p className="text-[9px] tracking-[0.3em] uppercase mb-1" style={{ color: a }}>Kepada Yth.</p>
+                <div className="relative inline-block">
+                  <p className="text-[14px] font-semibold" style={{ color: t, fontFamily: "'Playfair Display', serif", textShadow: '0 2px 12px rgba(0,0,0,0.7)' }}>
                     Bapak Andi &amp; Keluarga
                   </p>
+                  <div className="absolute -inset-x-3 -inset-y-1 rounded-lg -z-10" style={{ backgroundColor: `${a}10`, border: `0.5px solid ${a}22` }} />
                 </div>
               </div>
 
-              <button
-                className="w-full py-2.5 rounded-xl font-semibold text-[10px] text-white tracking-wider"
-                style={{
-                  background: 'linear-gradient(135deg, #2c4a34 0%, #4a6355 50%, #c9a961 100%)',
-                  boxShadow: '0 4px 16px rgba(201,169,97,0.35)',
-                }}
-              >
-                BUKA UNDANGAN
-              </button>
+              {/* Couple names */}
+              <h3 className="text-[32px] font-bold leading-none" style={{ color: t, fontFamily: "'Playfair Display', serif", textShadow: '0 2px 16px rgba(0,0,0,0.6)' }}>Rizky</h3>
+              <div className="flex items-center justify-center gap-2 my-1.5">
+                <div style={{ width: 24, height: 0.5, backgroundColor: `${a}66` }} />
+                <span className="text-[20px]" style={{ color: a, fontStyle: 'italic' }}>&amp;</span>
+                <div style={{ width: 24, height: 0.5, backgroundColor: `${a}66` }} />
+              </div>
+              <h3 className="text-[32px] font-bold leading-none" style={{ color: t, fontFamily: "'Playfair Display', serif", textShadow: '0 2px 16px rgba(0,0,0,0.6)' }}>Aulia</h3>
+              <p className="text-[8px] tracking-[0.2em] uppercase mt-2 mb-3" style={{ color: `${a}cc` }}>Sabtu, 12 April 2026</p>
+
+              <div className="inline-block px-5 py-2 text-[9px] tracking-[0.25em] uppercase" style={{ border: `1px solid ${a}88`, color: a, backgroundColor: 'rgba(15,45,15,0.5)' }}>
+                Buka Undangan
+              </div>
             </div>
           </div>
         </div>

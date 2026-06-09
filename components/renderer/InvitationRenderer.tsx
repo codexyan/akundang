@@ -15,7 +15,7 @@ interface Props {
   musicUrl?: string
 }
 
-type Phase = 'loading' | 'opening' | 'main'
+type Phase = 'opening' | 'loading' | 'main'
 
 export default function InvitationRenderer({
   invitationId,
@@ -24,12 +24,12 @@ export default function InvitationRenderer({
   initialWishes = [],
   musicUrl,
 }: Props) {
-  // SKIP loading & opening - go straight to main!
-  const [phase, setPhase] = useState<Phase>('main')
   const config = template.config
   const { meta } = config
+  const showOpening = config.opening.show_opening !== false
 
-  // Inject Google Fonts dynamically
+  const [phase, setPhase] = useState<Phase>(showOpening ? 'opening' : 'loading')
+
   useEffect(() => {
     const headingFont = meta.font.heading.replace(/ /g, '+')
     const bodyFont = meta.font.body.replace(/ /g, '+')
@@ -48,36 +48,27 @@ export default function InvitationRenderer({
     }
   }, [meta.font.heading, meta.font.body])
 
-  // Optional background music on main phase
   useEffect(() => {
     if (phase !== 'main' || !musicUrl) return
     const audio = new Audio(musicUrl)
     audio.loop = true
     audio.volume = 0.3
-    audio.play().catch(() => {/* autoplay blocked */})
+    audio.play().catch(() => {})
     return () => {
       audio.pause()
       audio.src = ''
     }
   }, [phase, musicUrl])
 
-  // FORCE SKIP OPENING - Always go directly to main content (no double-entry!)
-  // User feedback: Opening phase causes confusion ("Why must I enter twice?")
-  // Solution: Skip opening entirely, go straight from loading → main
-  const skipOpening = true  // ALWAYS skip (was: config.opening.show_opening !== true)
-  const handleLoadDone = useCallback(() => setPhase('main'), [])  // Always go to main
-  const handleOpen    = useCallback(() => setPhase('main'), [])
+  const handleOpen = useCallback(() => setPhase('loading'), [])
+  const handleLoadDone = useCallback(() => setPhase('main'), [])
 
-  // Opening auto-dismiss - DISABLED (opening phase never runs now)
-  // Commented out because we force skip opening phase
-  /*
   useEffect(() => {
     if (phase !== 'opening') return
     const ms = config.opening.duration_ms ?? 3000
     const t = setTimeout(handleOpen, ms)
     return () => clearTimeout(t)
   }, [phase, config.opening.duration_ms, handleOpen])
-  */
 
   const activeSections = [...config.sections]
     .filter((s) => s.enabled)
@@ -85,37 +76,65 @@ export default function InvitationRenderer({
 
   return (
     <div style={{ fontFamily: `'${meta.font.body}', serif` }}>
-      {/* Loading phase - COMPLETELY DISABLED */}
-      {/* Opening phase - COMPLETELY DISABLED */}
-      {/* User feedback: Double entry issue - skip all intro screens! */}
-      {/* Go STRAIGHT to main content - NO loading, NO opening */}
+      <AnimatePresence mode="wait">
+        {phase === 'opening' && (
+          <motion.div
+            key="opening"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <OpeningScene
+              config={config.opening}
+              data={invitationData}
+              meta={meta}
+              onOpen={handleOpen}
+            />
+          </motion.div>
+        )}
 
-      {/* Main invitation content — direct entry, no delays */}
-      <motion.main
-        key="main"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          backgroundColor: meta.color_scheme.primary,
-          height: '100dvh',
-          overflowY: 'scroll',
-          overflowX: 'hidden',
-          scrollSnapType: 'y proximity',
-          scrollbarWidth: 'none',
-        }}
-      >
-        {activeSections.map((section) => (
-          <SectionRenderer
-            key={section.id}
-            sectionConfig={section}
-            invitationData={invitationData}
-            templateMeta={meta}
-            invitationId={invitationId}
-            initialWishes={section.type === 'wishes' ? initialWishes : undefined}
-          />
-        ))}
-      </motion.main>
+        {phase === 'loading' && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <LoadingScreen
+              config={config.loading}
+              onDone={handleLoadDone}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {phase === 'main' && (
+        <motion.main
+          key="main"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          style={{
+            backgroundColor: meta.color_scheme.primary,
+            height: '100dvh',
+            overflowY: 'scroll',
+            overflowX: 'hidden',
+            scrollSnapType: 'y proximity',
+            scrollbarWidth: 'none',
+          }}
+        >
+          {activeSections.map((section) => (
+            <SectionRenderer
+              key={section.id}
+              sectionConfig={section}
+              invitationData={invitationData}
+              templateMeta={meta}
+              invitationId={invitationId}
+              initialWishes={section.type === 'wishes' ? initialWishes : undefined}
+            />
+          ))}
+        </motion.main>
+      )}
     </div>
   )
 }
