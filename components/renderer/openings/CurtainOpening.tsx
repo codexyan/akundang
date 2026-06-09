@@ -59,7 +59,7 @@ export default function CurtainOpening({ config, data, meta, onOpen, positionMod
           >
             <p
               className="text-[10px] tracking-widest uppercase"
-              style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}
+              style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}
             >
               Kepada Yth.
             </p>

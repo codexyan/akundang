@@ -82,7 +82,7 @@ export default function GateOpenOpening({ config, data, meta, onOpen, positionMo
             className="py-2 px-4 rounded"
             style={{ backgroundColor: `${accent}15` }}
           >
-            <p className="text-[10px] tracking-widest uppercase" style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}>
+            <p className="text-[10px] tracking-widest uppercase" style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}>
               Kepada Yth.
             </p>
             <p className="text-sm font-semibold" style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}>

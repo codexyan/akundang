@@ -46,7 +46,7 @@ export default function EnvelopeOpening({ config, data, meta, onOpen, positionMo
         >
           <p
             className="text-[10px] tracking-widest uppercase"
-            style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}
+            style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}
           >
             Kepada Yth.
           </p>

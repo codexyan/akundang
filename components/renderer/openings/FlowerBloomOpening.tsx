@@ -71,7 +71,7 @@ export default function FlowerBloomOpening({ config, data, meta, onOpen, positio
             transition={{ delay: 0.65, duration: 0.5 }}
             className="text-center"
           >
-            <p className="text-[10px] tracking-widest uppercase" style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}>
+            <p className="text-[10px] tracking-widest uppercase" style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}>
               Kepada Yth.
             </p>
             <p className="text-sm font-semibold" style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}>

@@ -64,7 +64,7 @@ export default function ScrollRevealOpening({ config, data, meta, onOpen, positi
             transition={{ delay: 0.7, duration: 0.4 }}
             className="mb-3 text-center"
           >
-            <p className="text-[9px] tracking-widest uppercase" style={{ color: `${text}66`, fontFamily: `'${meta.font.body}', serif` }}>
+            <p className="text-[9px] tracking-widest uppercase" style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}>
               Kepada Yth.
             </p>
             <p className="text-sm font-semibold" style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}>

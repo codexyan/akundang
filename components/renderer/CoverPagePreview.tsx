@@ -30,10 +30,10 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
   const showGuest   = opening.show_guest_name !== false
   const guestName   = previewGuestName || null
   const bgPhoto     = opening.cover_photo_url || opening.background_image
-  const bgOpacity   = (opening.cover_photo_opacity ?? 40) / 100
+  const bgOpacity   = (opening.cover_photo_opacity ?? 30) / 100
   const bgPos       = opening.cover_photo_position ?? 'center'
   const display     = opening.cover_photo_display ?? 'background'
-  const gradH       = opening.cover_gradient_height ?? 55
+  const gradH       = opening.cover_gradient_height ?? 75
   const gradColor   = opening.cover_gradient_color ?? primary
 
   useEffect(() => {
@@ -47,7 +47,6 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
     document.head.appendChild(link)
   }, [meta.font.heading, meta.font.body])
 
-  // Reset phase when previewMode or decorPreviewKey changes
   useEffect(() => {
     setPhase('cover')
   }, [previewMode, decorPreviewKey])
@@ -98,7 +97,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
             animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
             transition={{ duration: 0.6, delay: isExiting ? 0.5 : 0 }}
           >
-            {/* Background foto */}
+            {/* Background photo */}
             {bgPhoto && display === 'background' && (
               <div style={{
                 position: 'absolute', inset: 0,
@@ -109,24 +108,35 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
               }} />
             )}
 
-            {/* Gradasi bawah */}
+            {/* Full-screen dark scrim for readability */}
+            <div style={{
+              position: 'absolute', inset: 0, zIndex: 1,
+              backgroundColor: `${primary}66`,
+            }} />
+
+            {/* Bottom gradient — strong multi-stop */}
             <div style={{
               position: 'absolute', inset: 'auto 0 0 0',
               height: `${gradH}%`,
               background: `linear-gradient(to top,
-                ${gradColor}dd 0%,
-                ${gradColor}cc 8%,
-                ${gradColor}bb 15%,
-                ${gradColor}99 22%,
-                ${gradColor}77 30%,
-                ${gradColor}55 40%,
-                ${gradColor}33 52%,
-                ${gradColor}11 68%,
+                ${gradColor}f7 0%,
+                ${gradColor}dd 15%,
+                ${gradColor}aa 30%,
+                ${gradColor}66 50%,
+                ${gradColor}33 70%,
                 transparent 100%)`,
-              zIndex: 1,
+              zIndex: 2,
             }} />
 
-            {/* Banner foto atas */}
+            {/* Top vignette */}
+            <div style={{
+              position: 'absolute', inset: '0 0 auto 0',
+              height: '35%',
+              background: `linear-gradient(to bottom, ${primary}88 0%, transparent 100%)`,
+              zIndex: 2,
+            }} />
+
+            {/* Banner top photo */}
             {bgPhoto && display === 'banner' && (
               <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0, height: '52%',
@@ -134,7 +144,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
               }} />
             )}
 
-            {/* Dekorasi aset custom */}
+            {/* Decoration assets */}
             <DecorationAssetLayer
               key={decorPreviewKey ?? 0}
               assets={opening.decoration_assets ?? []}
@@ -142,24 +152,26 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
               exiting={isExiting}
             />
 
-            {/* Badge tipe animasi */}
+            {/* Animation type badge */}
             <div style={{
               position: 'absolute', top: 8, right: 8, zIndex: 20,
               fontSize: 8, letterSpacing: '0.1em',
-              color: `${accent}88`, border: `1px solid ${accent}33`,
+              color: `${accent}aa`, border: `1px solid ${accent}44`,
               borderRadius: 4, padding: '2px 6px',
+              backdropFilter: 'blur(4px)',
+              backgroundColor: `${primary}44`,
             }}>
               {opening.type}
             </div>
 
-            {/* Konten — di bawah */}
+            {/* Content — bottom anchored */}
             <div style={{
-              position: 'relative', zIndex: 2,
+              position: 'relative', zIndex: 10,
               marginTop: 'auto',
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               padding: '0 24px', paddingBottom: '9vh',
             }}>
-              {/* Foto portrait */}
+              {/* Portrait photo */}
               {bgPhoto && display === 'portrait' && (
                 <div style={{
                   width: 96, height: 96, borderRadius: '50%', marginBottom: 16,
@@ -170,96 +182,139 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                 }} />
               )}
 
-              {/* Salam pembuka */}
+              {/* Greeting */}
               <p style={{
                 fontSize: 11, fontStyle: 'italic',
-                color: `${text}88`, marginBottom: 10, textAlign: 'center',
+                color: `${text}cc`, marginBottom: 10, textAlign: 'center',
                 fontFamily: `'${meta.font.body}', serif`,
+                textShadow: `0 1px 8px ${primary}88`,
               }}>
                 {greeting}
               </p>
 
-              {/* Nama tamu */}
+              {/* Guest name */}
               {showGuest && (
                 <div style={{
                   textAlign: 'center', marginBottom: 14, width: '100%',
-                  borderTop: `1px solid ${accent}33`, borderBottom: `1px solid ${accent}33`,
+                  borderTop: `1px solid ${accent}44`, borderBottom: `1px solid ${accent}44`,
                   padding: '7px 0',
                 }}>
-                  <p style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}55`, marginBottom: 2, fontFamily: `'${meta.font.body}', serif` }}>
+                  <p style={{
+                    fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
+                    color: `${accent}bb`, marginBottom: 2,
+                    fontFamily: `'${meta.font.body}', serif`,
+                    textShadow: `0 1px 4px ${primary}88`,
+                  }}>
                     Kepada Yth.
                   </p>
                   {guestName ? (
-                    <p style={{ fontSize: 13, fontWeight: 500, color: text, fontFamily: `'${meta.font.heading}', serif` }}>
+                    <p style={{
+                      fontSize: 13, fontWeight: 500, color: text,
+                      fontFamily: `'${meta.font.heading}', serif`,
+                      textShadow: `0 2px 12px ${primary}aa`,
+                    }}>
                       {guestName}
                     </p>
                   ) : (
-                    <p style={{ fontSize: 10, color: `${accent}77`, fontStyle: 'italic', fontFamily: `'${meta.font.body}', serif` }}>
-                      ← dari URL ?to=nama-tamu
+                    <p style={{
+                      fontSize: 10, color: `${accent}99`, fontStyle: 'italic',
+                      fontFamily: `'${meta.font.body}', serif`,
+                    }}>
+                      &larr; dari URL ?to=nama-tamu
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Teks undangan */}
+              {/* Invitation text */}
               <p style={{
-                fontSize: 10, lineHeight: 1.8, color: `${text}66`,
+                fontSize: 10.5, lineHeight: 1.8, color: `${text}bb`,
                 textAlign: 'center', marginBottom: 14,
                 fontFamily: `'${meta.font.body}', serif`, maxWidth: 280,
+                textShadow: `0 1px 6px ${primary}88`,
               }}>
                 {inviteText}
               </p>
 
-              {/* Ornamen separator */}
+              {/* Ornament separator */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, width: 180 }}>
-                <div style={{ flex: 1, height: 1, backgroundColor: `${accent}44` }} />
-                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: accent }} />
-                <div style={{ flex: 1, height: 1, backgroundColor: `${accent}44` }} />
+                <div style={{ flex: 1, height: 1, backgroundColor: `${accent}66` }} />
+                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: accent, opacity: 0.8 }} />
+                <div style={{ flex: 1, height: 1, backgroundColor: `${accent}66` }} />
               </div>
 
-              {/* Nama pasangan */}
+              {/* Couple names */}
               <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                <h1 style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.15, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0, letterSpacing: '-0.01em' }}>
+                <h1 style={{
+                  fontSize: 32, fontWeight: 700, lineHeight: 1.15,
+                  color: text,
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  margin: 0, letterSpacing: '-0.01em',
+                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+                }}>
                   {data.groom_name}
                 </h1>
-                <p style={{ fontSize: 18, color: accent, margin: '3px 0', fontFamily: `'${meta.font.heading}', serif`, fontWeight: 300, letterSpacing: '0.1em' }}>
+                <p style={{
+                  fontSize: 18, color: accent, margin: '3px 0',
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  fontWeight: 300, letterSpacing: '0.1em',
+                  textShadow: `0 2px 12px ${primary}aa`,
+                }}>
                   &amp;
                 </p>
-                <h1 style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.15, color: text, fontFamily: `'${meta.font.heading}', serif`, margin: 0, letterSpacing: '-0.01em' }}>
+                <h1 style={{
+                  fontSize: 32, fontWeight: 700, lineHeight: 1.15,
+                  color: text,
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  margin: 0, letterSpacing: '-0.01em',
+                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+                }}>
                   {data.bride_name}
                 </h1>
               </div>
 
-              {/* Tombol masuk — klikable saat mode exit/full-flow */}
+              {/* Enter button */}
               <div
                 onClick={handleEnterClick}
                 style={{
                   padding: '10px 30px', fontSize: 9, letterSpacing: '0.28em',
-                  textTransform: 'uppercase', border: `1px solid ${accent}55`,
-                  color: `${accent}99`, fontFamily: `'${meta.font.body}', serif`,
+                  textTransform: 'uppercase',
+                  border: `1px solid ${accent}88`,
+                  color: accent,
+                  backgroundColor: `${primary}44`,
+                  fontFamily: `'${meta.font.body}', serif`,
                   marginBottom: 8,
                   cursor: (previewMode === 'exit' || previewMode === 'full-flow') ? 'pointer' : 'default',
                   transition: 'all 0.2s',
+                  backdropFilter: 'blur(4px)',
+                  textShadow: `0 1px 4px ${primary}88`,
                 }}
               >
                 {buttonText}
               </div>
               {(previewMode === 'exit' || previewMode === 'full-flow') && (
-                <p style={{ fontSize: 7, color: `${accent}55`, letterSpacing: '0.1em' }}>
+                <p style={{ fontSize: 7, color: `${accent}77`, letterSpacing: '0.1em' }}>
                   klik untuk preview transisi keluar
                 </p>
               )}
 
-              {/* Progress bar visual indicator */}
-              <div style={{ width: 90, height: '0.5px', backgroundColor: `${accent}22`, position: 'relative', overflow: 'hidden', marginBottom: 4 }}>
-                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '45%', backgroundColor: `${accent}66` }} />
+              {/* Progress bar */}
+              <div style={{ width: 90, height: '0.5px', backgroundColor: `${accent}33`, position: 'relative', overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '45%', backgroundColor: `${accent}88` }} />
               </div>
-              <p style={{ fontSize: 8, color: `${text}33`, fontFamily: `'${meta.font.body}', serif`, letterSpacing: '0.1em' }}>
+              <p style={{
+                fontSize: 8, color: `${text}55`,
+                fontFamily: `'${meta.font.body}', serif`,
+                letterSpacing: '0.1em',
+                textShadow: `0 1px 4px ${primary}88`,
+              }}>
                 terbuka otomatis
               </p>
 
               {opening.music_autoplay && (
-                <p style={{ marginTop: 8, fontSize: 9, color: `${text}44` }}>♪ Musik otomatis aktif</p>
+                <p style={{ marginTop: 8, fontSize: 9, color: `${text}66`, textShadow: `0 1px 4px ${primary}88` }}>
+                  &#9834; Musik otomatis aktif
+                </p>
               )}
             </div>
           </motion.div>
