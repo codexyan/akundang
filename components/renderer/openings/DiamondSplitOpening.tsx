@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { OpeningConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import type { PositionMode } from '../OpeningScene'
+import DecorationAssetLayer from '../DecorationAssetLayer'
 
 interface Props {
   config: OpeningConfig
@@ -18,148 +19,288 @@ function getGuestName(): string | null {
   return new URLSearchParams(window.location.search).get('to')
 }
 
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return ''
+  try {
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+  } catch { return '' }
+}
+
+const stagger = (i: number) => ({ delay: 0.2 + i * 0.13, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const })
+
+const clipPaths = [
+  'polygon(50% 0%, 100% 50%, 50% 50%, 0% 50%)',   // top triangle
+  'polygon(100% 50%, 50% 100%, 50% 50%, 100% 0%)', // right triangle (adjusted to 0%)
+  'polygon(50% 100%, 0% 50%, 50% 50%, 100% 50%)',  // bottom triangle
+  'polygon(0% 50%, 50% 0%, 50% 50%, 0% 100%)',     // left triangle
+]
+
+const exits = [
+  { y: '-110%', x: '0%' },   // top flies up
+  { x: '110%', y: '0%' },    // right flies right
+  { y: '110%', x: '0%' },    // bottom flies down
+  { x: '-110%', y: '0%' },   // left flies left
+]
+
 export default function DiamondSplitOpening({ config, data, meta, onOpen, positionMode = 'fixed' }: Props) {
-  const [opening, setOpening] = useState(false)
   const [guestName] = useState(() => getGuestName())
+  const [clicked, setClicked] = useState(false)
   const { primary, accent, text } = meta.color_scheme
   const pos = positionMode === 'fixed' ? 'fixed' : 'absolute'
-  const showGuestName = config.show_guest_name !== false
-  const buttonText = config.button_text ?? 'Masuk Sekarang'
 
   function handleOpen() {
-    setOpening(true)
-    setTimeout(onOpen, 1000)
+    if (clicked) return
+    setClicked(true)
+    setTimeout(onOpen, 900)
   }
 
-  const clipPaths = [
-    'polygon(0 0, 50% 0, 50% 50%, 0 50%)',
-    'polygon(50% 0, 100% 0, 100% 50%, 50% 50%)',
-    'polygon(0 50%, 50% 50%, 50% 100%, 0 100%)',
-    'polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%)',
-  ]
-
-  const exits = [
-    { x: '-100%', y: '-100%' },
-    { x: '100%', y: '-100%' },
-    { x: '-100%', y: '100%' },
-    { x: '100%', y: '100%' },
-  ]
+  const greeting   = config.subtitle ?? "Assalamu'alaikum Warahmatullahi Wabarakatuh"
+  const buttonText = config.button_text ?? 'Buka Undangan'
+  const inviteText = config.invitation_text ??
+    'Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dalam acara pernikahan kami.'
+  const showGuest  = config.show_guest_name !== false
+  const bgPhoto    = config.cover_photo_url || config.background_image
+  const bgOpacity  = (config.cover_photo_opacity ?? 40) / 100
+  const bgPos      = config.cover_photo_position ?? 'center'
+  const gradH      = config.cover_gradient_height ?? 75
+  const gradStop   = Math.round(gradH * 0.6)
+  const gradColor  = config.cover_gradient_color ?? primary
+  const eventDate  = formatDate(data.akad?.date ?? data.resepsi?.date)
 
   return (
-    <div className={`${pos} inset-0 z-40 overflow-hidden flex items-center justify-center`} style={{ backgroundColor: primary }}>
+    <div
+      className={`${pos} inset-0 z-40 flex flex-col overflow-hidden`}
+      style={{ backgroundColor: primary }}
+    >
+      {/* Background photo (visible through gaps and after split) */}
+      {bgPhoto && (
+        <motion.div
+          className="absolute inset-0"
+          initial={{ scale: 1.05 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 8, ease: 'easeOut' }}
+          style={{
+            backgroundImage: `url(${bgPhoto})`,
+            backgroundSize: 'cover',
+            backgroundPosition: bgPos,
+            opacity: bgOpacity,
+          }}
+        />
+      )}
+
+      {/* Dark scrim */}
+      <div className="absolute inset-0 z-[1]" style={{ backgroundColor: `${primary}66` }} />
+
+      {/* Bottom gradient */}
+      <div className="absolute inset-x-0 bottom-0 z-[2]" style={{
+        height: `${gradH}%`,
+        background: `linear-gradient(to top,
+          ${gradColor} 0%,
+          ${gradColor}f7 ${Math.round(gradStop * 0.3)}%,
+          ${gradColor}dd ${Math.round(gradStop * 0.5)}%,
+          ${gradColor}99 ${Math.round(gradStop * 0.7)}%,
+          ${gradColor}44 ${Math.round(gradStop * 0.9)}%,
+          transparent 100%
+        )`,
+      }} />
+
+      {/* 4 diamond-quadrant overlay panels */}
       {clipPaths.map((clip, i) => (
         <motion.div
           key={i}
-          className="absolute inset-0 z-10"
-          style={{ backgroundColor: primary, clipPath: clip }}
-          animate={opening ? exits[i] : {}}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: i * 0.05 }}
+          className="absolute inset-0 z-[8]"
+          style={{ backgroundColor: `${primary}e6`, clipPath: clip }}
+          animate={clicked ? exits[i] : {}}
+          transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: i * 0.06 }}
         />
       ))}
 
-      {/* Diamond ornament rotating behind panels */}
-      <motion.div
-        className="absolute z-[5]"
-        style={{
-          width: 200, height: 200,
-          border: `1.5px solid ${accent}44`,
-          transform: 'rotate(45deg)',
-        }}
-        animate={opening ? { scale: 3, opacity: 0, rotate: 135 } : { rotate: 45 }}
-        transition={{ duration: 0.8 }}
-      />
-      <motion.div
-        className="absolute z-[5]"
-        style={{
-          width: 140, height: 140,
-          border: `1px solid ${accent}33`,
-          transform: 'rotate(45deg)',
-        }}
-        animate={opening ? { scale: 3, opacity: 0, rotate: 135 } : { rotate: 45 }}
-        transition={{ duration: 0.8, delay: 0.05 }}
-      />
+      {/* Thin diamond gap lines (visible between panels) */}
+      <div className="absolute inset-0 z-[7] pointer-events-none">
+        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2" style={{ width: 1, backgroundColor: `${accent}22` }} />
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2" style={{ height: 1, backgroundColor: `${accent}22` }} />
+      </div>
 
-      {/* Center content */}
-      <div className="relative z-20 text-center px-6 flex flex-col items-center gap-2">
+      {/* Decoration assets */}
+      <DecorationAssetLayer assets={config.decoration_assets ?? []} animate />
+
+      {/* Content - bottom-anchored, layered above panels */}
+      <motion.div
+        className="relative z-20 flex flex-col items-center w-full mt-auto px-8"
+        style={{ paddingBottom: 'max(8vh, 32px)' }}
+        animate={{ opacity: clicked ? 0 : 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Greeting */}
         <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-xs italic"
-          style={{ color: `${accent}cc`, fontFamily: `'${meta.font.body}', serif` }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={stagger(0)}
+          className="text-center mb-3 leading-relaxed"
+          style={{
+            fontSize: 11, fontStyle: 'italic',
+            color: `${text}cc`,
+            fontFamily: `'${meta.font.body}', serif`,
+            letterSpacing: '0.03em',
+            maxWidth: 280,
+            textShadow: `0 1px 8px ${primary}88`,
+          }}
         >
-          {config.subtitle ?? "Assalamu'alaikum Wr. Wb."}
+          {greeting}
         </motion.p>
 
-        {showGuestName && guestName && (
+        {/* Separator */}
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={stagger(1)}
+          className="mb-4 flex items-center gap-2"
+          style={{ width: 160 }}
+        >
+          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}66` }} />
+          <div style={{ width: 5, height: 5, transform: 'rotate(45deg)', border: `1px solid ${accent}`, opacity: 0.8 }} />
+          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}66` }} />
+        </motion.div>
+
+        {/* Guest name */}
+        {showGuest && guestName && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45, duration: 0.5 }}
-            className="py-2 px-5 my-1"
-            style={{ backgroundColor: `${accent}10`, borderLeft: `2px solid ${accent}55`, borderRight: `2px solid ${accent}55` }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={stagger(2)}
+            className="text-center mb-4 w-full px-1"
           >
-            <p className="text-[10px] tracking-widest uppercase" style={{ color: `${text}bb`, fontFamily: `'${meta.font.body}', serif` }}>
-              Kepada Yth.
+            <p style={{
+              fontSize: 8.5, letterSpacing: '0.35em', textTransform: 'uppercase',
+              color: `${accent}bb`, fontFamily: `'${meta.font.body}', serif`, marginBottom: 3,
+              textShadow: `0 1px 4px ${primary}88`,
+            }}>
+              KEPADA YTH.
             </p>
-            <p className="text-sm font-semibold" style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}>
+            <p style={{
+              fontSize: 14, fontWeight: 500, color: text,
+              fontFamily: `'${meta.font.heading}', serif`, letterSpacing: '0.02em',
+              lineHeight: 1.3,
+              textShadow: `0 2px 12px ${primary}aa`,
+            }}>
               {guestName}
             </p>
           </motion.div>
         )}
 
+        {/* Invitation text */}
+        {inviteText && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={stagger(3)}
+            className="text-center mb-5 px-1"
+            style={{
+              fontSize: 10.5, lineHeight: 1.85, color: `${text}bb`,
+              fontFamily: `'${meta.font.body}', serif`, maxWidth: 272,
+              textShadow: `0 1px 6px ${primary}88`,
+            }}
+          >
+            {inviteText}
+          </motion.p>
+        )}
+
+        {/* Couple names */}
         <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="w-20 flex items-center gap-2 my-2"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={stagger(4)}
+          className="text-center mb-5"
         >
-          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}66` }} />
-          <div style={{ width: 6, height: 6, transform: 'rotate(45deg)', backgroundColor: accent, opacity: 0.7 }} />
-          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}66` }} />
+          <h1 style={{
+            fontSize: 44, fontWeight: 900, lineHeight: 1,
+            color: text,
+            fontFamily: `'${meta.font.heading}', serif`,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            margin: 0,
+            textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+          }}>
+            {data.groom_name}
+          </h1>
+
+          <div className="flex items-center justify-center gap-4 my-3">
+            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
+            <span style={{
+              fontSize: 26, color: accent,
+              fontFamily: `'${meta.font.heading}', serif`,
+              fontWeight: 300, fontStyle: 'italic',
+              textShadow: `0 2px 12px ${primary}aa`,
+            }}>
+              &amp;
+            </span>
+            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
+          </div>
+
+          <h1 style={{
+            fontSize: 44, fontWeight: 900, lineHeight: 1,
+            color: text,
+            fontFamily: `'${meta.font.heading}', serif`,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            margin: 0,
+            textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+          }}>
+            {data.bride_name}
+          </h1>
+
+          {eventDate && (
+            <p style={{
+              fontSize: 9.5, letterSpacing: '0.25em', textTransform: 'uppercase',
+              color: `${accent}cc`, marginTop: 10,
+              fontFamily: `'${meta.font.body}', serif`,
+              textShadow: `0 1px 6px ${primary}88`,
+            }}>
+              {eventDate}
+            </p>
+          )}
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          className="text-3xl font-bold"
-          style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}
-        >
-          {data.groom_name}
-        </motion.h1>
-        <motion.p
+        {/* Button */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.75 }}
-          className="text-2xl"
-          style={{ color: accent }}
+          transition={stagger(5)}
+          className="flex flex-col items-center gap-2"
         >
-          &amp;
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.6 }}
-          className="text-3xl font-bold"
-          style={{ color: text, fontFamily: `'${meta.font.heading}', serif` }}
-        >
-          {data.bride_name}
-        </motion.h1>
-
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1 }}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleOpen}
-          className="mt-5 px-8 py-3 text-sm tracking-widest uppercase border"
-          style={{ borderColor: accent, color: accent }}
-        >
-          {buttonText}
-        </motion.button>
-      </div>
+          <button
+            onClick={handleOpen}
+            disabled={clicked}
+            style={{
+              padding: '11px 40px',
+              fontSize: 9,
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              border: `1px solid ${accent}88`,
+              color: accent,
+              backgroundColor: `${primary}44`,
+              fontFamily: `'${meta.font.body}', serif`,
+              cursor: 'pointer',
+              transition: 'all 0.25s ease',
+              borderRadius: 2,
+              backdropFilter: 'blur(4px)',
+              textShadow: `0 1px 4px ${primary}88`,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = accent
+              e.currentTarget.style.backgroundColor = `${accent}22`
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = `${accent}88`
+              e.currentTarget.style.backgroundColor = `${primary}44`
+            }}
+          >
+            {buttonText}
+          </button>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }
