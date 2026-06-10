@@ -104,6 +104,16 @@ export default function EnvelopeOpening({ config, data, meta, onOpen, positionMo
 
       {/* Decoration assets */}
       <DecorationAssetLayer assets={config.decoration_assets ?? []} animate />
+      {/* Logo icon — top center */}
+      <motion.div
+        className="absolute top-0 inset-x-0 z-20 flex justify-center"
+        style={{ paddingTop: 'max(5vh, 28px)' }}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: clicked ? 0 : 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        <img src="/logos/icons.png" alt="" style={{ width: 40, height: 'auto', opacity: 0.85, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' }} />
+      </motion.div>
 
       {/* Centered envelope outline — thin geometric lines */}
       <div className="absolute inset-0 z-[8] flex items-center justify-center pointer-events-none">
