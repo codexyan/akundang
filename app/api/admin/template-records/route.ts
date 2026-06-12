@@ -5,6 +5,8 @@ import { templateRecords } from '@/lib/db'
 import type { TemplateRecord } from '@/lib/types'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const session = await getSession()
   if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

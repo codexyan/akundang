@@ -3,6 +3,8 @@ import { getSession } from '@/lib/session-server'
 import { isAdmin } from '@/lib/auth'
 import { paymentProofs, invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 
 interface Params { params: { id: string } }
 

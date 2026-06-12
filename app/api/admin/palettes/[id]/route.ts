@@ -4,6 +4,8 @@ import { isAdmin } from '@/lib/auth'
 import { settings } from '@/lib/db'
 import type { ColorPalette } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 interface Params { params: { id: string } }
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/

@@ -5,6 +5,8 @@ import { settings } from '@/lib/db'
 import type { ColorPalette } from '@/lib/types'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 const HEX_RE = /^#[0-9a-fA-F]{6}$/
 
 function isHex(v: unknown): v is string {

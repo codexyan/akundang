@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import { invitations, galleries, wishes, guests, templateRecords } from '@/lib/db'
 import { isExpired } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
 import { LEGACY_TEMPLATE_IDS } from '@/lib/types'
 import type { Invitation, Gallery, Wish, Guest, NewInvitationData } from '@/lib/types'
 

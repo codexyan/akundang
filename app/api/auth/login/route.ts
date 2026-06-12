@@ -5,6 +5,8 @@ import { users } from '@/lib/db'
 import { createSessionToken, buildSetCookieHeader, type SessionRole } from '@/lib/session'
 import { isAdmin, getAdminEmail } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(1),

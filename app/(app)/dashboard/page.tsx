@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session-server'
 import { invitations, templateRecords } from '@/lib/db'
 import DashboardClient from '@/components/dashboard/DashboardClient'
+
+export const dynamic = 'force-dynamic'
 import type { Invitation } from '@/lib/types'
 import { TEMPLATES } from '@/lib/types'
 

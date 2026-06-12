@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { invitations, giftProofs } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const schema = z.object({
   invitationId: z.string().min(1),
   name:         z.string().min(1).max(100),

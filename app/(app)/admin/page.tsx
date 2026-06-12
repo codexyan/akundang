@@ -4,6 +4,8 @@ import { isAdmin, getAdminEmail } from '@/lib/auth'
 import { invitations, orders, users, settings, paymentProofs, templateRecords } from '@/lib/db'
 import AdminPanel from '@/components/admin/AdminPanel'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   const session = await getSession()
   if (!session || !isAdmin(session)) redirect('/dashboard')

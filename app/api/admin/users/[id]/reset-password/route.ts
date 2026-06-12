@@ -4,6 +4,8 @@ import { getSession } from '@/lib/session-server'
 import { isAdmin, getAdminEmail } from '@/lib/auth'
 import { users } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession()
   if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

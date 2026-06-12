@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import { getSession } from '@/lib/session-server'
 
+export const dynamic = 'force-dynamic'
+
 const MAX_IMAGE = 8 * 1024 * 1024   // 8 MB
 const MAX_VIDEO = 80 * 1024 * 1024  // 80 MB
 const MAX_AUDIO = 15 * 1024 * 1024  // 15 MB

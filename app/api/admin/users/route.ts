@@ -3,6 +3,8 @@ import { getSession } from '@/lib/session-server'
 import { isAdmin } from '@/lib/auth'
 import { users, invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 
 export async function GET() {
   const session = await getSession()

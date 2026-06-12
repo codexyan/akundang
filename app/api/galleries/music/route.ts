@@ -4,6 +4,8 @@ import path from 'path'
 import { getSession } from '@/lib/session-server'
 import { invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const MAX_SIZE = 20 * 1024 * 1024 // 20MB
 
 // POST /api/galleries/music — upload musik background

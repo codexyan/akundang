@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session-server'
 import { galleries, invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/galleries?invitationId=xxx
 export async function GET(req: NextRequest) {
   const session = await getSession()

@@ -4,6 +4,8 @@ import path from 'path'
 import { getSession } from '@/lib/session-server'
 import { galleries, invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const MAX_FILES = 10
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 

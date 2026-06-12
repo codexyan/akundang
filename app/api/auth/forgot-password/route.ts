@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { randomBytes } from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 const USERS_PATH = join(process.cwd(), 'data', 'users.json')
 const TOKENS_PATH = join(process.cwd(), 'data', 'password-reset-tokens.json')
 

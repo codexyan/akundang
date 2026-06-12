@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/invitations/check-slug?slug=xxx&excludeId=yyy
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get('slug') || ''

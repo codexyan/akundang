@@ -4,6 +4,8 @@ import { isAdmin } from '@/lib/auth'
 import { settings } from '@/lib/db'
 import type { TemplateCategory } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const session = await getSession()
   if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

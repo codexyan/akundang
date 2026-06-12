@@ -3,6 +3,8 @@ import { getSession } from '@/lib/session-server'
 import { invitations, musicTracks } from '@/lib/db'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 interface Params { params: { id: string } }
 
 // PATCH /api/invitations/[id] — update undangan

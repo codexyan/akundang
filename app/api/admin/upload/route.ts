@@ -4,6 +4,8 @@ import path from 'path'
 import { getSession } from '@/lib/session-server'
 import { isAdmin } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 const MAX_IMAGE_SIZE = 5  * 1024 * 1024  // 5 MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024  // 50 MB
 const MAX_AUDIO_SIZE = 15 * 1024 * 1024  // 15 MB

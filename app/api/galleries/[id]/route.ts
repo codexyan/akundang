@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session-server'
 import { galleries, invitations } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 interface Params { params: { id: string } }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {

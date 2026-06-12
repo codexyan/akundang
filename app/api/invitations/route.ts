@@ -5,6 +5,8 @@ import { invitations, templateRecords } from '@/lib/db'
 import { LEGACY_TEMPLATE_IDS } from '@/lib/types'
 import type { InvitationData } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 const schema = z.object({
   slug: z.string().min(3).max(30).regex(/^[a-z0-9-]+$/, 'Hanya huruf kecil, angka, dan tanda hubung'),
   template_id: z.string().min(1),

@@ -5,6 +5,8 @@ import { settings } from '@/lib/db'
 import type { AdminTemplateConfig } from '@/lib/db'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 
 export async function GET() {
   const session = await getSession()
