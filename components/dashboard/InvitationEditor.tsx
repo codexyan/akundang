@@ -177,7 +177,7 @@ function SectionForm({ type, data, onChange }: {
             <ImageUploadField
               value={akad.venue_photo_url}
               onChange={url => onChange({ akad: { ...akad, venue_photo_url: url } })}
-              hint="Foto gedung / masjid — tampil di kartu acara"
+              hint="Foto gedung / masjid, tampil di kartu acara"
             />
           </F>
         </div>
@@ -200,7 +200,7 @@ function SectionForm({ type, data, onChange }: {
             <ImageUploadField
               value={resepsi.venue_photo_url}
               onChange={url => onChange({ resepsi: { ...resepsi, venue_photo_url: url } })}
-              hint="Foto gedung / ballroom — tampil di kartu acara"
+              hint="Foto gedung / ballroom, tampil di kartu acara"
             />
           </F>
         </div>

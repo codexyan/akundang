@@ -232,7 +232,7 @@ export default function DecorationMoodboard({
       {/* No selection hint */}
       {!selectedId && assets.length > 0 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 bg-black/50 backdrop-blur-sm text-white/60 text-[9px] px-3 py-1.5 rounded-full">
-          Klik aset untuk memilih — drag untuk menggeser
+          Klik aset untuk memilih. Drag untuk menggeser
         </div>
       )}
     </div>

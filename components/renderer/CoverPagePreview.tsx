@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { TemplateRecord, NewInvitationData, LoadingConfig } from '@/lib/types'
 import DecorationAssetLayer from './DecorationAssetLayer'
 import LoadingScreen from './LoadingScreen'
+import { getComponentStyle, btnStyle } from '@/lib/component-styles'
+import { MailOpen } from 'lucide-react'
 
 interface Props {
   template: TemplateRecord
@@ -19,6 +21,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
   const { config } = template
   const { meta, opening, loading } = config
   const { primary, accent, text } = meta.color_scheme
+  const cs = getComponentStyle(meta.component_style)
 
   const [phase, setPhase] = useState<'cover' | 'exiting' | 'loading'>('cover')
   const [exitKey, setExitKey] = useState(0)
@@ -274,24 +277,21 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
               </div>
 
               {/* Enter button */}
-              <div
+              <motion.div
                 onClick={handleEnterClick}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 style={{
-                  padding: '10px 30px', fontSize: 9, letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  border: `1px solid ${accent}88`,
-                  color: accent,
-                  backgroundColor: `${primary}44`,
+                  ...btnStyle(cs.button, cs.border, accent, text, { size: 'lg', icon: true }),
                   fontFamily: `'${meta.font.body}', serif`,
                   marginBottom: 8,
                   cursor: (previewMode === 'exit' || previewMode === 'full-flow') ? 'pointer' : 'default',
-                  transition: 'all 0.2s',
                   backdropFilter: 'blur(4px)',
-                  textShadow: `0 1px 4px ${primary}88`,
                 }}
               >
+                <MailOpen size={15} strokeWidth={1.8} />
                 {buttonText}
-              </div>
+              </motion.div>
               {(previewMode === 'exit' || previewMode === 'full-flow') && (
                 <p style={{ fontSize: 7, color: `${accent}77`, letterSpacing: '0.1em' }}>
                   klik untuk preview transisi keluar

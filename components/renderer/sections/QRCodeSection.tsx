@@ -93,7 +93,7 @@ export default function QRCodeSection({ section, data, meta }: Props) {
           style={{ marginTop: 24 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}>
           <div style={{ width: 20, height: '0.5px', background: `${accent}25`, margin: '0 auto 14px' }} />
-          <p style={{ fontSize: fsb(8.5), color: `${text}35`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+          <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
             Simpan atau screenshot QR code ini<br />dan tunjukkan kepada panitia di lokasi.
           </p>
         </motion.div>

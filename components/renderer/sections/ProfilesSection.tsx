@@ -57,7 +57,7 @@ function PhotoPlaceholder({ accent, side }: { accent: string; side: 'groom' | 'b
   return (
     <div style={{
       width: '100%', height: '100%',
-      background: `linear-gradient(145deg, ${accent}10, ${accent}06)`,
+      background: `linear-gradient(145deg, ${accent}18, ${accent}0c)`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{
@@ -282,7 +282,7 @@ function VerticalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               <div style={{
                 width: 140, height: 140, borderRadius: '50%', overflow: 'hidden',
                 border: `1px solid ${accent}25`, marginBottom: 16,
-                boxShadow: `0 0 0 6px ${accent}06`,
+                boxShadow: `0 0 0 6px ${accent}12`,
               }}>
                 {p.photo ? (
                   <img src={p.photo} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -441,7 +441,7 @@ function OverlapView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             position: 'absolute', top: 40, right: 0,
             width: '58%', aspectRatio: '3 / 4', overflow: 'hidden',
             zIndex: 2, boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
-            border: `2px solid ${accent}15`,
+            border: `2px solid ${accent}25`,
           }}>
             {bride.photo ? (
               <img src={bride.photo} alt={bride.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

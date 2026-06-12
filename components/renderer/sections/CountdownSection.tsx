@@ -56,7 +56,7 @@ function FooterOrnament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
       <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
-      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
+      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
       <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
     </div>
   )
@@ -76,7 +76,7 @@ function EventPassed({ accent, headingFont, bodyFont, formattedDate }: {
           {formattedDate}
         </p>
       )}
-      <p style={{ fontSize: fsb(10), color: `${accent}55`, fontFamily: bodyFont, marginTop: 8, lineHeight: 1.8, fontStyle: 'italic' }}>
+      <p style={{ fontSize: fsb(10), color: `${accent}70`, fontFamily: bodyFont, marginTop: 8, lineHeight: 1.8, fontStyle: 'italic' }}>
         Semoga menjadi keluarga<br />sakinah, mawaddah, warahmah
       </p>
     </motion.div>
@@ -127,7 +127,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               <motion.div key={u.label} className="flex flex-col items-center"
                 variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: i * 0.08 } } }}>
                 <div className="w-full flex flex-col items-center justify-center py-4 mb-2"
-                  style={{ border: `1px solid ${accent}20`, background: `${accent}04`, ...cardBg(section.background) }}>
+                  style={{ border: `1px solid ${accent}30`, background: `${accent}0a`, ...cardBg(section.background) }}>
                   <AnimatePresence mode="popLayout">
                     <motion.span key={u.value}
                       initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }}
@@ -384,7 +384,7 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                   {u.label}
                 </span>
                 {i < units.length - 1 && (
-                  <div style={{ position: 'absolute', right: -4, top: 4, fontSize: fsh(20), color: `${text}15`, fontFamily: headingFont }}>:</div>
+                  <div style={{ position: 'absolute', right: -4, top: 4, fontSize: fsh(20), color: `${text}30`, fontFamily: headingFont }}>:</div>
                 )}
               </motion.div>
             ))}
@@ -448,7 +448,7 @@ function RingsView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
                   variants={{ hidden: { opacity: 0, scale: 0.85 }, visible: { opacity: 1, scale: 1, transition: { delay: i * 0.1 } } }}>
                   <div style={{ position: 'relative', width: 62, height: 62 }}>
                     <svg width="62" height="62" viewBox="0 0 62 62">
-                      <circle cx="31" cy="31" r={R} fill="none" stroke={`${accent}15`} strokeWidth="1.5" />
+                      <circle cx="31" cy="31" r={R} fill="none" stroke={`${accent}25`} strokeWidth="1.5" />
                       <motion.circle cx="31" cy="31" r={R} fill="none" stroke={`${accent}80`} strokeWidth="1.5"
                         strokeLinecap="round"
                         transform="rotate(-90 31 31)"
@@ -531,7 +531,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                   <motion.div key={u.label} className="flex flex-col items-center" style={{ flex: 1 }}
                     variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { delay: i * 0.06 } } }}>
                     <div className="w-full flex flex-col items-center justify-center py-5"
-                      style={{ borderTop: `2px solid ${accent}40`, borderBottom: `1px solid ${accent}15` }}>
+                      style={{ borderTop: `2px solid ${accent}40`, borderBottom: `1px solid ${accent}25` }}>
                       <AnimatePresence mode="popLayout">
                         <motion.span key={u.value}
                           initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 8, opacity: 0 }}

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import type { OpeningConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import type { PositionMode } from '../OpeningScene'
 import DecorationAssetLayer from '../DecorationAssetLayer'
+import { getComponentStyle, btnStyle } from '@/lib/component-styles'
+import { MailOpen } from 'lucide-react'
 
 interface Props {
   config: OpeningConfig
@@ -44,6 +46,7 @@ export default function LanternRiseOpening({ config, data, meta, onOpen, positio
   const [guestName] = useState(() => getGuestName())
   const [clicked, setClicked] = useState(false)
   const { primary, accent, text } = meta.color_scheme
+  const cs = getComponentStyle(meta.component_style)
   const pos = positionMode === 'fixed' ? 'fixed' : 'absolute'
 
   function handleOpen() {
@@ -311,35 +314,20 @@ export default function LanternRiseOpening({ config, data, meta, onOpen, positio
           transition={stagger(5)}
           className="flex flex-col items-center gap-2"
         >
-          <button
+          <motion.button
             onClick={handleOpen}
             disabled={clicked}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
             style={{
-              padding: '11px 40px',
-              fontSize: 9,
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              border: `1px solid ${accent}88`,
-              color: accent,
-              backgroundColor: `${primary}44`,
+              ...btnStyle(cs.button, cs.border, accent, text, { size: 'lg', icon: true }),
               fontFamily: `'${meta.font.body}', serif`,
-              cursor: 'pointer',
-              transition: 'all 0.25s ease',
-              borderRadius: 2,
               backdropFilter: 'blur(4px)',
-              textShadow: `0 1px 4px ${primary}88`,
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = accent
-              e.currentTarget.style.backgroundColor = `${accent}22`
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = `${accent}88`
-              e.currentTarget.style.backgroundColor = `${primary}44`
             }}
           >
+            <MailOpen size={15} strokeWidth={1.8} />
             {buttonText}
-          </button>
+          </motion.button>
         </motion.div>
       </div>
     </motion.div>

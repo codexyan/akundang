@@ -129,7 +129,7 @@ export default function FloatingMusicPlayer({ config, musicUrlOverride, musicTit
     document.addEventListener('scroll', onInteraction, { once: true, capture: true, passive: true })
 
     return cleanup
-  }, [userInteracted, ready, playing, tryPlay, isStatic, config.autoplay])
+  }, [userInteracted, ready, playing, tryPlay, isStatic, noAudio, config.autoplay])
 
   function toggle() {
     if (noAudio) {

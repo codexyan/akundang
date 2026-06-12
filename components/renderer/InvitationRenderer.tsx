@@ -6,6 +6,7 @@ import type { TemplateRecord, NewInvitationData, Wish } from '@/lib/types'
 import LoadingScreen from './LoadingScreen'
 import OpeningScene from './OpeningScene'
 import SectionRenderer from './SectionRenderer'
+import FloatingMusicPlayer from './FloatingMusicPlayer'
 
 interface Props {
   invitationId: string
@@ -13,6 +14,8 @@ interface Props {
   template: TemplateRecord
   initialWishes?: Wish[]
   musicUrl?: string
+  /** Contained mode — absolute positioning, untuk preview dalam container (demo/fullscreen) */
+  contained?: boolean
 }
 
 type Phase = 'opening' | 'loading' | 'main'
@@ -23,6 +26,7 @@ export default function InvitationRenderer({
   template,
   initialWishes = [],
   musicUrl,
+  contained,
 }: Props) {
   const config = template.config
   const { meta } = config
@@ -48,46 +52,62 @@ export default function InvitationRenderer({
     }
   }, [meta.font.heading, meta.font.body])
 
-  useEffect(() => {
-    if (phase !== 'main' || !musicUrl) return
-    const audio = new Audio(musicUrl)
-    audio.loop = true
-    audio.volume = 0.3
-    audio.play().catch(() => {})
-    return () => {
-      audio.pause()
-      audio.src = ''
-    }
-  }, [phase, musicUrl])
+  const resolvedMusicUrl = musicUrl || config.music?.url || ''
+  const defaultMusicConfig = {
+    enabled: !!resolvedMusicUrl,
+    url: resolvedMusicUrl,
+    title: invitationData.music_title,
+    autoplay: true,
+    volume: 0.3,
+    loop: true,
+    player_style: 'pill' as const,
+    player_position: 'bottom-right' as const,
+    player_animation: 'fade-slide' as const,
+    show_title: true,
+    player_size: 'md' as const,
+  }
+  const musicConfig = config.music
+    ? { ...defaultMusicConfig, ...config.music, enabled: config.music.enabled && !!resolvedMusicUrl, url: resolvedMusicUrl }
+    : defaultMusicConfig
 
   const handleOpen = useCallback(() => setPhase('loading'), [])
   const handleLoadDone = useCallback(() => setPhase('main'), [])
-
-  useEffect(() => {
-    if (phase !== 'opening') return
-    const ms = config.opening.duration_ms ?? 3000
-    const t = setTimeout(handleOpen, ms)
-    return () => clearTimeout(t)
-  }, [phase, config.opening.duration_ms, handleOpen])
 
   const activeSections = [...config.sections]
     .filter((s) => s.enabled)
     .sort((a, b) => a.order - b.order)
 
+  const posMode = contained ? 'absolute' as const : 'fixed' as const
+
   return (
-    <div style={{ fontFamily: `'${meta.font.body}', serif` }}>
+    <div style={{
+      fontFamily: `'${meta.font.body}', serif`,
+      position: 'relative',
+      ...(contained ? { width: '100%', height: '100%' } : {}),
+    }}>
+      {/* Music player — tampil sejak opening */}
+      {resolvedMusicUrl && (
+        <FloatingMusicPlayer
+          config={{ ...musicConfig, autoplay: true }}
+          colors={meta.color_scheme}
+          contained={contained}
+        />
+      )}
+
       <AnimatePresence mode="wait">
         {phase === 'opening' && (
           <motion.div
             key="opening"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
+            style={contained ? { position: 'absolute', inset: 0 } : undefined}
           >
             <OpeningScene
               config={config.opening}
               data={invitationData}
               meta={meta}
               onOpen={handleOpen}
+              positionMode={posMode}
             />
           </motion.div>
         )}
@@ -99,6 +119,7 @@ export default function InvitationRenderer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
+            style={contained ? { position: 'absolute', inset: 0 } : undefined}
           >
             <LoadingScreen
               config={config.loading}
@@ -116,11 +137,13 @@ export default function InvitationRenderer({
           transition={{ duration: 0.6 }}
           style={{
             backgroundColor: meta.color_scheme.primary,
-            height: '100dvh',
             overflowY: 'scroll',
             overflowX: 'hidden',
             scrollSnapType: 'y proximity',
             scrollbarWidth: 'none',
+            ...(contained
+              ? { position: 'absolute', inset: 0 }
+              : { height: '100dvh' }),
           }}
         >
           {activeSections.map((section) => (

@@ -155,7 +155,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             cursor: 'pointer', border: 'none', padding: 0, background: 'none',
           }}>
             <img src={photos[0]} alt="Foto utama" style={{ width: '100%', aspectRatio: '4 / 5', objectFit: 'cover', display: 'block' }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: `linear-gradient(to top, ${accent}12, transparent)` }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: `linear-gradient(to top, ${accent}22, transparent)` }} />
           </button>
         </motion.div>
 
@@ -447,7 +447,7 @@ function FilmstripView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
 
         {/* Scroll progress bar */}
         <div style={{ padding: '0 40px', marginBottom: 16 }}>
-          <div style={{ height: 1.5, background: `${accent}12`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ height: 1.5, background: `${accent}22`, position: 'relative', overflow: 'hidden' }}>
             <motion.div
               animate={{ width: `${Math.max(scrollPct * 100, 5)}%` }}
               transition={{ duration: 0.15 }}
@@ -627,7 +627,7 @@ function EmptyPreview({ section, accent, text, headingFont, bodyFont }: {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} style={{
                   aspectRatio: i % 2 === 0 ? '3 / 4' : '1 / 1',
-                  background: `${accent}08`, border: `1px solid ${accent}12`,
+                  background: `${accent}18`, border: `1px solid ${accent}22`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <ImageIcon size={16} style={{ color: `${accent}25` }} />

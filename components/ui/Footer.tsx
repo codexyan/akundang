@@ -9,7 +9,7 @@ const productLinks = [
   { href: '/templates', label: 'Template' },
   { href: '/#fitur', label: 'Fitur' },
   { href: '/#harga', label: 'Harga' },
-  { href: '/demo/modern-white', label: 'Demo Live' },
+  { href: '/demo/renderer?id=javanese-gold', label: 'Demo Live' },
 ]
 
 const companyLinks = [

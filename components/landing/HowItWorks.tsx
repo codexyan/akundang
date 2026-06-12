@@ -16,7 +16,7 @@ const steps = [
     number: '02',
     icon: CreditCard,
     title: 'Bayar sekali, selesai',
-    desc: 'Sudah cocok? Daftar akun, tentukan nama link undangan kalian, dan bayar Rp 149.000. Satu kali bayar untuk 6 bulan penuh.',
+    desc: 'Sudah cocok? Daftar akun, tentukan nama link undangan kalian, dan pilih paket mulai Rp 79.000. Sekali bayar, langsung aktif.',
     highlight: 'Tidak ada tagihan lagi',
   },
   {

@@ -78,7 +78,7 @@ function ParentsBlock({ data, accent, text, bodyFont }: {
 function BrandFooter({ text, bodyFont }: { text: string; bodyFont: string }) {
   return (
     <motion.p
-      style={{ fontSize: fsb(7.5), color: `${text}18`, fontFamily: bodyFont, letterSpacing: '0.15em', marginTop: 32 }}
+      style={{ fontSize: fsb(7.5), color: `${text}35`, fontFamily: bodyFont, letterSpacing: '0.15em', marginTop: 32 }}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
       Akundang
     </motion.p>
@@ -157,7 +157,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           border: `1px solid ${accent}30`,
           maxWidth: 320, width: '100%', margin: '0 auto',
         }}>
-        <div style={{ position: 'absolute', inset: -8, border: `1px solid ${accent}15` }} />
+        <div style={{ position: 'absolute', inset: -8, border: `1px solid ${accent}25` }} />
         {[{ top: -4, left: -4 }, { top: -4, right: -4 }, { bottom: -4, left: -4 }, { bottom: -4, right: -4 }].map((pos, i) => (
           <div key={i} style={{ position: 'absolute', ...pos, width: 6, height: 6, backgroundColor: `${accent}50` }} />
         ))}
@@ -412,8 +412,8 @@ function CardView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
           style={{
             position: 'relative',
-            background: `${accent}04`,
-            border: `1px solid ${accent}12`,
+            background: `${accent}0a`,
+            border: `1px solid ${accent}22`,
             padding: '40px 24px 36px',
             overflow: 'hidden',
           }}>

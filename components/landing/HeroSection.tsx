@@ -347,7 +347,7 @@ export default function HeroSection() {
                 </motion.button>
               </Link>
 
-              <Link href="/demo/modern-white" className="group">
+              <Link href="/demo/renderer?id=javanese-gold" className="group">
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}

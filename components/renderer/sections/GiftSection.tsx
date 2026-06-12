@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, GiftAccount } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import { Copy, Check, ChevronLeft, ChevronRight, Upload, X, ImageIcon, Loader2, Heart, Send } from 'lucide-react'
 
 interface Props {
@@ -195,7 +196,7 @@ function BrandCard({ acc, index, copied, onCopy, showLogo, ratio = 1.75 }: {
 
       {/* Account number */}
       <p className="absolute" style={{ bottom: 34, left: 18, fontSize: 14, fontWeight: 700, letterSpacing: '0.2em', color: '#fff', fontFamily: 'monospace', textShadow: '0 1px 5px rgba(0,0,0,0.35)' }}>
-        {formatNum(acc.number) || '—'}
+        {formatNum(acc.number) || '-'}
       </p>
 
       {/* Name + copy */}
@@ -205,7 +206,7 @@ function BrandCard({ acc, index, copied, onCopy, showLogo, ratio = 1.75 }: {
             {acc.type === 'bank' ? 'a.n.' : 'akun'}
           </p>
           <p style={{ fontSize: 10, fontWeight: 600, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', textShadow: '0 1px 3px rgba(0,0,0,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {acc.name || '—'}
+            {acc.name || '-'}
           </p>
         </div>
         <CopyBtn isCopied={isCopied} onClick={() => onCopy(acc.number)} g1={g1} />
@@ -270,14 +271,14 @@ function CardStack({ accounts, copied, onCopy, showLogo, accent }: {
         <div className="flex items-center justify-center gap-3 mt-5">
           <motion.button onClick={goPrev} disabled={idx === 0} whileTap={{ scale: 0.85 }}
             className="flex items-center justify-center rounded-full transition-all"
-            style={{ width: 32, height: 32, background: `${accent}14`, opacity: idx === 0 ? 0.35 : 1, border: `1px solid ${accent}22` }}>
+            style={{ width: 32, height: 32, background: `${accent}22`, opacity: idx === 0 ? 0.35 : 1, border: `1px solid ${accent}35` }}>
             <ChevronLeft size={16} color={accent} />
           </motion.button>
 
           <div className="flex items-center gap-1.5">
             {accounts.map((_, i) => (
               <motion.button key={i} onClick={() => setIdx(i)}
-                animate={{ width: i === idx ? 20 : 6, background: i === idx ? accent : `${accent}38` }}
+                animate={{ width: i === idx ? 20 : 6, background: i === idx ? accent : `${accent}50` }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 style={{ height: 6, borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer' }} />
             ))}
@@ -285,7 +286,7 @@ function CardStack({ accounts, copied, onCopy, showLogo, accent }: {
 
           <motion.button onClick={goNext} disabled={idx >= accounts.length - 1} whileTap={{ scale: 0.85 }}
             className="flex items-center justify-center rounded-full transition-all"
-            style={{ width: 32, height: 32, background: `${accent}14`, opacity: idx >= accounts.length - 1 ? 0.35 : 1, border: `1px solid ${accent}22` }}>
+            style={{ width: 32, height: 32, background: `${accent}22`, opacity: idx >= accounts.length - 1 ? 0.35 : 1, border: `1px solid ${accent}35` }}>
             <ChevronRight size={16} color={accent} />
           </motion.button>
         </div>
@@ -424,7 +425,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
             transition={{ delay: 0.1 }}>
             <motion.div
               className="flex items-center justify-center rounded-full mb-5"
-              style={{ width: 56, height: 56, background: `${accent}12` }}
+              style={{ width: 56, height: 56, background: `${accent}20` }}
               initial={{ scale: 0 }} animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.15 }}>
               <Heart size={24} color={accent} fill={accent} />
@@ -439,7 +440,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
 
             <button onClick={onClose}
               className="mt-7 px-8 py-2.5 rounded-full text-sm font-medium transition-all active:scale-[0.97]"
-              style={{ color: accent, border: `1px solid ${accent}33`, background: `${accent}08` }}>
+              style={{ color: accent, border: `1px solid ${accent}40`, background: `${accent}12` }}>
               Tutup
             </button>
           </motion.div>
@@ -567,7 +568,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
 
 // ─── Minimal proof CTA ────────────────────────────────────────────────────────
 
-function ProofCTA({ accent, text, onClick }: { accent: string; text: string; onClick: () => void }) {
+function ProofCTA({ accent, text, onClick, cs }: { accent: string; text: string; onClick: () => void; cs: ReturnType<typeof getComponentStyle> }) {
   return (
     <motion.div
       className="mt-8"
@@ -575,9 +576,9 @@ function ProofCTA({ accent, text, onClick }: { accent: string; text: string; onC
     >
       {/* Soft divider */}
       <div className="flex items-center gap-3 mb-4">
-        <div style={{ flex: 1, height: 0.5, background: `${accent}18` }} />
-        <span style={{ fontSize: 8, color: `${text}50`, letterSpacing: '0.2em', textTransform: 'uppercase' }}>sudah transfer?</span>
-        <div style={{ flex: 1, height: 0.5, background: `${accent}18` }} />
+        <div style={{ flex: 1, height: 0.5, background: `${accent}30` }} />
+        <span style={{ fontSize: 8, color: `${text}60`, letterSpacing: '0.2em', textTransform: 'uppercase' }}>sudah transfer?</span>
+        <div style={{ flex: 1, height: 0.5, background: `${accent}30` }} />
       </div>
 
       <motion.button
@@ -585,17 +586,11 @@ function ProofCTA({ accent, text, onClick }: { accent: string; text: string; onC
         whileTap={{ scale: 0.98 }}
         className="flex items-center justify-center gap-2 mx-auto transition-all"
         style={{
-          padding: '8px 20px',
-          borderRadius: 999,
-          border: `1px solid ${accent}25`,
-          background: 'transparent',
-          cursor: 'pointer',
+          ...btnStyle(cs.button, cs.border, accent, text, { size: 'sm', icon: true }),
         }}
       >
-        <Upload size={12} color={`${accent}88`} />
-        <span style={{ fontSize: 10, fontWeight: 600, color: `${accent}aa`, letterSpacing: '0.03em' }}>
-          Konfirmasi &amp; kirim bukti
-        </span>
+        <Upload size={12} />
+        Konfirmasi &amp; kirim bukti
       </motion.button>
     </motion.div>
   )
@@ -613,6 +608,7 @@ const DEFAULT_THANKYOU =
 export default function GiftSection({ section, data, meta, invitationId = 'preview' }: Props) {
   const { accent, text } = meta.color_scheme
   const font       = resolveFont(meta, section)
+  const cs         = getComponentStyle(meta.component_style)
   const accounts   = (data.gift_accounts ?? []).slice(0, MAX_CARDS)
   const variant    = section.style_variant ?? 'default'
   const showLogo   = section.gift_show_logo ?? true
@@ -634,7 +630,7 @@ export default function GiftSection({ section, data, meta, invitationId = 'previ
   const shared = { copied, onCopy: copyNumber, showLogo }
 
   const proofCta = proofEnabled && (
-    <ProofCTA accent={accent} text={text} onClick={() => setShowModal(true)} />
+    <ProofCTA accent={accent} text={text} onClick={() => setShowModal(true)} cs={cs} />
   )
 
   const modal = showModal

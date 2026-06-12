@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     // Validate MIME type
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Format tidak didukung — gunakan JPG, PNG, atau WebP' }, { status: 400 })
+      return NextResponse.json({ error: 'Format tidak didukung. Gunakan JPG, PNG, atau WebP' }, { status: 400 })
     }
 
     // Validate extension

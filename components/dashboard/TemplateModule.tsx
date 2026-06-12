@@ -120,7 +120,7 @@ function BuyTemplateModal({ allTemplates, currentId, onClose }: {
                   <p className="text-xs text-gray-400 capitalize mb-2">{t.category}</p>
                   <button className="w-full py-2 bg-gold-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5">
                     <ShoppingBag size={11} />
-                    Beli — Rp 149.000
+                    Beli · Rp 149.000
                   </button>
                 </div>
               </div>

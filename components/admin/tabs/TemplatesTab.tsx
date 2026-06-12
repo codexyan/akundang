@@ -1,457 +1,1279 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import {
   FlaskConical, ExternalLink, Eye, EyeOff, Save, Trash2,
-  Crown, ChevronDown, ChevronUp, Archive,
-  Package, TrendingUp, CheckCircle2, Clock, Upload, ImageIcon, Tag,
+  Crown, Archive, Package, CheckCircle2, Clock, Upload, ImageIcon, Tag,
+  X, Plus, Zap, Ticket, Calendar, Pencil, Check, Settings2,
+  ToggleLeft, ToggleRight, Copy, ChevronRight, ChevronLeft,
+  Rocket, Gem, Music, Image as ImageLucide, Video, Heart, MessageSquare,
+  QrCode, Globe, BarChart3, Headphones, Timer, Gift, BookOpen, Radio, Camera,
 } from 'lucide-react'
-import type { TemplateRecord, TemplatePackageRequirement, TemplateCategory } from '@/lib/types'
-import { BUILT_IN_CATEGORIES } from '@/lib/db'
+import type { TemplateRecord, TemplatePackageRequirement, TemplateCategory, PriceTier, TierFeatures, FlashSale, Coupon, PromoScope } from '@/lib/types'
+import { BUILT_IN_CATEGORIES, BUILT_IN_PRICE_TIERS } from '@/lib/db'
 
 interface Props {
   records: TemplateRecord[]
   categories?: TemplateCategory[]
+  priceTiers?: PriceTier[]
+  flashSales?: FlashSale[]
+  coupons?: Coupon[]
   onRecordsUpdate: (records: TemplateRecord[]) => void
   onGoToLab?: () => void
-  globalPrice?: number
-  packageName?: string
-  packageDuration?: number
-  onPricingUpdate?: (p: { price: number; packageName: string; packageDuration: number }) => void
+  onEditInLab?: (record: TemplateRecord) => void
+  onCategoriesUpdate?: (cats: TemplateCategory[]) => void
+  onPriceTiersUpdate?: (tiers: PriceTier[]) => void
+  onFlashSalesUpdate?: (sales: FlashSale[]) => void
+  onCouponsUpdate?: (coupons: Coupon[]) => void
 }
 
 type Filter = 'all' | 'draft' | 'active' | 'archived'
 
 const PACKAGE_OPTIONS: { value: TemplatePackageRequirement; label: string; color: string }[] = [
-  { value: 'all',      label: 'Semua User',      color: 'bg-gray-100 text-gray-600' },
-  { value: 'starter',  label: 'Starter+',        color: 'bg-blue-100 text-blue-700' },
-  { value: 'premium',  label: 'Premium+',        color: 'bg-amber-100 text-amber-700' },
-  { value: 'ultimate', label: 'Ultimate only',   color: 'bg-purple-100 text-purple-700' },
+  { value: 'all',      label: 'Semua User',    color: 'bg-gray-100 text-gray-600' },
+  { value: 'starter',  label: 'Starter+',      color: 'bg-blue-100 text-blue-700' },
+  { value: 'premium',  label: 'Premium+',      color: 'bg-amber-100 text-amber-700' },
+  { value: 'ultimate', label: 'Exclusive only',  color: 'bg-purple-100 text-purple-700' },
 ]
 
 function formatRp(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
 }
+function genId() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36) }
+
+/* ── Reusable Drawer Shell ── */
+function Drawer({ open, onClose, title, width = 'max-w-md', children }: {
+  open: boolean; onClose: () => void; title: string; width?: string; children: React.ReactNode
+}) {
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, onClose])
+
+  return (
+    <div className={`fixed inset-0 z-50 transition-all duration-300 ${open ? 'visible' : 'invisible pointer-events-none'}`}>
+      <div className={`absolute inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
+      <div className={`absolute inset-y-0 right-0 w-full ${width} bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+          <h2 className="text-base font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
+      </div>
+    </div>
+  )
+}
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'active')   return <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Aktif</span>
-  if (status === 'draft')    return <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500"><span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />Draft</span>
-  return                            <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-red-100 text-red-500"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Arsip</span>
+  if (status === 'draft')    return <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />Draft</span>
+  return                            <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-red-50 text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-300 inline-block" />Arsip</span>
 }
 
+function TemplateThumbnail({ rec }: { rec: TemplateRecord }) {
+  const { primary, accent, text } = rec.config.meta.color_scheme
+  const opening = rec.config?.opening
+  const coverPhoto = opening?.cover_photo_url || opening?.background_image
+
+  if (coverPhoto) {
+    return (
+      <div className="w-full h-full relative" style={{ background: primary }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={coverPhoto} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primary}dd 20%, ${primary}40 50%, transparent 80%)` }} />
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 px-3">
+          <p style={{ fontSize: 7, color: `${text}bb`, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Undangan Pernikahan</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: text, lineHeight: 1.3, textAlign: 'center', marginTop: 2 }}>{rec.name}</p>
+          <div className="mt-1.5 px-3 py-0.5 rounded-sm" style={{ border: `0.5px solid ${accent}80`, fontSize: 6, color: text, letterSpacing: '0.1em' }}>BUKA UNDANGAN</div>
+        </div>
+      </div>
+    )
+  }
+  if (rec.thumbnail_url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={rec.thumbnail_url} alt="" className="w-full h-full object-cover" />
+  }
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center p-3" style={{ background: primary }}>
+      <div className="w-8 h-0.5 rounded mb-2" style={{ backgroundColor: `${accent}66` }} />
+      <p style={{ fontSize: 7, color: `${text}99`, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Undangan</p>
+      <p style={{ fontSize: 18, fontWeight: 700, color: text, lineHeight: 1.2, textAlign: 'center' }}>{rec.name}</p>
+      <div className="mt-2 px-3 py-1 rounded-sm" style={{ border: `0.5px solid ${accent}60`, fontSize: 6, color: text, letterSpacing: '0.1em' }}>BUKA</div>
+    </div>
+  )
+}
+
+function ConfirmModal({ open, icon, iconColor, title, message, confirmLabel, confirmColor, onConfirm, onCancel }: {
+  open: boolean; icon: React.ReactNode; iconColor: string; title: string; message: string
+  confirmLabel: string; confirmColor: string; onConfirm: () => void; onCancel: () => void
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="px-6 pt-6 pb-4 text-center">
+          <div className={`w-12 h-12 rounded-2xl ${iconColor} flex items-center justify-center mx-auto mb-4`}>{icon}</div>
+          <h3 className="font-bold text-gray-900 text-base mb-1">{title}</h3>
+          <p className="text-sm text-gray-500 leading-relaxed">{message}</p>
+        </div>
+        <div className="px-6 pb-6 flex gap-3">
+          <button onClick={onCancel} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+          <button onClick={onConfirm} className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors ${confirmColor}`}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ScopeSelector({ scope, scopeIds, tiers, categories, onChange }: {
+  scope: PromoScope; scopeIds: string[]; tiers: PriceTier[]; categories: TemplateCategory[]
+  onChange: (scope: PromoScope, ids: string[]) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-1.5">
+        {([{ v: 'all', l: 'Semua' }, { v: 'tier', l: 'Per Tier' }, { v: 'category', l: 'Per Kategori' }] as { v: PromoScope; l: string }[]).map(o => (
+          <button key={o.v} type="button" onClick={() => onChange(o.v, [])}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              scope === o.v ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+            }`}>{o.l}</button>
+        ))}
+      </div>
+      {scope === 'tier' && (
+        <div className="flex flex-wrap gap-1.5">
+          {tiers.map(t => (
+            <button key={t.id} type="button"
+              onClick={() => onChange('tier', scopeIds.includes(t.id) ? scopeIds.filter(x => x !== t.id) : [...scopeIds, t.id])}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-lg border transition-colors ${
+                scopeIds.includes(t.id) ? 'bg-emerald-100 border-emerald-300 text-emerald-700' : 'bg-gray-50 border-gray-200 text-gray-500'
+              }`}>{t.label}</button>
+          ))}
+        </div>
+      )}
+      {scope === 'category' && (
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map(c => (
+            <button key={c.slug} type="button"
+              onClick={() => onChange('category', scopeIds.includes(c.slug) ? scopeIds.filter(x => x !== c.slug) : [...scopeIds, c.slug])}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-lg border transition-colors ${
+                scopeIds.includes(c.slug) ? 'bg-violet-100 border-violet-300 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-500'
+              }`}>{c.label}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ScopeBadge({ scope, scopeIds, tiers, categories }: {
+  scope: PromoScope; scopeIds: string[]; tiers: PriceTier[]; categories: TemplateCategory[]
+}) {
+  if (scope === 'all') return <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Semua</span>
+  if (scope === 'tier') {
+    const names = scopeIds.map(id => tiers.find(t => t.id === id)?.label).filter(Boolean)
+    return <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">{names.join(', ') || '-'}</span>
+  }
+  const names = scopeIds.map(slug => categories.find(c => c.slug === slug)?.label).filter(Boolean)
+  return <span className="text-[10px] bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded">{names.join(', ') || '-'}</span>
+}
+
+// ═══════════════════════════════════════════════════════════════
 export default function TemplatesTab({
-  records, categories, onRecordsUpdate, onGoToLab,
-  globalPrice = 129000, packageName = 'Premium', packageDuration = 6, onPricingUpdate,
+  records, categories, priceTiers, flashSales, coupons,
+  onRecordsUpdate, onGoToLab, onEditInLab,
+  onCategoriesUpdate, onPriceTiersUpdate, onFlashSalesUpdate, onCouponsUpdate,
 }: Props) {
   const [filter, setFilter]           = useState<Filter>('all')
   const [editingId, setEditingId]     = useState<string | null>(null)
   const [editData, setEditData]       = useState<Partial<TemplateRecord>>({})
   const [saving, setSaving]           = useState(false)
   const [uploadingThumb, setUploadingThumb] = useState(false)
-  const [savingPricing, setSavingPricing] = useState(false)
-  const [showPricing, setShowPricing] = useState(false)
-  const [localPrice, setLocalPrice]   = useState(globalPrice)
-  const [localPkg, setLocalPkg]       = useState(packageName)
-  const [localDur, setLocalDur]       = useState(packageDuration)
+  const [showConfig, setShowConfig]   = useState(false)
+  const [showAddFlashSale, setShowAddFlashSale] = useState(false)
+  const [showAddCoupon, setShowAddCoupon] = useState(false)
   const thumbInputRef = useRef<HTMLInputElement>(null)
 
-  const allCategories: TemplateCategory[] = categories ?? BUILT_IN_CATEGORIES
+  const [newCatLabel, setNewCatLabel] = useState('')
+  const [editingCatSlug, setEditingCatSlug] = useState<string | null>(null)
+  const [editingCatLabel, setEditingCatLabel] = useState('')
+
+  const [newTierLabel, setNewTierLabel] = useState('')
+  const [newTierPrice, setNewTierPrice] = useState('')
+  const [editingTierId, setEditingTierId] = useState<string | null>(null)
+  const [editingTierLabel, setEditingTierLabel] = useState('')
+  const [editingTierPrice, setEditingTierPrice] = useState('')
+  const [tierEditorOpen, setTierEditorOpen] = useState(false)
+  const [tierEditorId, setTierEditorId] = useState<string | null>(null)
+  const [tierStep, setTierStep] = useState(0)
+  const [tierDraft, setTierDraft] = useState<Partial<PriceTier>>({})
+
+  const DEFAULT_FEATURES: TierFeatures = {
+    max_photos: 6, music: true, custom_music: false,
+    opening_animation: true, opening_styles: 'basic',
+    rsvp: true, wishes: true, countdown: true, gallery: true,
+    gift: false, gift_registry: false, story: false, video: false,
+    livestream: false, ig_story: false, qrcode: false,
+    custom_domain: false, remove_watermark: false,
+    analytics: false, priority_support: false, validity_days: 90,
+  }
+
+  function openTierEditor(tier?: PriceTier) {
+    if (tier) {
+      setTierEditorId(tier.id)
+      setTierDraft({ ...tier })
+    } else {
+      setTierEditorId(null)
+      setTierDraft({ label: '', price: 0, description: '', color: '#6366f1', icon: 'rocket', features: { ...DEFAULT_FEATURES } })
+    }
+    setTierStep(0)
+    setTierEditorOpen(true)
+  }
+
+  function saveTierEditor() {
+    const d = tierDraft
+    if (!d.label?.trim() || d.price == null) { toast.error('Isi nama dan harga'); return }
+    if (tierEditorId) {
+      onPriceTiersUpdate?.(allTiers.map(t => t.id === tierEditorId ? { ...t, ...d } as PriceTier : t))
+      toast.success('Tier diperbarui')
+    } else {
+      const id = d.label!.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || genId()
+      if (allTiers.some(t => t.id === id)) { toast.error('ID sudah ada'); return }
+      onPriceTiersUpdate?.([...allTiers, { id, label: d.label!.trim(), price: d.price!, is_built_in: false, description: d.description, color: d.color, icon: d.icon, features: d.features, highlight: d.highlight } as PriceTier])
+      toast.success('Tier ditambahkan')
+    }
+    setTierEditorOpen(false)
+  }
+
+  const [fsForm, setFsForm] = useState({ label: '', discount_type: 'percentage' as 'percentage' | 'fixed', discount_value: '', start_date: '', end_date: '', scope: 'all' as PromoScope, scope_ids: [] as string[] })
+  const [cpForm, setCpForm] = useState({ code: '', label: '', discount_type: 'percentage' as 'percentage' | 'fixed', discount_value: '', max_uses: '', valid_from: '', valid_until: '', scope: 'all' as PromoScope, scope_ids: [] as string[] })
+
+  const [configTab, setConfigTab] = useState<'kategori' | 'harga' | 'promo'>('kategori')
+
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean; action: 'archive' | 'delete'; targetId: string; targetName: string
+  }>({ open: false, action: 'delete', targetId: '', targetName: '' })
+
+  const allCategories = categories ?? BUILT_IN_CATEGORIES
+  const allTiers = priceTiers ?? BUILT_IN_PRICE_TIERS
+  const allFlashSales = flashSales ?? []
+  const allCoupons = coupons ?? []
 
   const sorted = [...records].sort((a, b) => a.sort_order - b.sort_order)
-  const counts = {
-    all: sorted.length,
-    active: sorted.filter(r => r.status === 'active').length,
-    draft: sorted.filter(r => r.status === 'draft').length,
-    archived: sorted.filter(r => r.status === 'archived').length,
-  }
+  const counts = { all: sorted.length, active: sorted.filter(r => r.status === 'active').length, draft: sorted.filter(r => r.status === 'draft').length, archived: sorted.filter(r => r.status === 'archived').length }
   const filtered = filter === 'all' ? sorted : sorted.filter(r => r.status === filter)
 
+  const editingRec = editingId ? records.find(r => r.id === editingId) : null
+
+  function findTierLabel(price: number) { return allTiers.find(t => t.price === price)?.label ?? null }
+
+  // ── Template ──
   function openEdit(rec: TemplateRecord) {
     setEditingId(rec.id)
     setEditData({ name: rec.name, category: rec.category, thumbnail_url: rec.thumbnail_url, price: rec.price, required_package: rec.required_package, sort_order: rec.sort_order })
   }
-
   async function handleThumbUpload(file: File) {
     if (!editingId) return
     setUploadingThumb(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('folder', 'thumbnails')
+    const form = new FormData(); form.append('file', file); form.append('folder', 'thumbnails')
     const res = await fetch('/api/admin/upload', { method: 'POST', body: form })
     setUploadingThumb(false)
-    if (!res.ok) { toast.error('Gagal upload thumbnail'); return }
+    if (!res.ok) { toast.error('Gagal upload'); return }
     const { url } = await res.json()
-    setEditData(d => ({ ...d, thumbnail_url: url }))
-    toast.success('Thumbnail terupload')
+    setEditData(d => ({ ...d, thumbnail_url: url })); toast.success('Thumbnail terupload')
   }
-
   async function toggleStatus(rec: TemplateRecord) {
     const next = rec.status === 'active' ? 'draft' : 'active'
-    const res = await fetch(`/api/admin/template-records/${rec.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: next }),
-    })
-    if (!res.ok) { toast.error('Gagal mengubah status'); return }
+    const res = await fetch(`/api/admin/template-records/${rec.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: next }) })
+    if (!res.ok) { toast.error('Gagal'); return }
     onRecordsUpdate(records.map(r => r.id === rec.id ? { ...r, status: next } : r))
-    toast.success(next === 'active' ? 'Tema dipublikasi ke landing page' : 'Tema ditarik ke draft')
+    toast.success(next === 'active' ? 'Dipublikasi' : 'Ditarik ke draft')
   }
-
-  async function archiveRecord(id: string) {
-    if (!confirm('Arsipkan tema ini? Tidak akan tampil ke user, tapi data tersimpan.')) return
-    const res = await fetch(`/api/admin/template-records/${id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'archived' }),
-    })
-    if (!res.ok) { toast.error('Gagal mengarsipkan'); return }
-    onRecordsUpdate(records.map(r => r.id === id ? { ...r, status: 'archived' } : r))
-    toast.success('Tema diarsipkan')
+  function requestArchive(rec: TemplateRecord) { setConfirmModal({ open: true, action: 'archive', targetId: rec.id, targetName: rec.name }) }
+  function requestDelete(rec: TemplateRecord) { setConfirmModal({ open: true, action: 'delete', targetId: rec.id, targetName: rec.name }) }
+  async function executeConfirm() {
+    const { action, targetId } = confirmModal; setConfirmModal(m => ({ ...m, open: false }))
+    if (action === 'archive') {
+      const res = await fetch(`/api/admin/template-records/${targetId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived' }) })
+      if (!res.ok) { toast.error('Gagal'); return }
+      onRecordsUpdate(records.map(r => r.id === targetId ? { ...r, status: 'archived' } : r)); toast.success('Diarsipkan')
+    } else {
+      const res = await fetch(`/api/admin/template-records/${targetId}`, { method: 'DELETE' })
+      if (!res.ok) { toast.error('Gagal'); return }
+      onRecordsUpdate(records.filter(r => r.id !== targetId)); toast.success('Dihapus')
+    }
   }
-
-  async function deleteRecord(id: string) {
-    if (!confirm('Hapus permanen? Undangan yang sudah pakai tema ini tetap berfungsi.')) return
-    const res = await fetch(`/api/admin/template-records/${id}`, { method: 'DELETE' })
-    if (!res.ok) { toast.error('Gagal menghapus'); return }
-    onRecordsUpdate(records.filter(r => r.id !== id))
-    toast.success('Tema dihapus')
-  }
-
   async function saveEdit() {
-    if (!editingId) return
-    setSaving(true)
-    const res = await fetch(`/api/admin/template-records/${editingId}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editData),
-    })
+    if (!editingId) return; setSaving(true)
+    const res = await fetch(`/api/admin/template-records/${editingId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editData) })
     setSaving(false)
-    if (!res.ok) { toast.error('Gagal menyimpan'); return }
-    onRecordsUpdate(records.map(r => r.id === editingId ? { ...r, ...editData } : r))
-    setEditingId(null)
-    toast.success('Tersimpan')
+    if (!res.ok) { toast.error('Gagal'); return }
+    onRecordsUpdate(records.map(r => r.id === editingId ? { ...r, ...editData } : r)); setEditingId(null); toast.success('Tersimpan')
   }
 
-  async function savePricing() {
-    if (!onPricingUpdate) return
-    setSavingPricing(true)
-    await onPricingUpdate({ price: localPrice, packageName: localPkg, packageDuration: localDur })
-    setSavingPricing(false)
-    toast.success('Harga default tersimpan')
+  // ── Category CRUD ──
+  function addCategory() {
+    const label = newCatLabel.trim(); if (!label) return
+    const slug = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    if (allCategories.some(c => c.slug === slug)) { toast.error('Sudah ada'); return }
+    onCategoriesUpdate?.([...allCategories, { slug, label, is_built_in: false }]); setNewCatLabel(''); toast.success(`"${label}" ditambahkan`)
+  }
+  function startEditCategory(c: TemplateCategory) { setEditingCatSlug(c.slug); setEditingCatLabel(c.label) }
+  function saveEditCategory() {
+    if (!editingCatSlug || !editingCatLabel.trim()) return
+    onCategoriesUpdate?.(allCategories.map(c => c.slug === editingCatSlug ? { ...c, label: editingCatLabel.trim() } : c)); setEditingCatSlug(null); toast.success('Diupdate')
+  }
+  function removeCategory(slug: string) {
+    if (records.some(r => r.category === slug)) { toast.error('Masih dipakai template'); return }
+    onCategoriesUpdate?.(allCategories.filter(c => c.slug !== slug)); toast.success('Dihapus')
   }
 
+  // ── Price Tier CRUD ──
+  function addTier() {
+    const label = newTierLabel.trim(); const price = Number(newTierPrice)
+    if (!label || isNaN(price) || price < 0) { toast.error('Isi nama dan harga'); return }
+    if (allTiers.some(t => t.price === price)) { toast.error('Harga sudah ada'); return }
+    const id = label.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || genId()
+    onPriceTiersUpdate?.([...allTiers, { id, label, price, is_built_in: false }]); setNewTierLabel(''); setNewTierPrice(''); toast.success(`"${label}" ditambahkan`)
+  }
+  function startEditTier(t: PriceTier) { setEditingTierId(t.id); setEditingTierLabel(t.label); setEditingTierPrice(String(t.price)) }
+  function saveEditTier() {
+    if (!editingTierId || !editingTierLabel.trim()) return
+    onPriceTiersUpdate?.(allTiers.map(t => t.id === editingTierId ? { ...t, label: editingTierLabel.trim(), price: Number(editingTierPrice) || t.price } : t)); setEditingTierId(null); toast.success('Diupdate')
+  }
+  function removeTier(id: string) {
+    const tier = allTiers.find(t => t.id === id)
+    if (tier && records.some(r => r.price === tier.price)) { toast.error('Masih dipakai'); return }
+    onPriceTiersUpdate?.(allTiers.filter(t => t.id !== id)); toast.success('Dihapus')
+  }
+
+  // ── Flash Sale ──
+  function addFlashSale() {
+    if (!fsForm.label.trim() || !fsForm.discount_value || !fsForm.start_date || !fsForm.end_date) { toast.error('Lengkapi field'); return }
+    if (fsForm.scope !== 'all' && fsForm.scope_ids.length === 0) { toast.error('Pilih target'); return }
+    onFlashSalesUpdate?.([...allFlashSales, { id: genId(), label: fsForm.label.trim(), discount_type: fsForm.discount_type, discount_value: Number(fsForm.discount_value), start_date: fsForm.start_date, end_date: fsForm.end_date, scope: fsForm.scope, scope_ids: fsForm.scope_ids, is_active: true }])
+    setFsForm({ label: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', scope: 'all', scope_ids: [] }); setShowAddFlashSale(false); toast.success('Dibuat')
+  }
+  function toggleFlashSale(id: string) { onFlashSalesUpdate?.(allFlashSales.map(s => s.id === id ? { ...s, is_active: !s.is_active } : s)) }
+  function removeFlashSale(id: string) { onFlashSalesUpdate?.(allFlashSales.filter(s => s.id !== id)); toast.success('Dihapus') }
+  function isLive(s: FlashSale) { const n = new Date(); return s.is_active && new Date(s.start_date) <= n && new Date(s.end_date) >= n }
+
+  // ── Coupon ──
+  function addCoupon() {
+    if (!cpForm.code.trim() || !cpForm.label.trim() || !cpForm.discount_value || !cpForm.valid_from || !cpForm.valid_until) { toast.error('Lengkapi field'); return }
+    if (cpForm.scope !== 'all' && cpForm.scope_ids.length === 0) { toast.error('Pilih target'); return }
+    const code = cpForm.code.trim().toUpperCase().replace(/\s+/g, '')
+    if (allCoupons.some(c => c.code === code)) { toast.error('Kode sudah ada'); return }
+    onCouponsUpdate?.([...allCoupons, { id: genId(), code, label: cpForm.label.trim(), discount_type: cpForm.discount_type, discount_value: Number(cpForm.discount_value), max_uses: Number(cpForm.max_uses) || 0, used_count: 0, valid_from: cpForm.valid_from, valid_until: cpForm.valid_until, scope: cpForm.scope, scope_ids: cpForm.scope_ids, is_active: true }])
+    setCpForm({ code: '', label: '', discount_type: 'percentage', discount_value: '', max_uses: '', valid_from: '', valid_until: '', scope: 'all', scope_ids: [] }); setShowAddCoupon(false); toast.success('Dibuat')
+  }
+  function toggleCoupon(id: string) { onCouponsUpdate?.(allCoupons.map(c => c.id === id ? { ...c, is_active: !c.is_active } : c)) }
+  function removeCoupon(id: string) { onCouponsUpdate?.(allCoupons.filter(c => c.id !== id)); toast.success('Dihapus') }
+
+  // ═══════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/80">
 
       {/* ── Header ── */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-8 py-6">
-          <div className="flex items-start justify-between">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="px-6 lg:px-8 py-5">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Manajemen Tema</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Review, atur harga, dan publikasi tema dari Studio Desain</p>
+              <h1 className="text-lg font-bold text-gray-900">Manajemen Tema</h1>
+              <p className="text-sm text-gray-400 mt-0.5">Atur harga, kategori, dan publikasi tema</p>
             </div>
-            {onGoToLab && (
-              <button onClick={onGoToLab}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
-                <FlaskConical className="w-4 h-4" />
-                Buka Studio Desain
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowConfig(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-600 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors">
+                <Settings2 className="w-4 h-4" />
+                Konfigurasi
               </button>
-            )}
+              {onGoToLab && (
+                <button onClick={onGoToLab}
+                  className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                  <FlaskConical className="w-4 h-4" /> Studio Desain
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Stats strip */}
-          <div className="flex items-center gap-6 mt-5">
-            {[
-              { icon: Package,      label: 'Total',  value: counts.all,      color: 'text-gray-600' },
-              { icon: CheckCircle2, label: 'Aktif',  value: counts.active,   color: 'text-emerald-600' },
-              { icon: Clock,        label: 'Draft',  value: counts.draft,    color: 'text-amber-600' },
-              { icon: Archive,      label: 'Arsip',  value: counts.archived, color: 'text-red-400' },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="flex items-center gap-2">
-                <Icon className={`w-4 h-4 ${color}`} />
-                <span className="text-sm font-semibold text-gray-900">{value}</span>
-                <span className="text-xs text-gray-400">{label}</span>
-              </div>
-            ))}
+          {/* Stats + Filter */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-5">
+              {[
+                { icon: Package, label: 'Total', value: counts.all, color: 'text-gray-500' },
+                { icon: CheckCircle2, label: 'Aktif', value: counts.active, color: 'text-emerald-500' },
+                { icon: Clock, label: 'Draft', value: counts.draft, color: 'text-amber-500' },
+                { icon: Archive, label: 'Arsip', value: counts.archived, color: 'text-red-400' },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <Icon className={`w-3.5 h-3.5 ${color}`} />
+                  <span className="text-sm font-bold text-gray-900">{value}</span>
+                  <span className="text-xs text-gray-400">{label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex bg-gray-100 rounded-xl p-0.5">
+              {(['all','active','draft','archived'] as Filter[]).map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    filter === f ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}>
+                  {f === 'all' ? 'Semua' : f === 'draft' ? 'Draft' : f === 'active' ? 'Aktif' : 'Arsip'}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Filter + pricing toggle */}
-        <div className="px-8 pb-0 flex items-center justify-between">
-          <div className="flex gap-1">
-            {(['all','draft','active','archived'] as Filter[]).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                  filter === f
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}>
-                {f === 'all' ? 'Semua' : f === 'draft' ? 'Draft' : f === 'active' ? 'Aktif' : 'Arsip'}
-                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full ${
-                  filter === f ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'
-                }`}>{counts[f]}</span>
-              </button>
-            ))}
-          </div>
-          <button onClick={() => setShowPricing(!showPricing)}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 pb-2.5 transition-colors">
-            <Crown className="w-3.5 h-3.5" />
-            Harga Default
-            {showPricing ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
         </div>
       </div>
 
-      {/* ── Pricing panel (collapsible) ── */}
-      {showPricing && (
-        <div className="mx-8 mt-5 bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm font-bold text-gray-900">Harga & Paket Default</p>
-              <p className="text-xs text-gray-400 mt-0.5">Berlaku untuk tema dengan harga = 0 (mengikuti default).</p>
-            </div>
-            <button onClick={savePricing} disabled={savingPricing}
-              className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-              <Save className="w-3.5 h-3.5" />
-              {savingPricing ? 'Menyimpan...' : 'Simpan'}
-            </button>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Harga Default</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Rp</span>
-                <input type="number" min={0} step={1000} value={localPrice}
-                  onChange={e => setLocalPrice(Math.max(0, Number(e.target.value)))}
-                  className="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-              </div>
-              <p className="text-[10px] text-gray-400 mt-1">{formatRp(localPrice)}</p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Nama Paket</label>
-              <input type="text" value={localPkg} onChange={e => setLocalPkg(e.target.value)}
-                placeholder="contoh: Premium"
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Durasi Akses (bulan)</label>
-              <input type="number" min={1} max={24} value={localDur}
-                onChange={e => setLocalDur(Math.max(1, Number(e.target.value)))}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-              <p className="text-[10px] text-gray-400 mt-1">Aktif {localDur} bulan setelah bayar</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Template list ── */}
-      <div className="p-8">
+      {/* ═══ Template Cards ═══ */}
+      <div className="p-6 lg:p-8">
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
-            <FlaskConical className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-400">
-              {filter === 'all' ? 'Belum ada tema dari Studio Desain' : `Tidak ada tema dengan status "${filter}"`}
+            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+              <FlaskConical className="w-7 h-7 text-gray-200" />
+            </div>
+            <p className="text-base font-semibold text-gray-400 mb-1">
+              {filter === 'all' ? 'Belum ada tema' : `Tidak ada tema "${filter}"`}
+            </p>
+            <p className="text-sm text-gray-300 mb-5">
+              {filter === 'all' ? 'Buat desain pertama di Studio Desain.' : 'Ubah filter atau buat tema baru.'}
             </p>
             {filter === 'all' && onGoToLab && (
               <button onClick={onGoToLab}
-                className="mt-3 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                Mulai desain tema baru →
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                <FlaskConical className="w-4 h-4" /> Mulai Desain
               </button>
             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {filtered.map(rec => (
-              <div key={rec.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${
-                editingId === rec.id ? 'border-indigo-300 shadow-indigo-50' : 'border-gray-100 hover:border-gray-200'
-              }`}>
-                {/* Card row */}
-                <div className="flex items-center gap-4 px-5 py-4">
+          <div className="space-y-8">
+            {(() => {
+              const catGroups = allCategories
+                .map(cat => ({ cat, items: filtered.filter(r => r.category === cat.slug) }))
+                .filter(g => g.items.length > 0)
+              const uncategorized = filtered.filter(r => !allCategories.some(c => c.slug === r.category))
+              if (uncategorized.length > 0) catGroups.push({ cat: { slug: '_other', label: 'Lainnya', is_built_in: false }, items: uncategorized })
 
-                  {/* Accent swatch */}
-                  <div className="w-12 h-12 rounded-xl shrink-0 overflow-hidden flex items-center justify-center text-white text-sm font-bold shadow-sm"
-                    style={{ background: `linear-gradient(135deg, ${rec.config.meta.color_scheme.primary}, ${rec.config.meta.color_scheme.accent})` }}>
-                    {rec.name.slice(0, 2).toUpperCase()}
+              return catGroups.map(({ cat, items }) => (
+                <div key={cat.slug}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-sm font-bold text-gray-700">{cat.label}</h3>
+                    <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-semibold">{items.length}</span>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {items.map(rec => {
+                      const cs = rec.config.meta.color_scheme
+                      const tierLabel = findTierLabel(rec.price)
+                      return (
+                        <div key={rec.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all group">
+                          {/* Thumbnail */}
+                          <div className="relative aspect-[3/4] overflow-hidden cursor-pointer" onClick={() => openEdit(rec)}
+                            style={{ background: `linear-gradient(135deg, ${cs.primary} 0%, ${cs.background} 100%)` }}>
+                            <div className="absolute inset-0">
+                              <TemplateThumbnail rec={rec} />
+                            </div>
+                            <div className="absolute top-2.5 left-2.5">
+                              <StatusBadge status={rec.status} />
+                            </div>
+                            {rec.price > 0 && (
+                              <div className="absolute bottom-2.5 right-2.5">
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/90 text-white backdrop-blur-sm">
+                                  {tierLabel ?? formatRp(rec.price)}
+                                </span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                              <span className="text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                Atur Tema
+                              </span>
+                            </div>
+                          </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-gray-900 text-sm">{rec.name}</span>
-                      <code className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">{rec.slug}</code>
-                      <StatusBadge status={rec.status} />
-                      {rec.required_package !== 'all' && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${PACKAGE_OPTIONS.find(o => o.value === rec.required_package)?.color}`}>
-                          <Crown className="w-2.5 h-2.5" />
-                          {PACKAGE_OPTIONS.find(o => o.value === rec.required_package)?.label}
-                        </span>
-                      )}
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono font-medium ${rec.price > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                        {rec.price > 0 ? formatRp(rec.price) : 'harga default'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {rec.category} · {rec.config.sections.filter(s => s.enabled).length}/{rec.config.sections.length} section · {rec.config.meta.font.heading}
-                    </p>
-                  </div>
+                          {/* Info */}
+                          <div className="p-3.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-semibold text-gray-900 text-sm truncate">{rec.name}</h4>
+                                <p className="text-[10px] text-gray-400 font-mono mt-0.5 truncate">/{rec.slug}</p>
+                              </div>
+                              <div className="flex items-center gap-0.5 shrink-0">
+                                <a href={`/demo/renderer?id=${rec.id}`} target="_blank" rel="noopener noreferrer" title="Preview"
+                                  className="p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors">
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <a href={`/demo/renderer?id=${rec.id}`} target="_blank" rel="noopener noreferrer"
-                      title="Preview tema"
-                      className="p-2 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors">
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-
-                    <button onClick={() => toggleStatus(rec)}
-                      title={rec.status === 'active' ? 'Tarik ke Draft' : 'Publikasi'}
-                      className={`p-2 rounded-lg transition-colors ${
-                        rec.status === 'active'
-                          ? 'text-emerald-500 bg-emerald-50 hover:bg-emerald-100'
-                          : 'text-gray-300 hover:text-emerald-500 hover:bg-emerald-50'
-                      }`}>
-                      {rec.status === 'active' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-
-                    <button
-                      onClick={() => editingId === rec.id ? setEditingId(null) : openEdit(rec)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                        editingId === rec.id
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600'
-                      }`}>
-                      {editingId === rec.id ? 'Tutup' : 'Edit'}
-                    </button>
-
-                    {rec.status !== 'archived' && (
-                      <button onClick={() => archiveRecord(rec.id)} title="Arsipkan"
-                        className="p-2 text-gray-300 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
-                        <Archive className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button onClick={() => deleteRecord(rec.id)} title="Hapus permanen"
-                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                            {/* Action row */}
+                            <div className="flex gap-1.5 mt-3">
+                              {onEditInLab && (
+                                <button onClick={() => onEditInLab(rec)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors">
+                                  <FlaskConical className="w-3.5 h-3.5" /> Edit Desain
+                                </button>
+                              )}
+                              <button onClick={() => openEdit(rec)}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                                <Settings2 className="w-3.5 h-3.5" /> Atur
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
-
-                {/* ── Inline edit panel ── */}
-                {editingId === rec.id && (
-                  <div className="border-t border-indigo-100 bg-indigo-50/20 px-5 py-5">
-                    {/* Identitas tema */}
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="col-span-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Nama Tampilan</label>
-                        <input value={editData.name ?? ''} onChange={e => setEditData({ ...editData, name: e.target.value })}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
-                      </div>
-                      <div>
-                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600 mb-1.5">
-                          <Tag className="w-3 h-3" /> Kategori
-                        </label>
-                        <select value={editData.category ?? rec.category}
-                          onChange={e => setEditData({ ...editData, category: e.target.value })}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
-                          {allCategories.map(c => (
-                            <option key={c.slug} value={c.slug}>{c.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600 mb-1.5">
-                          <ImageIcon className="w-3 h-3" /> Cover / Thumbnail
-                          <span className="text-[10px] text-gray-400 font-normal">(tampil di landing page)</span>
-                        </label>
-                        <input ref={thumbInputRef} type="file" accept="image/*" className="hidden"
-                          onChange={e => { const f = e.target.files?.[0]; if (f) handleThumbUpload(f) }} />
-                        <div className="flex gap-2">
-                          <button type="button" onClick={() => thumbInputRef.current?.click()}
-                            disabled={uploadingThumb}
-                            className="flex items-center gap-1.5 px-3 py-2.5 text-sm border border-gray-200 rounded-xl hover:border-indigo-400 hover:text-indigo-600 transition-colors bg-white disabled:opacity-50 disabled:cursor-wait">
-                            <Upload className="w-3.5 h-3.5" />
-                            {uploadingThumb ? 'Mengupload...' : editData.thumbnail_url ? 'Ganti' : 'Upload'}
-                          </button>
-                          {editData.thumbnail_url && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={editData.thumbnail_url} alt="thumbnail" className="h-10 w-16 object-cover rounded-lg border border-gray-200" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl border border-gray-200 p-4 grid grid-cols-3 gap-4 mb-4">
-                      <div className="col-span-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Harga (Rp)</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Rp</span>
-                          <input type="number" min={0} step={1000} value={editData.price ?? 0}
-                            onChange={e => setEditData({ ...editData, price: Math.max(0, Number(e.target.value)) })}
-                            className="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-                        </div>
-                        <p className="text-[10px] text-gray-400 mt-1">
-                          {!editData.price ? 'Ikuti harga default' : formatRp(editData.price)}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Akses Paket</label>
-                        <select value={editData.required_package ?? 'all'}
-                          onChange={e => setEditData({ ...editData, required_package: e.target.value as TemplatePackageRequirement })}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                          {PACKAGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Urutan Tampil</label>
-                        <input type="number" min={0} value={editData.sort_order ?? 0}
-                          onChange={e => setEditData({ ...editData, sort_order: Number(e.target.value) })}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-                        <p className="text-[10px] text-gray-400 mt-1">Angka lebih kecil tampil lebih dulu</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button onClick={saveEdit} disabled={saving}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm">
-                        <Save className="w-4 h-4" />
-                        {saving ? 'Menyimpan...' : 'Simpan'}
-                      </button>
-                      <button onClick={() => setEditingId(null)}
-                        className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                        Batal
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+              ))
+            })()}
           </div>
         )}
       </div>
 
-      {/* ── Workflow guide (bottom) ── */}
-      <div className="mx-8 mb-8 rounded-2xl bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 p-5">
-        <p className="text-xs font-bold text-indigo-700 mb-3 flex items-center gap-2">
-          <TrendingUp className="w-3.5 h-3.5" />
-          Alur Publikasi Tema
-        </p>
-        <div className="flex items-center gap-3 flex-wrap text-xs text-indigo-600">
-          {[
-            { icon: '🎨', text: 'Desain di Studio' },
-            { icon: '→', text: '' },
-            { icon: '🚀', text: 'Rilis → Draft' },
-            { icon: '→', text: '' },
-            { icon: '💰', text: 'Atur harga & tier' },
-            { icon: '→', text: '' },
-            { icon: '✅', text: 'Aktifkan → Landing Page' },
-            { icon: '→', text: '' },
-            { icon: '🛍️', text: 'User beli & pakai' },
-          ].map((s, i) => s.text
-            ? <span key={i} className="flex items-center gap-1.5"><span>{s.icon}</span><span className="font-medium">{s.text}</span></span>
-            : <span key={i} className="text-indigo-300">{s.icon}</span>
-          )}
-        </div>
-      </div>
+      {/* ═══ EDIT DRAWER ═══ */}
+      <Drawer open={!!editingId} onClose={() => setEditingId(null)} title="Pengaturan Tema" width="max-w-lg">
+        {editingRec && (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto">
+              {/* Hero card */}
+              <div className="p-5">
+                <div className="rounded-2xl overflow-hidden border border-gray-100" style={{ background: `linear-gradient(135deg, ${editingRec.config.meta.color_scheme.primary}12 0%, ${editingRec.config.meta.color_scheme.accent}08 100%)` }}>
+                  <div className="flex gap-4 p-4">
+                    <div className="w-[72px] h-[96px] rounded-xl overflow-hidden border border-gray-200 shrink-0 shadow-sm">
+                      <TemplateThumbnail rec={editingRec} />
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="flex items-center gap-2 mb-1">
+                        <StatusBadge status={editingRec.status} />
+                        {editingRec.price > 0 && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                            {findTierLabel(editingRec.price) ?? formatRp(editingRec.price)}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-bold text-gray-900 text-base truncate">{editingRec.name}</h3>
+                      <p className="text-[11px] text-gray-400 font-mono mt-0.5">/{editingRec.slug}</p>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        {[editingRec.config.meta.color_scheme.primary, editingRec.config.meta.color_scheme.accent, editingRec.config.meta.color_scheme.text, editingRec.config.meta.color_scheme.background].map((c, i) => (
+                          <div key={i} className="w-3.5 h-3.5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
+                        ))}
+                        <span className="text-[10px] text-gray-400 ml-0.5">{editingRec.config.sections.filter(s => s.enabled).length} section</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex border-t border-gray-100 divide-x divide-gray-100">
+                    <button onClick={() => toggleStatus(editingRec)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-white/60 transition-colors">
+                      {editingRec.status === 'active' ? <Eye className="w-3.5 h-3.5 text-emerald-500" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      {editingRec.status === 'active' ? 'Aktif' : 'Draft'}
+                    </button>
+                    <a href={`/demo/renderer?id=${editingRec.id}`} target="_blank" rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-white/60 transition-colors">
+                      <ExternalLink className="w-3.5 h-3.5" /> Preview
+                    </a>
+                    {editingRec.status !== 'archived' ? (
+                      <button onClick={() => requestArchive(editingRec)}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-amber-600 hover:bg-amber-50/60 transition-colors">
+                        <Archive className="w-3.5 h-3.5" /> Arsip
+                      </button>
+                    ) : (
+                      <button onClick={() => requestDelete(editingRec)}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/60 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" /> Hapus
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
 
+              {/* Form fields */}
+              <div className="px-5 pb-2 space-y-5">
+                {/* Nama & Kategori */}
+                <div className="grid grid-cols-[1fr_auto] gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Tampilan</label>
+                    <input value={editData.name ?? ''} onChange={e => setEditData({ ...editData, name: e.target.value })}
+                      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Urutan</label>
+                    <input type="number" min={0} value={editData.sort_order ?? 0} onChange={e => setEditData({ ...editData, sort_order: Number(e.target.value) })}
+                      className="w-20 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white text-center" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Kategori</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allCategories.map(c => (
+                      <button key={c.slug} onClick={() => setEditData({ ...editData, category: c.slug })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          (editData.category ?? editingRec.category) === c.slug
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                        }`}>{c.label}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Thumbnail */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Thumbnail</label>
+                  <input ref={thumbInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleThumbUpload(f) }} />
+                  <div className="flex gap-3 items-center">
+                    <div className="h-16 w-12 rounded-xl overflow-hidden border border-gray-200 shrink-0 shadow-sm">
+                      {editData.thumbnail_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={editData.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <TemplateThumbnail rec={editingRec} />
+                      )}
+                    </div>
+                    <button type="button" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb}
+                      className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium border border-gray-200 rounded-xl hover:border-indigo-400 hover:text-indigo-600 transition-colors bg-white disabled:opacity-50">
+                      <Upload className="w-3.5 h-3.5" /> {uploadingThumb ? 'Uploading...' : 'Ganti Thumbnail'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tier & Akses - visual card selector */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Paket Harga</label>
+                  <div className="space-y-1.5">
+                    {allTiers.sort((a, b) => a.price - b.price).map(t => {
+                      const sel = (editData.price ?? editingRec.price) === t.price
+                      const TierIcon = t.icon === 'crown' ? Crown : t.icon === 'gem' ? Gem : Rocket
+                      return (
+                        <button key={t.id} onClick={() => setEditData({ ...editData, price: t.price })}
+                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-all ${
+                            sel ? 'border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200' : 'border-gray-100 bg-white hover:border-gray-200'
+                          }`}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${t.color || '#6366f1'}15` }}>
+                            <TierIcon className="w-4 h-4" style={{ color: t.color || '#6366f1' }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-semibold text-gray-900">{t.label}</span>
+                            {t.description && <p className="text-[10px] text-gray-400 truncate">{t.description}</p>}
+                          </div>
+                          <span className="text-sm font-bold shrink-0" style={{ color: t.color || '#6366f1' }}>
+                            {t.price === 0 ? 'Gratis' : formatRp(t.price)}
+                          </span>
+                          <div className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                            sel ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'
+                          }`}>
+                            {sel && <Check className="w-2.5 h-2.5 text-white" />}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Akses Minimum</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PACKAGE_OPTIONS.map(o => (
+                      <button key={o.value} onClick={() => setEditData({ ...editData, required_package: o.value })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          (editData.required_package ?? editingRec.required_package ?? 'all') === o.value
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
+                        }`}>{o.label}</button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1">Paket minimum yang diperlukan user untuk menggunakan tema ini</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky save footer */}
+            <div className="p-4 border-t border-gray-100 bg-white shrink-0">
+              <div className="flex items-center gap-2">
+                <button onClick={saveEdit} disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm">
+                  <Save className="w-4 h-4" /> {saving ? 'Menyimpan...' : 'Simpan'}
+                </button>
+                <button onClick={() => setEditingId(null)} className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors">
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Drawer>
+
+      {/* ═══ CONFIG DRAWER ═══ */}
+      <Drawer open={showConfig} onClose={() => setShowConfig(false)} title="Konfigurasi" width="max-w-xl">
+        <div className="flex flex-col h-full">
+          {/* Inner tabs */}
+          <div className="px-5 pt-3 pb-0 shrink-0">
+            <div className="flex bg-gray-100 rounded-xl p-0.5">
+              {([
+                { id: 'kategori' as const, label: 'Kategori', icon: Tag, count: allCategories.length },
+                { id: 'harga' as const, label: 'Paket Harga', icon: Crown, count: allTiers.length },
+                { id: 'promo' as const, label: 'Promo', icon: Zap, count: allFlashSales.length + allCoupons.length },
+              ]).map(tab => (
+                <button key={tab.id} onClick={() => setConfigTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    configTab === tab.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}>
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                  {tab.count > 0 && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                    configTab === tab.id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-400'
+                  }`}>{tab.count}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-y-auto">
+            {/* ── Kategori tab ── */}
+            {configTab === 'kategori' && (
+              <div className="p-5 space-y-4">
+                <p className="text-xs text-gray-400">Kelompokkan tema berdasarkan gaya. Kategori yang dipakai tidak bisa dihapus.</p>
+                <div className="space-y-2">
+                  {allCategories.map(c => {
+                    const count = records.filter(r => r.category === c.slug).length
+                    const isEd = editingCatSlug === c.slug
+                    return isEd ? (
+                      <div key={c.slug} className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-3.5 py-2.5">
+                        <input value={editingCatLabel} onChange={e => setEditingCatLabel(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') saveEditCategory(); if (e.key === 'Escape') setEditingCatSlug(null) }}
+                          autoFocus className="flex-1 px-2 py-1 text-sm bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+                        <button onClick={saveEditCategory} className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => setEditingCatSlug(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4" /></button>
+                      </div>
+                    ) : (
+                      <div key={c.slug} className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-gray-100 bg-white hover:border-gray-200 transition-colors group">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${count > 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
+                        <span className="text-sm font-medium text-gray-800 flex-1">{c.label}</span>
+                        <span className="text-[11px] text-gray-400">{count} tema</span>
+                        <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
+                          className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') addCategory() }}
+                    placeholder="Nama kategori baru..."
+                    className="flex-1 px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
+                  <button onClick={addCategory} disabled={!newCatLabel.trim()}
+                    className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+                    <Plus className="w-3.5 h-3.5" /> Tambah
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Paket Harga tab ── */}
+            {configTab === 'harga' && (
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400">Kelola paket harga dan fitur yang disertakan.</p>
+                  <button onClick={() => openTierEditor()} className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">
+                    <Plus className="w-3.5 h-3.5" /> Buat Paket
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  {allTiers.sort((a, b) => a.price - b.price).map(t => {
+                    const used = records.filter(r => r.price === t.price).length
+                    const f = t.features
+                    const enabledCount = f ? Object.values(f).filter(v => v === true).length : 0
+                    const TierIcon = t.icon === 'crown' ? Crown : t.icon === 'gem' ? Gem : Rocket
+                    return (
+                      <div key={t.id}
+                        className={`rounded-xl border overflow-hidden cursor-pointer hover:shadow-md transition-all group ${t.highlight ? 'border-purple-200 bg-gradient-to-r from-purple-50/40 to-white' : 'border-gray-100 bg-white'}`}
+                        onClick={() => openTierEditor(t)}>
+                        <div className="px-4 py-3.5 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${t.color || '#6366f1'}15` }}>
+                            <TierIcon className="w-5 h-5" style={{ color: t.color || '#6366f1' }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-gray-900">{t.label}</span>
+                              {t.highlight && <span className="text-[9px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">POPULER</span>}
+                            </div>
+                            {t.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{t.description}</p>}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] text-gray-400">{used} tema</span>
+                              <span className="text-[10px] text-gray-300">·</span>
+                              <span className="text-[10px] text-gray-400">{enabledCount} fitur</span>
+                              {f && <>
+                                <span className="text-[10px] text-gray-300">·</span>
+                                <span className="text-[10px] text-gray-400">{f.validity_days} hari</span>
+                              </>}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-base font-bold" style={{ color: t.color || '#6366f1' }}>{formatRp(t.price)}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
+                        </div>
+                        {f && (
+                          <div className="px-4 pb-3 flex flex-wrap gap-1">
+                            {f.music && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Musik</span>}
+                            {f.gallery && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Galeri {f.max_photos}</span>}
+                            {f.rsvp && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">RSVP</span>}
+                            {f.wishes && <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Ucapan</span>}
+                            {f.story && <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">Story</span>}
+                            {f.video && <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">Video</span>}
+                            {f.gift_registry && <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded">Gift Registry</span>}
+                            {f.custom_music && <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Upload Musik</span>}
+                            {f.remove_watermark && <span className="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">No Watermark</span>}
+                            {f.custom_domain && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded">Custom Domain</span>}
+                            {f.analytics && <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Analytics</span>}
+                            {f.priority_support && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded">Priority</span>}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Promo tab (Flash Sale + Kupon) ── */}
+            {configTab === 'promo' && (
+              <div className="p-5 space-y-6">
+                {/* Flash Sale */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                      <h4 className="text-sm font-bold text-gray-800">Flash Sale</h4>
+                      {allFlashSales.length > 0 && <span className="text-[10px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full font-bold">{allFlashSales.length}</span>}
+                    </div>
+                    <button onClick={() => setShowAddFlashSale(!showAddFlashSale)}
+                      className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${showAddFlashSale ? 'text-gray-400 bg-gray-100' : 'text-amber-600 bg-amber-50 hover:bg-amber-100'}`}>
+                      {showAddFlashSale ? <><X className="w-3 h-3" /> Batal</> : <><Plus className="w-3 h-3" /> Buat</>}
+                    </button>
+                  </div>
+
+                  {showAddFlashSale && (
+                    <div className="bg-amber-50/50 rounded-xl border border-amber-100 p-4 space-y-3 mb-3">
+                      <input value={fsForm.label} onChange={e => setFsForm({ ...fsForm, label: e.target.value })} placeholder="Nama promo"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400" />
+                      <div className="flex gap-2">
+                        <select value={fsForm.discount_type} onChange={e => setFsForm({ ...fsForm, discount_type: e.target.value as 'percentage' | 'fixed' })}
+                          className="w-16 px-2 py-2 text-sm border border-gray-200 rounded-xl bg-white">
+                          <option value="percentage">%</option><option value="fixed">Rp</option>
+                        </select>
+                        <input type="number" min={0} value={fsForm.discount_value} onChange={e => setFsForm({ ...fsForm, discount_value: e.target.value })}
+                          placeholder={fsForm.discount_type === 'percentage' ? '20' : '50000'}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] text-gray-400 mb-1">Mulai</label>
+                          <input type="date" value={fsForm.start_date} onChange={e => setFsForm({ ...fsForm, start_date: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-400 mb-1">Berakhir</label>
+                          <input type="date" value={fsForm.end_date} onChange={e => setFsForm({ ...fsForm, end_date: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1.5">Berlaku untuk:</p>
+                        <ScopeSelector scope={fsForm.scope} scopeIds={fsForm.scope_ids} tiers={allTiers} categories={allCategories}
+                          onChange={(scope, ids) => setFsForm({ ...fsForm, scope, scope_ids: ids })} />
+                      </div>
+                      <button onClick={addFlashSale}
+                        className="w-full flex items-center justify-center gap-1.5 bg-amber-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-600 transition-colors">
+                        <Zap className="w-3.5 h-3.5" /> Buat Flash Sale
+                      </button>
+                    </div>
+                  )}
+
+                  {allFlashSales.length > 0 ? (
+                    <div className="space-y-2">
+                      {allFlashSales.map(s => (
+                        <div key={s.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm transition-colors ${
+                          isLive(s) ? 'bg-amber-50 border-amber-200' : s.is_active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-100 opacity-50'
+                        }`}>
+                          <button onClick={() => toggleFlashSale(s.id)} className="shrink-0">
+                            {s.is_active ? <ToggleRight className="w-5 h-5 text-emerald-500" /> : <ToggleLeft className="w-5 h-5 text-gray-300" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-gray-800">{s.label}</span>
+                              {isLive(s) && <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
+                              <span className="font-mono font-bold text-amber-600">{s.discount_type === 'percentage' ? `${s.discount_value}%` : formatRp(s.discount_value)}</span>
+                              <ScopeBadge scope={s.scope} scopeIds={s.scope_ids} tiers={allTiers} categories={allCategories} />
+                              <span className="flex items-center gap-0.5"><Calendar className="w-3 h-3" />{new Date(s.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} s.d. {new Date(s.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                            </div>
+                          </div>
+                          <button onClick={() => removeFlashSale(s.id)} className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : !showAddFlashSale && (
+                    <div className="text-center py-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                      <Zap className="w-5 h-5 text-gray-300 mx-auto mb-1.5" />
+                      <p className="text-xs text-gray-400">Belum ada flash sale aktif</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Kupon */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4 text-violet-500" />
+                      <h4 className="text-sm font-bold text-gray-800">Kupon Diskon</h4>
+                      {allCoupons.length > 0 && <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded-full font-bold">{allCoupons.length}</span>}
+                    </div>
+                    <button onClick={() => setShowAddCoupon(!showAddCoupon)}
+                      className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${showAddCoupon ? 'text-gray-400 bg-gray-100' : 'text-violet-600 bg-violet-50 hover:bg-violet-100'}`}>
+                      {showAddCoupon ? <><X className="w-3 h-3" /> Batal</> : <><Plus className="w-3 h-3" /> Buat</>}
+                    </button>
+                  </div>
+
+                  {showAddCoupon && (
+                    <div className="bg-violet-50/50 rounded-xl border border-violet-100 p-4 space-y-3 mb-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <input value={cpForm.code} onChange={e => setCpForm({ ...cpForm, code: e.target.value.toUpperCase() })} placeholder="KODE"
+                          className="px-3.5 py-2 text-sm border border-gray-200 rounded-xl bg-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                        <input value={cpForm.label} onChange={e => setCpForm({ ...cpForm, label: e.target.value })} placeholder="Deskripsi"
+                          className="px-3.5 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                      </div>
+                      <div className="flex gap-2">
+                        <select value={cpForm.discount_type} onChange={e => setCpForm({ ...cpForm, discount_type: e.target.value as 'percentage' | 'fixed' })}
+                          className="w-16 px-2 py-2 text-sm border border-gray-200 rounded-xl bg-white">
+                          <option value="percentage">%</option><option value="fixed">Rp</option>
+                        </select>
+                        <input type="number" min={0} value={cpForm.discount_value} onChange={e => setCpForm({ ...cpForm, discount_value: e.target.value })} placeholder="Diskon"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                        <input type="number" min={0} value={cpForm.max_uses} onChange={e => setCpForm({ ...cpForm, max_uses: e.target.value })} placeholder="Maks (0=∞)"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] text-gray-400 mb-1">Berlaku dari</label>
+                          <input type="date" value={cpForm.valid_from} onChange={e => setCpForm({ ...cpForm, valid_from: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-400 mb-1">Sampai</label>
+                          <input type="date" value={cpForm.valid_until} onChange={e => setCpForm({ ...cpForm, valid_until: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1.5">Berlaku untuk:</p>
+                        <ScopeSelector scope={cpForm.scope} scopeIds={cpForm.scope_ids} tiers={allTiers} categories={allCategories}
+                          onChange={(scope, ids) => setCpForm({ ...cpForm, scope, scope_ids: ids })} />
+                      </div>
+                      <button onClick={addCoupon}
+                        className="w-full flex items-center justify-center gap-1.5 bg-violet-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors">
+                        <Ticket className="w-3.5 h-3.5" /> Buat Kupon
+                      </button>
+                    </div>
+                  )}
+
+                  {allCoupons.length > 0 ? (
+                    <div className="space-y-2">
+                      {allCoupons.map(c => {
+                        const expired = new Date(c.valid_until) < new Date()
+                        const exhausted = c.max_uses > 0 && c.used_count >= c.max_uses
+                        return (
+                          <div key={c.id} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm transition-colors ${
+                            !c.is_active || expired || exhausted ? 'bg-gray-50 border-gray-100 opacity-50' : 'bg-white border-violet-100'
+                          }`}>
+                            <button onClick={() => toggleCoupon(c.id)} className="shrink-0">
+                              {c.is_active ? <ToggleRight className="w-5 h-5 text-emerald-500" /> : <ToggleLeft className="w-5 h-5 text-gray-300" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <button onClick={() => { navigator.clipboard.writeText(c.code); toast.success(`"${c.code}" disalin`) }}
+                                  className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 font-mono font-bold text-xs px-2 py-0.5 rounded-lg hover:bg-violet-200 transition-colors">
+                                  {c.code} <Copy className="w-2.5 h-2.5 opacity-50" />
+                                </button>
+                                <span className="font-medium text-gray-700">{c.label}</span>
+                                {expired && <span className="text-[9px] bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full font-semibold">Expired</span>}
+                                {exhausted && !expired && <span className="text-[9px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded-full font-semibold">Habis</span>}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
+                                <span className="font-mono font-bold text-violet-600">{c.discount_type === 'percentage' ? `${c.discount_value}%` : formatRp(c.discount_value)}</span>
+                                <ScopeBadge scope={c.scope} scopeIds={c.scope_ids} tiers={allTiers} categories={allCategories} />
+                                <span>{c.used_count}/{c.max_uses || '∞'} terpakai</span>
+                              </div>
+                            </div>
+                            <button onClick={() => removeCoupon(c.id)} className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : !showAddCoupon && (
+                    <div className="text-center py-6 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                      <Ticket className="w-5 h-5 text-gray-300 mx-auto mb-1.5" />
+                      <p className="text-xs text-gray-400">Belum ada kupon aktif</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </Drawer>
+
+      {/* ═══ TIER EDITOR DRAWER ═══ */}
+      <Drawer open={tierEditorOpen} onClose={() => setTierEditorOpen(false)} title={tierEditorId ? 'Edit Paket' : 'Buat Paket Baru'} width="max-w-lg">
+        {(() => {
+          const d = tierDraft
+          const f = d.features ?? DEFAULT_FEATURES
+          const setF = (patch: Partial<TierFeatures>) => setTierDraft({ ...d, features: { ...f, ...patch } })
+
+          const STEPS = [
+            { label: 'Info Paket', icon: Package },
+            { label: 'Section & Fitur', icon: Settings2 },
+            { label: 'Fitur Premium', icon: Crown },
+          ]
+
+          const SECTION_FEATURES: { key: keyof TierFeatures; label: string; desc: string; icon: React.ElementType }[] = [
+            { key: 'music', label: 'Musik Latar', desc: 'Musik otomatis saat undangan dibuka', icon: Music },
+            { key: 'custom_music', label: 'Upload Musik', desc: 'User bisa upload musik sendiri', icon: Headphones },
+            { key: 'opening_animation', label: 'Animasi Opening', desc: 'Tampilan opening animasi', icon: BookOpen },
+            { key: 'countdown', label: 'Countdown', desc: 'Hitung mundur ke hari H', icon: Timer },
+            { key: 'gallery', label: 'Galeri Foto', desc: `Galeri foto (maks ${f.max_photos})`, icon: ImageLucide },
+            { key: 'story', label: 'Kisah Cinta', desc: 'Timeline perjalanan cinta', icon: BookOpen },
+            { key: 'rsvp', label: 'RSVP', desc: 'Konfirmasi kehadiran tamu', icon: CheckCircle2 },
+            { key: 'wishes', label: 'Ucapan & Doa', desc: 'Kolom ucapan dari tamu', icon: MessageSquare },
+            { key: 'gift', label: 'Amplop Digital', desc: 'Transfer hadiah/angpao', icon: Gift },
+            { key: 'gift_registry', label: 'Gift Registry', desc: 'Wishlist hadiah dari marketplace', icon: Gift },
+            { key: 'video', label: 'Video', desc: 'Embed video prewedding', icon: Video },
+            { key: 'livestream', label: 'Livestream', desc: 'Link streaming acara', icon: Radio },
+            { key: 'ig_story', label: 'IG Story Filter', desc: 'Filter foto ala Instagram', icon: Camera },
+            { key: 'qrcode', label: 'QR Code', desc: 'QR untuk share undangan', icon: QrCode },
+          ]
+
+          const PREMIUM_FEATURES: { key: keyof TierFeatures; label: string; desc: string; icon: React.ElementType }[] = [
+            { key: 'remove_watermark', label: 'Hapus Watermark', desc: 'Tidak ada branding Akundang', icon: Eye },
+            { key: 'custom_domain', label: 'Custom Domain', desc: 'Pakai domain sendiri (misal: nikahan.com)', icon: Globe },
+            { key: 'analytics', label: 'Analytics', desc: 'Statistik views, RSVP, dll', icon: BarChart3 },
+            { key: 'priority_support', label: 'Priority Support', desc: 'Bantuan prioritas via WhatsApp', icon: Headphones },
+          ]
+
+          return (
+            <div className="flex flex-col h-full">
+              {/* Step indicator */}
+              <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                <div className="flex items-center gap-1">
+                  {STEPS.map((s, i) => (
+                    <button key={i} onClick={() => setTierStep(i)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        tierStep === i ? 'bg-indigo-600 text-white' : tierStep > i ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400'
+                      }`}>
+                      <s.icon className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{s.label}</span>
+                      <span className="sm:hidden">{i + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step content */}
+              <div className="flex-1 overflow-y-auto">
+                {tierStep === 0 && (
+                  <div className="p-6 space-y-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Nama Paket <span className="text-red-400">*</span></label>
+                      <input value={d.label ?? ''} onChange={e => setTierDraft({ ...d, label: e.target.value })}
+                        placeholder="contoh: Starter, Premium, Exclusive..."
+                        className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Harga <span className="text-red-400">*</span></label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">Rp</span>
+                        <input type="number" min={0} step={1000} value={d.price ?? 0} onChange={e => setTierDraft({ ...d, price: Number(e.target.value) })}
+                          className="w-full pl-10 pr-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Deskripsi</label>
+                      <input value={d.description ?? ''} onChange={e => setTierDraft({ ...d, description: e.target.value })}
+                        placeholder="Deskripsi singkat paket ini..."
+                        className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Masa Aktif (hari)</label>
+                      <input type="number" min={1} value={f.validity_days} onChange={e => setF({ validity_days: Number(e.target.value) || 90 })}
+                        className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Warna Aksen</label>
+                      <div className="flex items-center gap-2">
+                        <input type="color" value={d.color ?? '#6366f1'} onChange={e => setTierDraft({ ...d, color: e.target.value })}
+                          className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer" />
+                        <input value={d.color ?? '#6366f1'} onChange={e => setTierDraft({ ...d, color: e.target.value })}
+                          className="flex-1 px-3 py-2 text-sm font-mono border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Ikon</label>
+                      <div className="flex gap-2">
+                        {[
+                          { id: 'rocket', icon: Rocket, label: 'Rocket' },
+                          { id: 'crown', icon: Crown, label: 'Crown' },
+                          { id: 'gem', icon: Gem, label: 'Gem' },
+                        ].map(o => (
+                          <button key={o.id} onClick={() => setTierDraft({ ...d, icon: o.id })}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                              d.icon === o.id ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                            }`}>
+                            <o.icon className="w-4 h-4" /> {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <button onClick={() => setTierDraft({ ...d, highlight: !d.highlight })}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${d.highlight ? 'bg-purple-600' : 'bg-gray-200'}`}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${d.highlight ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Tandai sebagai populer</span>
+                        <p className="text-[11px] text-gray-400">Tampil dengan badge &quot;POPULER&quot; di landing</p>
+                      </div>
+                    </label>
+                  </div>
+                )}
+
+                {tierStep === 1 && (
+                  <div className="p-6">
+                    <p className="text-xs text-gray-400 mb-4">Pilih section dan fitur yang tersedia untuk paket ini</p>
+                    <div className="mb-4">
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Maks Foto Galeri</label>
+                      <input type="number" min={1} max={100} value={f.max_photos} onChange={e => setF({ max_photos: Number(e.target.value) || 6 })}
+                        className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-xs font-semibold text-gray-600 mb-2">Gaya Opening</label>
+                      <div className="flex gap-2">
+                        {[
+                          { v: 'basic' as const, l: 'Basic (3 gaya)' },
+                          { v: 'all' as const, l: 'Semua (12 gaya)' },
+                        ].map(o => (
+                          <button key={o.v} onClick={() => setF({ opening_styles: o.v })}
+                            className={`px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
+                              f.opening_styles === o.v ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-500'
+                            }`}>{o.l}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {SECTION_FEATURES.map(sf => {
+                        const on = !!f[sf.key]
+                        return (
+                          <button key={sf.key} onClick={() => setF({ [sf.key]: !on } as Partial<TierFeatures>)}
+                            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
+                              on ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-gray-100 hover:border-gray-200'
+                            }`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${on ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                              <sf.icon className={`w-4 h-4 ${on ? 'text-emerald-600' : 'text-gray-400'}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${on ? 'text-gray-900' : 'text-gray-500'}`}>{sf.label}</p>
+                              <p className="text-[11px] text-gray-400">{sf.desc}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                              on ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'
+                            }`}>
+                              {on && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {tierStep === 2 && (
+                  <div className="p-6">
+                    <p className="text-xs text-gray-400 mb-4">Fitur ekstra yang membedakan paket ini</p>
+                    <div className="space-y-1.5">
+                      {PREMIUM_FEATURES.map(pf => {
+                        const on = !!f[pf.key]
+                        return (
+                          <button key={pf.key} onClick={() => setF({ [pf.key]: !on } as Partial<TierFeatures>)}
+                            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
+                              on ? 'bg-purple-50/50 border-purple-200' : 'bg-white border-gray-100 hover:border-gray-200'
+                            }`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${on ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                              <pf.icon className={`w-4 h-4 ${on ? 'text-purple-600' : 'text-gray-400'}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${on ? 'text-gray-900' : 'text-gray-500'}`}>{pf.label}</p>
+                              <p className="text-[11px] text-gray-400">{pf.desc}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                              on ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
+                            }`}>
+                              {on && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer navigation */}
+              <div className="p-4 border-t border-gray-100 bg-gray-50/80 shrink-0">
+                <div className="flex items-center gap-3">
+                  {tierStep > 0 && (
+                    <button onClick={() => setTierStep(tierStep - 1)}
+                      className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                      <ChevronLeft className="w-4 h-4" /> Kembali
+                    </button>
+                  )}
+                  <div className="flex-1" />
+                  {tierStep < STEPS.length - 1 ? (
+                    <button onClick={() => setTierStep(tierStep + 1)}
+                      className="flex items-center gap-1.5 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                      Lanjut <ChevronRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button onClick={saveTierEditor} disabled={!d.label?.trim()}
+                      className="flex items-center gap-1.5 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+                      <Save className="w-4 h-4" /> {tierEditorId ? 'Simpan Perubahan' : 'Buat Paket'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+      </Drawer>
+
+      <ConfirmModal
+        open={confirmModal.open}
+        icon={confirmModal.action === 'delete' ? <Trash2 className="w-5 h-5 text-red-600" /> : <Archive className="w-5 h-5 text-amber-600" />}
+        iconColor={confirmModal.action === 'delete' ? 'bg-red-100' : 'bg-amber-100'}
+        title={confirmModal.action === 'delete' ? 'Hapus Permanen' : 'Arsipkan Tema'}
+        message={confirmModal.action === 'delete'
+          ? `"${confirmModal.targetName}" akan dihapus permanen dan tidak bisa dipulihkan.`
+          : `"${confirmModal.targetName}" akan diarsipkan. Bisa diaktifkan kembali nanti.`}
+        confirmLabel={confirmModal.action === 'delete' ? 'Ya, Hapus' : 'Ya, Arsipkan'}
+        confirmColor={confirmModal.action === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'}
+        onConfirm={executeConfirm}
+        onCancel={() => setConfirmModal(m => ({ ...m, open: false }))}
+      />
     </div>
   )
 }

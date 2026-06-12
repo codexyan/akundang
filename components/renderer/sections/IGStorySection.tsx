@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Download, Instagram } from 'lucide-react'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import { usePreviewContext } from '../PreviewContext'
 
 interface Props {
@@ -17,6 +18,7 @@ type StyleCtx = {
   headingFont: string; bodyFont: string
   url: string; filename: string
   hasImage: boolean
+  cs: ReturnType<typeof getComponentStyle>
 }
 
 function Ornament({ accent }: { accent: string }) {
@@ -34,10 +36,10 @@ function Placeholder({ accent, text, bodyFont }: { accent: string; text: string;
     <div style={{
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12,
-      background: `${accent}06`,
+      background: `${accent}10`,
     }}>
       <Instagram size={28} style={{ color: `${accent}30` }} />
-      <p style={{ fontSize: fsb(9), color: `${text}25`, fontFamily: bodyFont, letterSpacing: '0.1em', textAlign: 'center', padding: '0 24px' }}>
+      <p style={{ fontSize: fsb(9), color: `${text}45`, fontFamily: bodyFont, letterSpacing: '0.1em', textAlign: 'center', padding: '0 24px' }}>
         Upload template IG Story di dashboard
       </p>
     </div>
@@ -55,14 +57,12 @@ function FooterOrnament({ accent }: { accent: string }) {
 }
 
 function DownloadButton({ ctx, disabled }: { ctx: StyleCtx; disabled?: boolean }) {
-  const { accent, text, bodyFont, url, filename, hasImage } = ctx
+  const { accent, text, bodyFont, url, filename, hasImage, cs } = ctx
   if (!hasImage || disabled) {
     return (
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-        padding: '14px 0', border: `1px solid ${accent}12`,
-        color: `${text}25`, fontSize: fsb(9.5), fontWeight: 500,
-        letterSpacing: '0.18em', textTransform: 'uppercase' as const, fontFamily: bodyFont,
+        ...btnStyle(cs.button, cs.border, accent, text, { disabled: true, icon: true }),
+        width: '100%', fontFamily: bodyFont,
       }}>
         <Download size={14} />
         Unduh Template
@@ -71,14 +71,11 @@ function DownloadButton({ ctx, disabled }: { ctx: StyleCtx; disabled?: boolean }
   }
   return (
     <a href={url} download={filename} style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-      padding: '14px 0', background: 'transparent',
-      border: `1px solid ${accent}30`, color: text,
-      fontSize: fsb(9.5), fontWeight: 500, letterSpacing: '0.18em',
-      textTransform: 'uppercase' as const, fontFamily: bodyFont,
-      cursor: 'pointer', textDecoration: 'none', transition: 'all 0.3s',
+      ...btnStyle(cs.button, cs.border, accent, text, { icon: true }),
+      width: '100%', fontFamily: bodyFont,
+      textDecoration: 'none',
     }}>
-      <Download size={14} style={{ opacity: 0.6 }} />
+      <Download size={14} />
       Unduh Template
       <Instagram size={14} style={{ opacity: 0.6 }} />
     </a>
@@ -122,7 +119,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         {/* Preview */}
         <motion.div
           variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-          style={{ position: 'relative', overflow: 'hidden', aspectRatio: '9 / 16', border: `1px solid ${accent}15`, marginBottom: 20 }}>
+          style={{ position: 'relative', overflow: 'hidden', aspectRatio: '9 / 16', border: `1px solid ${accent}25`, marginBottom: 20 }}>
           {hasImage ? (
             <>
               <img src={url} alt="IG Story" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -328,11 +325,12 @@ export default function IGStorySection({ section, data, meta }: Props) {
 
   if (!hasImage && !isPreview) return null
 
+  const cs = getComponentStyle(meta.component_style)
   const ctx: StyleCtx = {
     accent, text,
     headingFont: `'${font.heading}', serif`,
     bodyFont: `'${font.body}', serif`,
-    url, hasImage,
+    url, hasImage, cs,
     filename: `undangan-${data.groom_name || 'kami'}-${data.bride_name || ''}-ig-story.jpg`
       .toLowerCase().replace(/\s+/g, '-'),
   }

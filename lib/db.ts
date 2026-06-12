@@ -182,6 +182,9 @@ export const users = {
   async delete(id: string): Promise<void> {
     await prisma.user.delete({ where: { id } })
   },
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await prisma.user.update({ where: { id }, data: { passwordHash } })
+  },
 }
 
 // ─── INVITATIONS ─────────────────────────────────────────────────────────────

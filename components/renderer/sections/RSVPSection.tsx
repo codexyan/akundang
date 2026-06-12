@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, hasMediaBg, cardBg } from '../SectionWrapper'
-import { Loader2 } from 'lucide-react'
+import { getComponentStyle, btnStyle, btnRadius, inputBorderStyle, cardRadius } from '@/lib/component-styles'
+import { Loader2, Send } from 'lucide-react'
 
 interface Props {
   section: SectionConfig
@@ -26,6 +27,8 @@ function Ornament({ accent }: { accent: string }) {
 export default function RSVPSection({ section, data, meta, invitationId }: Props) {
   const { accent, text } = meta.color_scheme
   const font = resolveFont(meta, section)
+  const cs = getComponentStyle(meta.component_style)
+  const br = btnRadius(cs.border)
 
   const [name,        setName]        = useState('')
   const [attending,   setAttending]   = useState<boolean | null>(null)
@@ -141,7 +144,7 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                 variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
                 <label style={{
                   display: 'block', fontSize: fsb(8), fontWeight: 500, letterSpacing: '0.2em',
-                  textTransform: 'uppercase', color: `${text}55`, fontFamily: bodyFont, marginBottom: 10,
+                  textTransform: 'uppercase', color: `${text}70`, fontFamily: bodyFont, marginBottom: 10,
                 }}>
                   Nama Lengkap
                 </label>
@@ -149,15 +152,15 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                   type="text" value={name} onChange={e => setName(e.target.value)}
                   placeholder="Masukkan nama Anda"
                   style={{
-                    width: '100%', padding: '10px 0',
-                    background: 'transparent', border: 'none',
-                    borderBottom: `1px solid ${accent}20`,
+                    width: '100%',
+                    background: 'transparent',
+                    ...inputBorderStyle(cs.border, accent),
                     color: text, fontSize: fsb(13), fontFamily: headingFont,
                     outline: 'none', transition: 'border-color 0.2s',
                     letterSpacing: '0.01em',
                   }}
-                  onFocus={e => (e.target.style.borderBottomColor = `${accent}60`)}
-                  onBlur={e => (e.target.style.borderBottomColor = `${accent}20`)}
+                  onFocus={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent, true))}
+                  onBlur={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent))}
                 />
               </motion.div>
 
@@ -166,7 +169,7 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                 variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
                 <label style={{
                   display: 'block', fontSize: fsb(8), fontWeight: 500, letterSpacing: '0.2em',
-                  textTransform: 'uppercase', color: `${text}40`, fontFamily: bodyFont, marginBottom: 12,
+                  textTransform: 'uppercase', color: `${text}60`, fontFamily: bodyFont, marginBottom: 12,
                 }}>
                   Konfirmasi
                 </label>
@@ -182,26 +185,27 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                         whileTap={{ scale: 0.97 }}
                         style={{
                           flex: 1, padding: '16px 12px',
-                          background: active ? `${accent}08` : 'transparent',
-                          border: `1px solid ${active ? `${accent}40` : `${accent}12`}`,
+                          background: active ? `${accent}15` : 'transparent',
+                          border: `1px solid ${active ? `${accent}50` : `${accent}25`}`,
+                          borderRadius: cardRadius(cs.border),
                           cursor: 'pointer', transition: 'all 0.25s',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                         }}>
                         <div style={{
                           width: 8, height: 8, borderRadius: '50%', marginBottom: 4,
-                          border: `1.5px solid ${active ? accent : `${accent}30`}`,
+                          border: `1.5px solid ${active ? accent : `${accent}40`}`,
                           background: active ? accent : 'transparent',
                           transition: 'all 0.25s',
-                          boxShadow: active ? `0 0 0 3px ${accent}15` : 'none',
+                          boxShadow: active ? `0 0 0 3px ${accent}25` : 'none',
                         }} />
                         <span style={{
-                          fontSize: fsb(11.5), fontWeight: 500, color: active ? text : `${text}60`,
+                          fontSize: fsb(11.5), fontWeight: 500, color: active ? text : `${text}75`,
                           fontFamily: headingFont, transition: 'color 0.2s',
                         }}>
                           {opt.label}
                         </span>
                         <span style={{
-                          fontSize: fsb(8), color: active ? `${text}50` : `${text}40`,
+                          fontSize: fsb(8), color: active ? `${text}65` : `${text}55`,
                           fontFamily: bodyFont, letterSpacing: '0.05em', transition: 'color 0.2s',
                         }}>
                           {opt.sub}
@@ -222,10 +226,10 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                     <div style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '14px 0',
-                      borderTop: `1px solid ${accent}12`,
-                      borderBottom: `1px solid ${accent}12`,
+                      borderTop: `1px solid ${accent}25`,
+                      borderBottom: `1px solid ${accent}25`,
                     }}>
-                      <span style={{ fontSize: fsb(8), fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}40`, fontFamily: bodyFont }}>
+                      <span style={{ fontSize: fsb(8), fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}60`, fontFamily: bodyFont }}>
                         Jumlah Tamu
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
@@ -234,7 +238,7 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                           whileTap={{ scale: 0.85 }}
                           style={{
                             width: 28, height: 28,
-                            border: `1px solid ${accent}20`, background: 'transparent',
+                            border: `1px solid ${accent}35`, background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             cursor: 'pointer', opacity: totalGuests <= 1 ? 0.25 : 1,
                             transition: 'opacity 0.15s', fontSize: 16, color: `${text}60`, lineHeight: 1,
@@ -255,7 +259,7 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                           whileTap={{ scale: 0.85 }}
                           style={{
                             width: 28, height: 28,
-                            border: `1px solid ${accent}20`, background: 'transparent',
+                            border: `1px solid ${accent}35`, background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             cursor: 'pointer', opacity: totalGuests >= 10 ? 0.25 : 1,
                             transition: 'opacity 0.15s', fontSize: 16, color: `${text}60`, lineHeight: 1,
@@ -280,19 +284,12 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                   disabled={loading || attending === null || !name.trim()}
                   whileTap={{ scale: 0.97 }}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '14px 40px',
-                    background: 'transparent',
-                    border: `1px solid ${attending === null || !name.trim() ? `${accent}15` : `${accent}35`}`,
-                    color: attending === null || !name.trim() ? `${text}40` : text,
-                    fontSize: fsb(10), fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase',
+                    ...btnStyle(cs.button, cs.border, accent, text, { disabled: attending === null || !name.trim() }),
                     fontFamily: bodyFont,
-                    cursor: attending === null || !name.trim() ? 'default' : 'pointer',
-                    transition: 'all 0.3s',
                   }}>
                   {loading
                     ? <><Loader2 size={12} className="animate-spin" /> Mengirim</>
-                    : 'Kirim Konfirmasi'
+                    : <><Send size={12} strokeWidth={1.8} /> Kirim Konfirmasi</>
                   }
                 </motion.button>
               </motion.div>

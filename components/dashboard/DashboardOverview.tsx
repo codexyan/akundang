@@ -131,7 +131,7 @@ export default function DashboardOverview({ invitation, onNavigate, onTogglePubl
     {
       label: 'Publish undangan',
       done: invitation.is_published,
-      doneText: '✓ Live — tamu bisa membuka undangan',
+      doneText: '✓ Live, tamu bisa membuka undangan',
       todoText: 'Klik tombol Publish di header dashboard',
       tab: '',
       action: onTogglePublish,
@@ -218,7 +218,7 @@ export default function DashboardOverview({ invitation, onNavigate, onTogglePubl
           <div key={s.label} className="bg-white border border-gray-100 rounded-2xl p-4">
             <p className="text-xs text-gray-400 mb-1">{s.label}</p>
             <p className="text-3xl font-bold text-gray-900">
-              {stats !== null ? s.value : '—'}
+              {stats !== null ? s.value : '-'}
             </p>
             <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
           </div>

@@ -6,14 +6,16 @@ export const PRICING_CONFIG = {
     durationLabel: '3 bulan',
     rsvpLimit: 100,
     badge: 'STARTER',
+    description: 'Undangan digital esensial untuk pasangan hemat',
     features: [
       'Domain nama pasangan',
       'Undangan personal per tamu',
       'Musik pengiring bawaan',
       'RSVP online hingga 100 tamu',
-      'Galeri foto (max 10)',
+      'Galeri foto (maks 6)',
       'Countdown hari H',
       'Ucapan & doa dari tamu',
+      'Amplop digital',
       'Aktif 3 bulan',
     ],
   },
@@ -24,36 +26,41 @@ export const PRICING_CONFIG = {
     durationLabel: '6 bulan',
     rsvpLimit: 300,
     badge: 'PALING POPULER',
+    description: 'Fitur lengkap untuk pernikahan yang berkesan',
     features: [
       'Semua fitur Starter',
       'Upload musik sendiri (MP3)',
       'RSVP online hingga 300 tamu',
-      'Galeri foto (max 20)',
+      'Galeri foto (maks 20)',
       'Pilihan 12 gaya opening',
       'Amplop digital & gift registry',
-      'Ucapan & doa dari tamu',
+      'Kisah cinta & video prewedding',
+      'QR Code & IG Story filter',
+      'Hapus watermark Akundang',
+      'Analytics dashboard',
       'Aktif 6 bulan penuh',
     ],
     highlightedFeature: 'Pilihan 12 gaya opening',
   },
-  pro: {
+  exclusive: {
     price: 249000,
     priceFormatted: 'Rp 249.000',
     duration: 12,
     durationLabel: '12 bulan',
     rsvpLimit: 1000,
-    badge: 'TERLENGKAP',
-    badgeColor: '#C9A84C',
+    badge: 'EXCLUSIVE',
+    description: 'Pengalaman premium tanpa batas untuk hari spesial',
     features: [
       'Semua fitur Premium',
       'RSVP online hingga 1.000 tamu',
-      'QR Code tiket per tamu',
+      'Galeri foto (maks 50)',
       'Embed live streaming',
       'Akses tema eksklusif',
       'Custom domain sendiri',
+      'Priority support via WhatsApp',
       'Aktif 12 bulan penuh',
     ],
-    highlightedFeature: 'RSVP online hingga 1.000 tamu',
+    highlightedFeature: 'Custom domain sendiri',
   },
   colors: {
     background: '#F5F0EB',
@@ -63,7 +70,7 @@ export const PRICING_CONFIG = {
   },
 } as const;
 
-export type PricingPackage = 'starter' | 'premium' | 'pro';
+export type PricingPackage = 'starter' | 'premium' | 'exclusive';
 export type PricingConfig = typeof PRICING_CONFIG;
 
 export function getPackagePrice(pkg: PricingPackage): number {

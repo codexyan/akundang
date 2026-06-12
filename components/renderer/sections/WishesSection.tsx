@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, Wish } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, hasMediaBg, cardBg } from '../SectionWrapper'
-import { Loader2 } from 'lucide-react'
+import { getComponentStyle, btnStyle, inputBorderStyle, cardRadius } from '@/lib/component-styles'
+import { Loader2, Send } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 
@@ -53,7 +54,7 @@ function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
       {/* Avatar */}
       <div style={{
         width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-        background: `${accent}10`, border: `1px solid ${accent}15`,
+        background: `${accent}18`, border: `1px solid ${accent}28`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginTop: 2,
       }}>
@@ -66,15 +67,15 @@ function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           position: 'relative',
-          background: `${accent}06`,
+          background: `${accent}10`,
           borderRadius: '2px 14px 14px 14px',
           padding: '10px 14px 8px',
-          border: `1px solid ${accent}08`,
+          border: `1px solid ${accent}18`,
         }}>
           {/* Tail */}
           <div style={{
             position: 'absolute', top: 0, left: -6, width: 0, height: 0,
-            borderTop: `6px solid ${accent}06`,
+            borderTop: `6px solid ${accent}10`,
             borderLeft: '6px solid transparent',
           }} />
 
@@ -89,7 +90,7 @@ function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
             <p
               suppressHydrationWarning
               style={{
-                fontSize: fsb(7), color: `${text}40`,
+                fontSize: fsb(7), color: `${text}55`,
                 fontFamily: bodyFont, whiteSpace: 'nowrap', flexShrink: 0,
               }}>
               {timeStr}
@@ -98,7 +99,7 @@ function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
 
           {/* Message */}
           <p style={{
-            fontSize: fsb(10.5), color: `${text}80`,
+            fontSize: fsb(10.5), color: `${text}90`,
             fontFamily: bodyFont, lineHeight: 1.75,
           }}>
             {wish.message}
@@ -147,6 +148,7 @@ function WishMarquee({ wishes, accent, text, headingFont, bodyFont }: {
 export default function WishesSection({ section, data, meta, invitationId, initialWishes = [] }: Props) {
   const { accent, text } = meta.color_scheme
   const font = resolveFont(meta, section)
+  const cs = getComponentStyle(meta.component_style)
 
   const isPreview = !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(invitationId)
 
@@ -241,7 +243,7 @@ export default function WishesSection({ section, data, meta, invitationId, initi
             padding: '24px 20px',
             ...(hasMediaBg(section.background)
               ? { ...cardBg(section.background) }
-              : { border: `1px solid ${accent}15`, background: `${accent}04` }),
+              : { border: `1px solid ${accent}25`, background: `${accent}08` }),
             marginBottom: 28,
           }}>
           <form onSubmit={handleSubmit}>
@@ -250,14 +252,14 @@ export default function WishesSection({ section, data, meta, invitationId, initi
                 type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="Nama Anda"
                 style={{
-                  width: '100%', padding: '10px 0',
-                  background: 'transparent', border: 'none',
-                  borderBottom: `1px solid ${accent}18`,
+                  width: '100%',
+                  background: 'transparent',
+                  ...inputBorderStyle(cs.border, accent),
                   color: text, fontSize: fsb(12), fontFamily: headingFont,
                   outline: 'none', transition: 'border-color 0.2s',
                 }}
-                onFocus={e => (e.target.style.borderBottomColor = `${accent}50`)}
-                onBlur={e => (e.target.style.borderBottomColor = `${accent}18`)}
+                onFocus={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent, true))}
+                onBlur={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent))}
               />
             </div>
 
@@ -267,19 +269,19 @@ export default function WishesSection({ section, data, meta, invitationId, initi
                 placeholder="Tuliskan doa dan ucapan selamat..."
                 rows={3}
                 style={{
-                  width: '100%', padding: '10px 0',
-                  background: 'transparent', border: 'none',
-                  borderBottom: `1px solid ${accent}18`,
+                  width: '100%',
+                  background: 'transparent',
+                  ...inputBorderStyle(cs.border, accent),
                   color: text, fontSize: fsb(11), fontFamily: bodyFont,
                   outline: 'none', transition: 'border-color 0.2s',
                   resize: 'none', lineHeight: 1.8,
                 }}
-                onFocus={e => (e.target.style.borderBottomColor = `${accent}50`)}
-                onBlur={e => (e.target.style.borderBottomColor = `${accent}18`)}
+                onFocus={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent, true))}
+                onBlur={e => Object.assign(e.target.style, inputBorderStyle(cs.border, accent))}
               />
               <span style={{
                 position: 'absolute', bottom: 4, right: 0,
-                fontSize: fsb(7.5), color: message.length > MAX_MSG * 0.9 ? '#c45' : `${text}35`,
+                fontSize: fsb(7.5), color: message.length > MAX_MSG * 0.9 ? '#c45' : `${text}50`,
               }}>
                 {message.length}/{MAX_MSG}
               </span>
@@ -295,19 +297,12 @@ export default function WishesSection({ section, data, meta, invitationId, initi
               whileTap={{ scale: 0.97 }}
               style={{
                 width: '100%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '12px 0',
-                background: 'transparent',
-                border: `1px solid ${!name.trim() || !message.trim() ? `${accent}12` : `${accent}30`}`,
-                color: !name.trim() || !message.trim() ? `${text}35` : text,
-                fontSize: fsb(9.5), fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase',
+                ...btnStyle(cs.button, cs.border, accent, text, { disabled: !name.trim() || !message.trim() }),
                 fontFamily: bodyFont,
-                cursor: !name.trim() || !message.trim() ? 'default' : 'pointer',
-                transition: 'all 0.3s',
               }}>
               {loading
                 ? <><Loader2 size={11} className="animate-spin" /> Mengirim</>
-                : 'Kirim Ucapan'
+                : <><Send size={11} strokeWidth={1.8} /> Kirim Ucapan</>
               }
             </motion.button>
 
@@ -330,11 +325,11 @@ export default function WishesSection({ section, data, meta, invitationId, initi
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.25 } } }}>
 
             <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
-              <div style={{ flex: 1, height: '0.5px', background: `${accent}15` }} />
-              <span style={{ fontSize: fsb(8), color: `${text}45`, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: bodyFont }}>
+              <div style={{ flex: 1, height: '0.5px', background: `${accent}25` }} />
+              <span style={{ fontSize: fsb(8), color: `${text}60`, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: bodyFont }}>
                 {wishes.length} Ucapan
               </span>
-              <div style={{ flex: 1, height: '0.5px', background: `${accent}15` }} />
+              <div style={{ flex: 1, height: '0.5px', background: `${accent}25` }} />
             </div>
 
             {shouldMarquee ? (

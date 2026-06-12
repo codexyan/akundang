@@ -190,13 +190,13 @@ export default function Pricing() {
           />
 
           <PricingCard
-            name="Paket Pro"
-            badge={PRICING_CONFIG.pro.badge}
-            price={PRICING_CONFIG.pro.priceFormatted}
-            duration={PRICING_CONFIG.pro.durationLabel}
-            features={PRICING_CONFIG.pro.features}
-            highlightedFeature={PRICING_CONFIG.pro.highlightedFeature}
-            ctaLabel="Pilih Pro"
+            name="Paket Exclusive"
+            badge={PRICING_CONFIG.exclusive.badge}
+            price={PRICING_CONFIG.exclusive.priceFormatted}
+            duration={PRICING_CONFIG.exclusive.durationLabel}
+            features={PRICING_CONFIG.exclusive.features}
+            highlightedFeature={PRICING_CONFIG.exclusive.highlightedFeature}
+            ctaLabel="Pilih Exclusive"
             ctaHint="Untuk acara besar & eksklusif"
             variant="gold"
             delay={0.2}

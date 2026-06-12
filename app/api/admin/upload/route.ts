@@ -6,21 +6,26 @@ import { isAdmin } from '@/lib/auth'
 
 const MAX_IMAGE_SIZE = 5  * 1024 * 1024  // 5 MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024  // 50 MB
+const MAX_AUDIO_SIZE = 15 * 1024 * 1024  // 15 MB
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg']
+const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/m4a', 'audio/x-m4a', 'audio/wav', 'audio/wave', 'audio/x-wav', 'audio/ogg', 'audio/aac']
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp']
 const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.ogg']
+const AUDIO_EXTS = ['.mp3', '.m4a', '.wav', '.ogg', '.aac']
 
 // Whitelist allowed folders to prevent path traversal
-const ALLOWED_FOLDERS = ['covers', 'thumbnails', 'assets', 'templates', 'decorations']
+const ALLOWED_FOLDERS = ['covers', 'thumbnails', 'assets', 'templates', 'decorations', 'music']
 
-function fileKind(file: File): 'image' | 'video' | null {
+function fileKind(file: File): 'image' | 'video' | 'audio' | null {
   if (IMAGE_TYPES.includes(file.type)) return 'image'
   if (VIDEO_TYPES.includes(file.type)) return 'video'
+  if (AUDIO_TYPES.includes(file.type)) return 'audio'
   const ext = path.extname(file.name).toLowerCase()
   if (IMAGE_EXTS.includes(ext)) return 'image'
   if (VIDEO_EXTS.includes(ext)) return 'video'
+  if (AUDIO_EXTS.includes(ext)) return 'audio'
   return null
 }
 
@@ -44,20 +49,18 @@ export async function POST(req: NextRequest) {
 
     const kind = fileKind(file)
     if (!kind) {
-      return NextResponse.json({ error: 'Format tidak didukung — gunakan JPG, PNG, WebP, MP4, atau WebM' }, { status: 400 })
+      return NextResponse.json({ error: 'Format tidak didukung. Gunakan JPG, PNG, WebP, MP4, WebM, MP3, M4A, atau WAV' }, { status: 400 })
     }
 
-    const maxSize = kind === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+    const maxSize = kind === 'video' ? MAX_VIDEO_SIZE : kind === 'audio' ? MAX_AUDIO_SIZE : MAX_IMAGE_SIZE
     if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: `File terlalu besar (maks ${kind === 'video' ? '50MB untuk video' : '5MB untuk foto'})` },
-        { status: 400 }
-      )
+      const label = kind === 'video' ? '50MB untuk video' : kind === 'audio' ? '15MB untuk audio' : '5MB untuk foto'
+      return NextResponse.json({ error: `File terlalu besar (maks ${label})` }, { status: 400 })
     }
 
     // Validate extension
     const ext = path.extname(file.name).toLowerCase()
-    const allowedExts = kind === 'video' ? VIDEO_EXTS : IMAGE_EXTS
+    const allowedExts = kind === 'video' ? VIDEO_EXTS : kind === 'audio' ? AUDIO_EXTS : IMAGE_EXTS
     if (!allowedExts.includes(ext)) {
       return NextResponse.json({ error: 'Ekstensi file tidak valid' }, { status: 400 })
     }

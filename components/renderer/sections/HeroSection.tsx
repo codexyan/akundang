@@ -252,7 +252,7 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: ts(2) } }}
           style={{
             fontSize: titleSz, fontWeight: font.hw as number,
-            lineHeight: 1.05, color: '#fff',
+            lineHeight: 1.05, color: text,
             fontFamily: `'${font.heading}', serif`,
             letterSpacing: '0.06em', margin: 0,
             textShadow: shadow ? '0 3px 32px rgba(0,0,0,0.7)' : 'none',
@@ -275,7 +275,7 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: ts(4) } }}
           style={{
             fontSize: titleSz, fontWeight: font.hw as number,
-            lineHeight: 1.05, color: '#fff',
+            lineHeight: 1.05, color: text,
             fontFamily: `'${font.heading}', serif`,
             letterSpacing: '0.06em', margin: 0,
             textShadow: shadow ? '0 3px 32px rgba(0,0,0,0.7)' : 'none',
@@ -287,7 +287,7 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}
             style={{
               fontSize: taglineSz, lineHeight: 1.85, marginTop: 16,
-              fontStyle: 'italic', color: 'rgba(255,255,255,0.68)',
+              fontStyle: 'italic', color: `${text}aa`,
               fontFamily: `'${font.body}', serif`, maxWidth: 240, margin: '16px auto 0',
             }}
           >{data.tagline}</motion.p>
@@ -447,7 +447,7 @@ function HeroOverlayCard({ section, data, font, accent, text }: {
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: ts(3) } }}
-          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: '#fff', fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
         >{data.groom_name}</motion.h1>
 
         <motion.p
@@ -457,7 +457,7 @@ function HeroOverlayCard({ section, data, font, accent, text }: {
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: ts(5) } }}
-          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: '#fff', fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
+          style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0, textShadow: shadow ? '0 2px 12px rgba(0,0,0,0.3)' : 'none' }}
         >{data.bride_name}</motion.h1>
 
         <Divider accent={accent} delay={stagger * 6} dur={dur * 0.8} />
@@ -465,7 +465,7 @@ function HeroOverlayCard({ section, data, font, accent, text }: {
         {data.tagline && (
           <motion.p
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(7) } }}
-            style={{ fontSize: taglineSz, lineHeight: 1.8, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', fontFamily: `'${font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
+            style={{ fontSize: taglineSz, lineHeight: 1.8, fontStyle: 'italic', color: `${text}b3`, fontFamily: `'${font.body}', serif`, maxWidth: 260, margin: '0 auto' }}
           >{data.tagline}</motion.p>
         )}
       </motion.div>
@@ -556,7 +556,7 @@ function HeroArch({ section, data, font, accent, text }: {
           <path d="M40,400 L40,120 Q40,20 140,20 Q240,20 240,120 L240,400"
             stroke={`${accent}55`} strokeWidth="1.5" fill="none" />
           <path d="M50,400 L50,130 Q50,35 140,35 Q230,35 230,130 L230,400"
-            stroke={`${accent}22`} strokeWidth="0.8" fill="none" />
+            stroke={`${accent}35`} strokeWidth="0.8" fill="none" />
         </svg>
 
         <Bismillah section={section} font={font} accent={accent} delay={stagger * 2} />
@@ -617,7 +617,7 @@ function HeroMagazine({ section, data, font, accent, text }: {
             backgroundImage: `url(${data.couple_photo_url})`,
             backgroundSize: 'cover', backgroundPosition: 'center',
             border: `2px solid ${accent}66`,
-            boxShadow: `0 0 0 6px ${accent}11, 0 8px 24px rgba(0,0,0,0.15)`,
+            boxShadow: `0 0 0 6px ${accent}22, 0 8px 24px rgba(0,0,0,0.15)`,
           }}
         />
       )}

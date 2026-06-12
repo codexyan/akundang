@@ -113,7 +113,7 @@ export default function QuoteForm({
               <p className="text-xs text-stone-700 italic leading-relaxed line-clamp-2">
                 &ldquo;{quote.text}&rdquo;
               </p>
-              <p className="text-xs text-stone-500 mt-1">— {quote.author}</p>
+              <p className="text-xs text-stone-500 mt-1">- {quote.author}</p>
             </button>
           ))}
         </div>

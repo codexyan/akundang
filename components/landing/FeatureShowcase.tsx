@@ -427,7 +427,7 @@ export default function FeatureShowcase() {
             transition={{ duration: 0.5 }}
           >
             <p className="text-sm text-stone-400 mb-5">
-              Semua fitur di atas tersedia dalam satu paket, satu harga.
+              Fitur lengkap tersedia mulai dari paket Starter. Pilih yang sesuai kebutuhan kalian.
             </p>
             <Link href="/templates"
               className="inline-flex items-center gap-2 bg-forest-500 hover:bg-forest-600 text-white font-semibold px-8 py-3.5 rounded-2xl text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forest-200">

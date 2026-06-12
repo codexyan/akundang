@@ -264,7 +264,7 @@ function DefaultView({ section, data, meta }: Props) {
             style={{
               width: 140, height: 140, borderRadius: '50%',
               border: `1px solid ${accent}30`,
-              boxShadow: `0 0 0 6px ${accent}08`,
+              boxShadow: `0 0 0 6px ${accent}18`,
               marginBottom: 24,
             }}
             variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }}>
@@ -361,7 +361,7 @@ function TimelineView({ section, data, meta }: Props) {
               <div style={{
                 position: 'absolute', left: -28, top: 6,
                 width: 11, height: 11, borderRadius: '50%',
-                background: accent, boxShadow: `0 0 0 4px ${accent}15`,
+                background: accent, boxShadow: `0 0 0 4px ${accent}25`,
               }}>
                 <div style={{
                   position: 'absolute', top: '50%', left: '50%',
@@ -389,7 +389,7 @@ function TimelineView({ section, data, meta }: Props) {
                 <div style={{
                   width: '100%', height: 140,
                   borderRadius: 2, overflow: 'hidden',
-                  marginBottom: 10, border: `1px solid ${accent}10`,
+                  marginBottom: 10, border: `1px solid ${accent}20`,
                 }}>
                   <img src={item.photo_url} alt={item.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

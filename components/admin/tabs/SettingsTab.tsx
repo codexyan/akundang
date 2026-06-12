@@ -31,6 +31,8 @@ export interface SiteSettings {
   socialInstagram: string
   socialTwitter: string
   socialGithub: string
+  appDomain: string
+  demoSubdomain: string
   logoUsage?: LogoUsage
 }
 
@@ -168,6 +170,46 @@ function BrandingPanel({
             onChange={(v) => update('siteTagline', v)}
             placeholder="Digital Wedding Invitation"
           />
+        </div>
+      </div>
+
+      <div className="h-px bg-gray-100" />
+
+      {/* Domain & Subdomain */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Domain & Subdomain</h3>
+        <p className="text-[11px] text-gray-400 mb-4">Konfigurasi domain utama dan subdomain demo untuk preview template gratis</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field
+            label="Domain Utama"
+            icon={Globe2}
+            value={form.appDomain ?? ''}
+            onChange={(v) => update('appDomain', v)}
+            placeholder="akundang.id"
+            hint="Domain utama website (tanpa http://). Digunakan untuk routing subdomain."
+          />
+          <Field
+            label="Subdomain Demo"
+            icon={Globe2}
+            value={form.demoSubdomain ?? ''}
+            onChange={(v) => update('demoSubdomain', v)}
+            placeholder="demo"
+            hint={`Template gratis bisa diakses di ${form.demoSubdomain || 'demo'}.${form.appDomain || 'akundang.id'}`}
+          />
+        </div>
+        <div className="mt-3 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+          <p className="text-[11px] text-indigo-700 font-medium mb-1">Pola URL Undangan</p>
+          <div className="space-y-1">
+            <p className="text-[10px] text-indigo-600 font-mono">
+              User: <span className="font-semibold">nama-pasangan.{form.appDomain || 'akundang.id'}</span>
+            </p>
+            <p className="text-[10px] text-indigo-600 font-mono">
+              Demo: <span className="font-semibold">{form.demoSubdomain || 'demo'}.{form.appDomain || 'akundang.id'}</span>
+            </p>
+            <p className="text-[10px] text-indigo-600 font-mono">
+              Localhost: <span className="font-semibold">localhost:3000?slug=nama-pasangan</span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -369,7 +411,7 @@ function LogoUsagePanel({
           <div className="flex items-center gap-1.5 text-[10px] text-stone-400">
             <Smartphone className="w-3 h-3" /> Mobile
           </div>
-          <span className="text-[10px] text-stone-300">— tampilan menyesuaikan otomatis</span>
+          <span className="text-[10px] text-stone-300">· tampilan menyesuaikan otomatis</span>
         </div>
       </div>
     </div>
@@ -423,7 +465,7 @@ function AccountPanel({ adminEmail }: { adminEmail: string }) {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gray-50 rounded-lg p-3.5 border border-gray-100">
           <div>
             <p className="text-xs font-medium text-gray-700">Password</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">Di-hash dengan bcrypt · Terakhir diubah: —</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">Di-hash dengan bcrypt · Terakhir diubah: -</p>
           </div>
           <button
             className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors whitespace-nowrap"

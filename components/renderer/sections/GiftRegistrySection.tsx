@@ -135,7 +135,7 @@ function CarouselCard({ item, ctx, index, bg }: {
       }}
       style={{
         width: 200, flexShrink: 0,
-        border: `1px solid ${accent}12`,
+        border: `1px solid ${accent}22`,
         overflow: 'hidden',
         display: 'flex', flexDirection: 'column',
         ...(bg ? cardBg(bg) : {}),
@@ -147,14 +147,14 @@ function CarouselCard({ item, ctx, index, bg }: {
           width: '100%', height: 160,
           backgroundImage: `url(${item.image_url})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
-          borderBottom: `1px solid ${accent}08`,
+          borderBottom: `1px solid ${accent}18`,
         }} />
       ) : (
         <div style={{
           width: '100%', height: 120,
-          background: `linear-gradient(135deg, ${accent}08, ${accent}14)`,
+          background: `linear-gradient(135deg, ${accent}12, ${accent}22)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderBottom: `1px solid ${accent}08`,
+          borderBottom: `1px solid ${accent}18`,
         }}>
           <span style={{ fontSize: 28, color: `${accent}25` }}>&#10029;</span>
         </div>
@@ -243,7 +243,7 @@ function DefaultVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; c
           <motion.button onClick={() => scroll('left')} whileTap={{ scale: 0.85 }}
             style={{
               width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `${accent}08`, border: `1px solid ${accent}18`,
+              background: `${accent}12`, border: `1px solid ${accent}28`,
               borderRadius: '50%', cursor: 'pointer',
               opacity: canScrollLeft ? 1 : 0.3, transition: 'opacity 0.2s',
             }}>
@@ -257,7 +257,7 @@ function DefaultVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; c
           <motion.button onClick={() => scroll('right')} whileTap={{ scale: 0.85 }}
             style={{
               width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `${accent}08`, border: `1px solid ${accent}18`,
+              background: `${accent}12`, border: `1px solid ${accent}28`,
               borderRadius: '50%', cursor: 'pointer',
               opacity: canScrollRight ? 1 : 0.3, transition: 'opacity 0.2s',
             }}>
@@ -290,7 +290,7 @@ function GridVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
             visible: { opacity: 1, y: 0, transition: { delay: 0.1 + i * 0.07 } },
           }}
           style={{
-            border: `1px solid ${accent}12`,
+            border: `1px solid ${accent}22`,
             overflow: 'hidden',
             display: 'flex', flexDirection: 'column',
             ...cardBg(bg),
@@ -302,14 +302,14 @@ function GridVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
               width: '100%', height: 120,
               backgroundImage: `url(${item.image_url})`,
               backgroundSize: 'cover', backgroundPosition: 'center',
-              borderBottom: `1px solid ${accent}08`,
+              borderBottom: `1px solid ${accent}18`,
             }} />
           ) : (
             <div style={{
               width: '100%', height: 80,
-              background: `linear-gradient(135deg, ${accent}08, ${accent}14)`,
+              background: `linear-gradient(135deg, ${accent}12, ${accent}22)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderBottom: `1px solid ${accent}08`,
+              borderBottom: `1px solid ${accent}18`,
             }}>
               <span style={{ fontSize: 22, color: `${accent}25` }}>&#10029;</span>
             </div>
@@ -363,7 +363,7 @@ function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
           style={{
             display: 'flex', gap: 14, alignItems: 'center',
             padding: '14px 0',
-            borderBottom: i < registry.length - 1 ? `1px solid ${accent}10` : 'none',
+            borderBottom: i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
           }}>
 
           {/* Image — small square */}
@@ -372,14 +372,14 @@ function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
               width: 56, height: 56, flexShrink: 0,
               backgroundImage: `url(${item.image_url})`,
               backgroundSize: 'cover', backgroundPosition: 'center',
-              border: `1px solid ${accent}10`,
+              border: `1px solid ${accent}20`,
             }} />
           ) : (
             <div style={{
               width: 56, height: 56, flexShrink: 0,
-              background: `linear-gradient(135deg, ${accent}06, ${accent}12)`,
+              background: `linear-gradient(135deg, ${accent}10, ${accent}1a)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: `1px solid ${accent}10`,
+              border: `1px solid ${accent}20`,
             }}>
               <span style={{ fontSize: 18, color: `${accent}25` }}>&#10029;</span>
             </div>
@@ -458,7 +458,7 @@ function MinimalVariant({ registry, ctx }: { registry: GiftRegistryLink[]; ctx: 
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
             padding: '12px 0',
-            borderBottom: i < registry.length - 1 ? `1px solid ${accent}10` : 'none',
+            borderBottom: i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
           }}>
 
           {/* Label + marketplace */}

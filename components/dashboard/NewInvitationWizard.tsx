@@ -411,7 +411,7 @@ function StepCouple({ data, set, errors }: { data: WizardData; set: (k: keyof Wi
           <textarea
             className={`${inputCls} resize-none`}
             rows={2}
-            placeholder="Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan... — QS Ar-Rum: 21"
+            placeholder="Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan... (QS Ar-Rum: 21)"
             value={data.tagline}
             onChange={e => set('tagline', e.target.value)}
           />
@@ -541,7 +541,7 @@ function StepResepsi({ data, set, errors }: { data: WizardData; set: (k: keyof W
             }
           }}
         />
-        <span className="text-sm text-gray-600">Tanggal sama dengan akad (<span className="text-gray-800 font-medium">{data.akad_date || '—'}</span>)</span>
+        <span className="text-sm text-gray-600">Tanggal sama dengan akad (<span className="text-gray-800 font-medium">{data.akad_date || '-'}</span>)</span>
       </label>
 
       <div className="grid grid-cols-2 gap-4">

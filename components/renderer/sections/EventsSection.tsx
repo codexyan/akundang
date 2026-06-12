@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, EventDetail } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, cardBg } from '../SectionWrapper'
+import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import { format, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { MapPin, Clock, CalendarDays } from 'lucide-react'
@@ -14,6 +15,7 @@ type StyleCtx = {
   accent: string; text: string; primary: string
   headingFont: string; bodyFont: string
   events: EventItem[]
+  cs: ReturnType<typeof getComponentStyle>
 }
 
 function fmt(d: string) {
@@ -37,7 +39,7 @@ function FooterOrnament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
       <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
-      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
+      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
       <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
     </div>
   )
@@ -65,17 +67,28 @@ function EditorialHeader({ accent, text, headingFont, bodyFont }: {
   )
 }
 
-function MapsButton({ url, accent, bodyFont, light }: { url: string; accent: string; bodyFont: string; light?: boolean }) {
-  const color = light ? '#fff' : accent
-  const border = light ? 'rgba(255,255,255,0.25)' : `${accent}30`
+function MapsButton({ url, accent, text, bodyFont, light, cs }: { url: string; accent: string; text: string; bodyFont: string; light?: boolean; cs: ReturnType<typeof getComponentStyle> }) {
+  if (light) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-2"
+        style={{
+          padding: '10px 20px', border: '1px solid rgba(255,255,255,0.25)',
+          color: '#fff', fontSize: fsb(8.5), fontWeight: 500, letterSpacing: '0.18em',
+          textTransform: 'uppercase' as const, fontFamily: bodyFont,
+          textDecoration: 'none', transition: 'all 0.3s',
+        }}>
+        <MapPin size={12} style={{ opacity: 0.6 }} />
+        Lihat Peta
+      </a>
+    )
+  }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      className="inline-flex items-center gap-2"
       style={{
-        padding: '10px 20px', border: `1px solid ${border}`,
-        color, fontSize: fsb(8.5), fontWeight: 500, letterSpacing: '0.18em',
-        textTransform: 'uppercase' as const, fontFamily: bodyFont,
-        textDecoration: 'none', transition: 'all 0.3s',
+        ...btnStyle(cs.button, cs.border, accent, text, { size: 'sm' }),
+        fontFamily: bodyFont,
+        textDecoration: 'none',
       }}>
       <MapPin size={12} style={{ opacity: 0.6 }} />
       Lihat Peta
@@ -86,10 +99,10 @@ function MapsButton({ url, accent, bodyFont, light }: { url: string; accent: str
 function EventInfo({ event, accent, text, bodyFont, light }: {
   event: EventDetail; accent: string; text: string; bodyFont: string; light?: boolean
 }) {
-  const labelColor = light ? 'rgba(255,255,255,0.6)' : `${text}55`
-  const valueColor = light ? 'rgba(255,255,255,0.9)' : `${text}90`
-  const subColor = light ? 'rgba(255,255,255,0.6)' : `${text}55`
-  const iconColor = light ? 'rgba(255,255,255,0.5)' : `${accent}55`
+  const labelColor = light ? 'rgba(255,255,255,0.6)' : `${text}65`
+  const valueColor = light ? 'rgba(255,255,255,0.9)' : `${text}95`
+  const subColor = light ? 'rgba(255,255,255,0.6)' : `${text}65`
+  const iconColor = light ? 'rgba(255,255,255,0.5)' : `${accent}70`
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -124,7 +137,7 @@ function EventInfo({ event, accent, text, bodyFont, light }: {
 // ─── DEFAULT: Clean editorial cards ────────────────────────────────────────
 
 function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, text, headingFont, bodyFont, events } = ctx
+  const { accent, text, headingFont, bodyFont, events, cs } = ctx
 
   return (
     <SectionWrapper section={section} className="px-6">
@@ -140,7 +153,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             <motion.div key={title}
               variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { delay: index * 0.12 } } }}>
 
-              <div style={{ border: `1px solid ${accent}18`, padding: 24, ...cardBg(section.background) }}>
+              <div style={{ border: `1px solid ${accent}28`, padding: 24, ...cardBg(section.background) }}>
                 {/* Title bar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                   <div style={{ width: 3, height: 28, background: `${accent}50` }} />
@@ -166,7 +179,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
 
                 {event.maps_url && (
                   <div style={{ marginTop: 20 }}>
-                    <MapsButton url={event.maps_url} accent={accent} bodyFont={bodyFont} />
+                    <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
                   </div>
                 )}
               </div>
@@ -183,7 +196,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
 // ─── CINEMATIC: Full-bleed venue photos with overlay ───────────────────────
 
 function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, headingFont, bodyFont, events } = ctx
+  const { accent, headingFont, bodyFont, events, cs } = ctx
 
   return (
     <SectionWrapper section={section}>
@@ -256,7 +269,7 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
 
                 {event.maps_url && (
                   <div style={{ marginTop: 20 }}>
-                    <MapsButton url={event.maps_url} accent={accent} bodyFont={bodyFont} light />
+                    <MapsButton url={event.maps_url} accent={accent} text="#ffffff" bodyFont={bodyFont} light cs={cs} />
                   </div>
                 )}
               </div>
@@ -266,7 +279,7 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
 
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
           <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
-          <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
+          <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
           <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </div>
@@ -277,7 +290,7 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
 // ─── TIMELINE: Vertical line with dots ─────────────────────────────────────
 
 function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, text, headingFont, bodyFont, events } = ctx
+  const { accent, text, headingFont, bodyFont, events, cs } = ctx
 
   return (
     <SectionWrapper section={section} className="px-6">
@@ -290,7 +303,7 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 
         <div style={{ position: 'relative', paddingLeft: 28 }}>
           {/* Vertical line */}
-          <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: '0.5px', background: `${accent}25` }} />
+          <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: '0.5px', background: `${accent}35` }} />
 
           {events.map(({ title, event, index }) => (
             <motion.div key={title}
@@ -326,7 +339,7 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 
               {event.maps_url && (
                 <div style={{ marginTop: 16 }}>
-                  <MapsButton url={event.maps_url} accent={accent} bodyFont={bodyFont} />
+                  <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
                 </div>
               )}
             </motion.div>
@@ -342,7 +355,7 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 // ─── MAGAZINE: Left-aligned with accent bar ────────────────────────────────
 
 function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, text, headingFont, bodyFont, events } = ctx
+  const { accent, text, headingFont, bodyFont, events, cs } = ctx
 
   return (
     <SectionWrapper section={section} className="px-6">
@@ -392,7 +405,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 
                   {event.maps_url && (
                     <div style={{ marginTop: 16 }}>
-                      <MapsButton url={event.maps_url} accent={accent} bodyFont={bodyFont} />
+                      <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
                     </div>
                   )}
                 </div>
@@ -410,7 +423,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 // ─── ELEGANT: Centered with ornamental dividers ────────────────────────────
 
 function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, text, headingFont, bodyFont, events } = ctx
+  const { accent, text, headingFont, bodyFont, events, cs } = ctx
 
   return (
     <SectionWrapper section={section} className="px-6">
@@ -460,7 +473,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               )}
 
               {event.maps_url && (
-                <MapsButton url={event.maps_url} accent={accent} bodyFont={bodyFont} />
+                <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
               )}
             </motion.div>
           ))}
@@ -484,11 +497,13 @@ export default function EventsSection({ section, data, meta }: Props) {
     data.resepsi ? { title: 'Resepsi',    event: data.resepsi, index: 1 } : null,
   ].filter(Boolean) as EventItem[]
 
+  const cs = getComponentStyle(meta.component_style)
   const ctx: StyleCtx = {
     accent, text, primary,
     headingFont: `'${font.heading}', serif`,
     bodyFont: `'${font.body}', serif`,
     events,
+    cs,
   }
 
   switch (variant) {

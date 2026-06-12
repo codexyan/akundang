@@ -451,7 +451,7 @@ function StepAcara({ form, onPatch }: { form: FormData; onPatch: (key: keyof For
   return (
     <div className="max-w-lg">
       <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Detail acara</h2>
-      <p className="text-stone-400 text-sm mb-6">Opsional — bisa diisi atau dilengkapi nanti di dashboard.</p>
+      <p className="text-stone-400 text-sm mb-6">Opsional, bisa diisi atau dilengkapi nanti di dashboard.</p>
 
       {/* Akad */}
       <div className="bg-stone-50 rounded-2xl border border-stone-100 p-5 mb-4">
@@ -552,7 +552,7 @@ function Row({ icon, label, value, mono }: { icon: React.ReactNode; label: strin
       <span className="shrink-0 mt-0.5">{icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] text-stone-400 font-medium">{label}</p>
-        <p className={`text-sm text-stone-800 font-semibold truncate ${mono ? 'font-mono' : ''}`}>{value || '—'}</p>
+        <p className={`text-sm text-stone-800 font-semibold truncate ${mono ? 'font-mono' : ''}`}>{value || '-'}</p>
       </div>
     </div>
   )
