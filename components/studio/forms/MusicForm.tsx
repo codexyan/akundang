@@ -1,12 +1,7 @@
-/**
- * MusicForm - Background music settings (TIER 1 CRITICAL)
- * Upload music or choose from library
- */
-
 'use client'
 
-import { useState, useRef } from 'react'
-import { Music, Upload, Loader2, Play, Pause, Trash2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Music, Loader2, Play, Pause, Trash2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import FormField, { inputClass } from '../ui/FormField'
 import SectionCard from '../ui/SectionCard'
@@ -18,25 +13,14 @@ interface MusicFormProps {
   onMusicTitleChange: (title: string) => void
 }
 
-// Pre-selected wedding songs library
-const MUSIC_LIBRARY = [
-  {
-    title: 'Perfect - Ed Sheeran',
-    url: 'https://www.bensound.com/bensound-music/bensound-romantic.mp3',
-  },
-  {
-    title: 'A Thousand Years - Christina Perri',
-    url: 'https://www.bensound.com/bensound-music/bensound-love.mp3',
-  },
-  {
-    title: 'Marry You - Bruno Mars',
-    url: 'https://www.bensound.com/bensound-music/bensound-happiness.mp3',
-  },
-  {
-    title: 'All of Me - John Legend',
-    url: 'https://www.bensound.com/bensound-music/bensound-tenderness.mp3',
-  },
-]
+interface LibraryTrack {
+  id: string
+  title: string
+  artist: string
+  category: string
+  url: string
+  usage_count: number
+}
 
 export default function MusicForm({
   musicUrl,
@@ -44,52 +28,36 @@ export default function MusicForm({
   onMusicUrlChange,
   onMusicTitleChange,
 }: MusicFormProps) {
-  const [uploading, setUploading] = useState(false)
   const [playing, setPlaying] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const [library, setLibrary] = useState<LibraryTrack[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [filterCat, setFilterCat] = useState('all')
+  const [search, setSearch] = useState('')
+  const [loadingLib, setLoadingLib] = useState(true)
   const audioRef = useRef<HTMLAudioElement>(null)
+  const previewAudioRef = useRef<HTMLAudioElement>(null)
 
-  async function handleUpload(file: File) {
-    if (!file.type.startsWith('audio/')) {
-      toast.error('File harus berupa audio (MP3, M4A, dll)')
-      return
-    }
+  useEffect(() => {
+    fetch('/api/music')
+      .then(r => r.json())
+      .then(data => {
+        setLibrary(data.tracks || [])
+        setCategories(data.categories || [])
+      })
+      .catch(() => {})
+      .finally(() => setLoadingLib(false))
+  }, [])
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Ukuran file maksimal 10MB')
-      return
-    }
-
-    setUploading(true)
-
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      form.append('folder', 'music')
-
-      const res = await fetch('/api/user/upload', { method: 'POST', body: form })
-      if (!res.ok) throw new Error('Upload failed')
-
-      const { url } = await res.json()
-      onMusicUrlChange(url)
-      onMusicTitleChange(file.name.replace(/\.[^/.]+$/, ''))
-      toast.success('Musik berhasil diupload!')
-    } catch (error) {
-      toast.error('Gagal upload musik')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  function selectFromLibrary(song: typeof MUSIC_LIBRARY[0]) {
-    onMusicUrlChange(song.url)
-    onMusicTitleChange(song.title)
-    toast.success(`Dipilih: ${song.title}`)
+  function selectFromLibrary(track: LibraryTrack) {
+    stopPreview()
+    onMusicUrlChange(track.url)
+    onMusicTitleChange(track.artist ? `${track.title} - ${track.artist}` : track.title)
+    toast.success(`Dipilih: ${track.title}`)
   }
 
   function togglePlay() {
     if (!audioRef.current) return
-
     if (playing) {
       audioRef.current.pause()
       setPlaying(false)
@@ -99,41 +67,58 @@ export default function MusicForm({
     }
   }
 
+  function togglePreview(track: LibraryTrack) {
+    if (previewId === track.id) {
+      stopPreview()
+      return
+    }
+    if (previewAudioRef.current) {
+      previewAudioRef.current.src = track.url
+      previewAudioRef.current.play()
+      setPreviewId(track.id)
+    }
+  }
+
+  function stopPreview() {
+    previewAudioRef.current?.pause()
+    setPreviewId(null)
+  }
+
   function removeMusic() {
     onMusicUrlChange('')
     onMusicTitleChange('')
     setPlaying(false)
-    if (audioRef.current) audioRef.current.pause()
+    audioRef.current?.pause()
   }
+
+  const filtered = library.filter(t => {
+    if (filterCat !== 'all' && t.category !== filterCat) return false
+    if (search) {
+      const q = search.toLowerCase()
+      return t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
+    }
+    return true
+  })
 
   return (
     <SectionCard
       title="Musik Latar"
       icon={Music}
-      description="Musik yang diputar saat membuka undangan (opsional)"
+      description="Pilih musik dari perpustakaan untuk undangan kamu"
     >
-      {/* Audio player (hidden) */}
-      {musicUrl && (
-        <audio
-          ref={audioRef}
-          src={musicUrl}
-          onEnded={() => setPlaying(false)}
-        />
-      )}
+      {musicUrl && <audio ref={audioRef} src={musicUrl} onEnded={() => setPlaying(false)} />}
+      <audio ref={previewAudioRef} onEnded={() => setPreviewId(null)} />
 
-      {/* Current Music */}
       {musicUrl ? (
         <div className="p-4 border-2 border-gold-300 bg-gold-50 rounded-xl space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-gold-500 text-white flex items-center justify-center">
               <Music size={24} />
             </div>
-
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-stone-900">{musicTitle || 'Musik Terpilih'}</p>
               <p className="text-xs text-stone-600 truncate">{musicUrl}</p>
             </div>
-
             <div className="flex gap-2">
               <button
                 type="button"
@@ -143,7 +128,6 @@ export default function MusicForm({
               >
                 {playing ? <Pause size={16} /> : <Play size={16} />}
               </button>
-
               <button
                 type="button"
                 onClick={removeMusic}
@@ -154,7 +138,6 @@ export default function MusicForm({
               </button>
             </div>
           </div>
-
           <FormField label="Judul Musik" hint="Nama lagu yang ditampilkan">
             <input
               type="text"
@@ -166,74 +149,87 @@ export default function MusicForm({
           </FormField>
         </div>
       ) : (
-        <>
-          {/* Music Library */}
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-stone-700">Pilih dari Perpustakaan</p>
-            <div className="space-y-2">
-              {MUSIC_LIBRARY.map((song) => (
-                <button
-                  key={song.title}
-                  type="button"
-                  onClick={() => selectFromLibrary(song)}
-                  className="w-full p-3 border border-stone-200 rounded-lg hover:border-gold-400 hover:bg-gold-50 transition-all flex items-center gap-3 text-left"
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-stone-700">Pilih dari Perpustakaan</p>
+
+          {/* Search & Filter */}
+          {library.length > 4 && (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="Cari lagu..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-stone-200 rounded-lg focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none"
+                />
+              </div>
+              {categories.length > 1 && (
+                <select
+                  value={filterCat}
+                  onChange={e => setFilterCat(e.target.value)}
+                  className="px-2 py-1.5 text-sm border border-stone-200 rounded-lg focus:ring-1 focus:ring-gold-500 outline-none bg-white"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center">
-                    <Music size={20} className="text-stone-600" />
+                  <option value="all">Semua</option>
+                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+            </div>
+          )}
+
+          {loadingLib ? (
+            <div className="flex items-center justify-center py-6">
+              <Loader2 size={20} className="animate-spin text-stone-400" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-stone-400 text-center py-4">
+              {library.length === 0 ? 'Belum ada musik tersedia' : 'Tidak ditemukan'}
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {filtered.map(track => (
+                <div
+                  key={track.id}
+                  className="w-full p-3 border border-stone-200 rounded-lg hover:border-gold-400 hover:bg-gold-50 transition-all flex items-center gap-3"
+                >
+                  <button
+                    type="button"
+                    onClick={() => togglePreview(track)}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      previewId === track.id
+                        ? 'bg-gold-500 text-white'
+                        : 'bg-stone-100 text-stone-600 hover:bg-gold-100'
+                    }`}
+                  >
+                    {previewId === track.id ? <Pause size={16} /> : <Play size={16} />}
+                  </button>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-semibold text-stone-900 truncate">{track.title}</p>
+                    <p className="text-xs text-stone-500 truncate">
+                      {track.artist || track.category}
+                      {track.usage_count > 0 && (
+                        <span className="text-stone-400"> · {track.usage_count}x dipilih</span>
+                      )}
+                    </p>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-stone-900">{song.title}</p>
-                    <p className="text-xs text-stone-500">Klik untuk memilih</p>
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => selectFromLibrary(track)}
+                    className="px-3 py-1.5 text-xs font-medium bg-gold-500 text-white rounded-lg hover:bg-gold-600 transition-colors shrink-0"
+                  >
+                    Pilih
+                  </button>
+                </div>
               ))}
             </div>
-          </div>
-
-          {/* Upload Custom */}
-          <div className="pt-4 border-t border-stone-200">
-            <p className="text-sm font-semibold text-stone-700 mb-2">Atau Upload Musik Sendiri</p>
-
-            <input
-              ref={fileRef}
-              type="file"
-              accept="audio/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleUpload(file)
-              }}
-            />
-
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl hover:border-gold-400 hover:bg-gold-50 transition-all flex flex-col items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 size={24} className="animate-spin text-gold-500" />
-                  <span className="text-sm font-medium text-stone-600">Mengupload...</span>
-                </>
-              ) : (
-                <>
-                  <Upload size={24} className="text-stone-500" />
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-stone-700">Upload file musik</p>
-                    <p className="text-xs text-stone-500 mt-1">MP3, M4A, atau WAV (maks. 10MB)</p>
-                  </div>
-                </>
-              )}
-            </button>
-          </div>
-        </>
+          )}
+        </div>
       )}
 
-      {/* Settings Info */}
       <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-xs text-blue-800">
-          <strong>Tips:</strong> Musik akan diputar otomatis saat tamu membuka undangan. Pastikan memilih lagu yang tidak terlalu keras dan sesuai dengan tema pernikahan.
+          <strong>Tips:</strong> Musik mulai diputar sejak halaman pembuka ditampilkan. Tamu bisa pause/play melalui kontrol musik. Pilih lagu yang sesuai dengan suasana pernikahan.
         </p>
       </div>
     </SectionCard>

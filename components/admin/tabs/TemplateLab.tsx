@@ -1,17 +1,19 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
 import {
-  FlaskConical, Save, RefreshCw, Maximize2, Move,
+  FlaskConical, Save, RefreshCw, Maximize2, Move, Music, Volume2,
   ChevronUp, ChevronDown, Eye, EyeOff, Palette, Type,
   LayoutTemplate, Code2, Sparkles, Loader2, Plus, Trash2, Rocket, X, GripVertical, Play, Check, Lock, Unlock,
+  Paintbrush, ImageIcon, Undo2, Redo2, FileCheck, FileClock, PenLine, ArrowLeft,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getTransitionVariants } from '@/components/renderer/transitions/useTransition'
-import type { TransitionType, TemplateMeta, ColorScheme, OpeningConfig, TemplateCategory, ColorPalette, DecorationAsset } from '@/lib/types'
+import type { TransitionType, TemplateMeta, ColorScheme, OpeningConfig, MusicConfig, TemplateCategory, ColorPalette, DecorationAsset } from '@/lib/types'
 import type { TemplateRecord, NewInvitationData, Wish, SectionType, GiftAccount } from '@/lib/types'
+import { checkColorScheme, autoFixColorScheme, contrastRatio, wcagLevel, wcagLevelLarge } from '@/lib/color-contrast'
 import DecorationMoodboard from '@/components/admin/DecorationMoodboard'
 import JAVANESE_GOLD from '@/lib/template-configs/javanese-gold'
 import ImageUploadField from '@/components/admin/ImageUploadField'
@@ -22,6 +24,8 @@ const InvitationPreview = dynamic(() => import('@/components/renderer/Invitation
 const CoverPagePreview  = dynamic(() => import('@/components/renderer/CoverPagePreview'),  { ssr: false })
 const OpeningScene      = dynamic(() => import('@/components/renderer/OpeningScene'),      { ssr: false })
 const LoadingScreen     = dynamic(() => import('@/components/renderer/LoadingScreen'),     { ssr: false })
+const FloatingMusicPlayer = dynamic(() => import('@/components/renderer/FloatingMusicPlayer'), { ssr: false })
+const InvitationRenderer  = dynamic(() => import('@/components/renderer/InvitationRenderer'),  { ssr: false })
 
 // ─── Sample data default untuk preview ────────────────────────
 const PREVIEW_DATA_DEFAULT: NewInvitationData = {
@@ -395,7 +399,7 @@ function VariantThumb({ type, variant, p, a, t }: { type: string; variant: strin
       <div style={{ ...base, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
         <div style={{ width: 20, height: 1.5, backgroundColor: `${a}55` }} />
         <div style={{ width: 28, height: 2, backgroundColor: t }} />
-        <div style={{ fontSize: 7, color: `${t}55`, fontStyle: 'italic' }}>—</div>
+        <div style={{ fontSize: 7, color: `${t}55`, fontStyle: 'italic' }}>·</div>
         <div style={{ width: 20, height: 1.5, backgroundColor: `${a}55` }} />
         <div style={{ width: 24, height: 2, backgroundColor: t }} />
       </div>
@@ -766,7 +770,7 @@ const ANIM_LABEL: Record<string, string> = {
 const HEADING_FONTS = ['Playfair Display', 'Cinzel', 'Cormorant Garamond', 'Great Vibes', 'Dancing Script', 'Libre Baskerville', 'EB Garamond']
 const BODY_FONTS = ['Lato', 'Raleway', 'Nunito', 'Cormorant Garamond', 'Roboto', 'Inter', 'Jost']
 
-type ConfigTab = 'identity' | 'colors' | 'opening' | 'loading' | 'sections' | 'music'
+type ConfigTab = 'identity' | 'colors' | 'style' | 'opening' | 'loading' | 'sections' | 'music'
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (Cover)', profiles: 'Profil Pasangan', countdown: 'Hitung Mundur',
@@ -789,21 +793,38 @@ function deepClone<T>(obj: T): T {
 // ─── Main Component ────────────────────────────────────────────
 interface TemplateLabProps {
   onGoToManagement?: () => void
-  /** Kategori dari Manajemen (CRUD admin). Fallback ke built-in kalau undefined. */
+  onTemplateReleased?: (rec: TemplateRecord) => void
+  editRecord?: TemplateRecord | null
   categories?: TemplateCategory[]
-  /** Palet warna dari Manajemen (CRUD admin). Fallback ke COLOR_PALETTES hardcoded. */
   palettes?: ColorPalette[]
+  templateRecords?: TemplateRecord[]
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-export default function TemplateLab({ onGoToManagement, categories: categoriesProp, palettes: palettesProp }: TemplateLabProps) {
-  const [config, setConfig] = useState<TemplateRecord>(() => ({
-    ...deepClone(JAVANESE_GOLD),
-    id: makeId(),
-    name: 'Template Baru',
-    slug: 'template-baru',
-  }))
+const DEFAULT_MUSIC_CFG: MusicConfig = {
+  enabled: true, autoplay: true, volume: 0.3, loop: true,
+  player_style: 'pill', player_position: 'bottom-right',
+  player_animation: 'fade-slide', show_title: true, player_size: 'md',
+}
+
+export default function TemplateLab({ onGoToManagement, onTemplateReleased, editRecord, categories: categoriesProp, palettes: palettesProp, templateRecords = [], onDirtyChange }: TemplateLabProps) {
+  const [config, setConfig] = useState<TemplateRecord>(() => {
+    if (editRecord) return deepClone(editRecord)
+    return {
+      ...deepClone(JAVANESE_GOLD),
+      id: makeId(),
+      name: 'Template Baru',
+      slug: 'template-baru',
+    }
+  })
+  const [isEditMode, setIsEditMode] = useState(!!editRecord)
+  const [showSetup, setShowSetup] = useState(() => !editRecord)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [setupName, setSetupName] = useState('')
+  const [setupDesc, setSetupDesc] = useState('')
+  const [setupCategory, setSetupCategory] = useState('modern')
   const [activeTab, setActiveTab] = useState<ConfigTab>('identity')
-  const [previewMode, setPreviewMode] = useState<'invitation' | 'cover' | 'opening' | 'loading'>('invitation')
+  const [previewMode, setPreviewMode] = useState<'invitation' | 'opening' | 'loading'>('opening')
   const [previewGuestName, setPreviewGuestName] = useState('Bapak Budi dan Keluarga')
   const [previewData, setPreviewData] = useState<NewInvitationData>(PREVIEW_DATA_DEFAULT)
   const [showHowTo, setShowHowTo] = useState(false)
@@ -868,6 +889,11 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   const [draggingSectionId, setDraggingSectionId]   = useState<string | null>(null)
   const [dragOverSectionId, setDragOverSectionId]   = useState<string | null>(null)
   const [lockedSectionIds, setLockedSectionIds]     = useState<Set<string>>(new Set())
+  const [musicLibraryCat, setMusicLibraryCat]       = useState('Semua')
+  const [musicPreviewId, setMusicPreviewId]         = useState<string | null>(null)
+  const [musicLibrary, setMusicLibrary]             = useState<{ id: string; title: string; artist: string; category: string; url: string }[]>([])
+  const [musicLibraryCats, setMusicLibraryCats]     = useState<string[]>([])
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null)
   const [previewPlaying, setPreviewPlaying]         = useState(false)
   const [previewLoading, setPreviewLoading]         = useState(false)
   const [decorPreviewKey, setDecorPreviewKey]       = useState(0)
@@ -888,20 +914,71 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     thumbnail_url: '',
   })
   const [releasing, setReleasing] = useState(false)
+  const [deleteLabConfirm, setDeleteLabConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [changeCount, setChangeCount] = useState(0)
+  useEffect(() => { onDirtyChange?.(changeCount > 0) }, [changeCount, onDirtyChange])
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
   const [previewKey, setPreviewKey] = useState(0)
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [fullscreenPhase, setFullscreenPhase] = useState<'opening' | 'loading' | 'main'>('opening')
-  const [savedLabs, setSavedLabs] = useState<{ id: string; name: string; config: TemplateRecord }[]>(() => {
+  const [savedLabs, setSavedLabs] = useState<{ id: string; name: string; config: TemplateRecord; status?: 'draft' | 'released'; savedAt?: string; description?: string }[]>(() => {
     try { return JSON.parse(localStorage.getItem('akundang-labs') || '[]') }
     catch { return [] }
   })
 
-  // Auto-switch preview ke Cover saat tab Opening aktif
   useEffect(() => {
-    if (activeTab === 'opening') setPreviewMode('opening')
+    if (editRecord) {
+      const cloned = deepClone(editRecord)
+      setConfig(cloned)
+      setIsEditMode(true)
+      setPreviewKey(k => k + 1)
+      setDecorPreviewKey(k => k + 1)
+      setChangeCount(0)
+      setLastSavedAt(null)
+      initialConfigRef.current = JSON.stringify(cloned.config)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editRecord?.id])
+
+  useEffect(() => {
+    if (activeTab !== 'opening') { setDecorEditMode(false); setSelectedAssetId(null) }
+    if (activeTab === 'opening' || activeTab === 'identity' || activeTab === 'colors' || activeTab === 'style') setPreviewMode('opening')
     else if (activeTab === 'loading') setPreviewMode('loading')
-    else { setPreviewMode('invitation'); setDecorEditMode(false); setSelectedAssetId(null) }
+    else if (activeTab === 'sections' || activeTab === 'music') setPreviewMode('invitation')
+    if (activeTab !== 'music') {
+      musicAudioRef.current?.pause()
+      setMusicPreviewId(null)
+    }
   }, [activeTab])
+
+  const toggleMusicPreview = useCallback((songId: string, songUrl: string) => {
+    if (musicPreviewId === songId) {
+      musicAudioRef.current?.pause()
+      setMusicPreviewId(null)
+      return
+    }
+    if (musicAudioRef.current) { musicAudioRef.current.pause(); musicAudioRef.current.src = '' }
+    const audio = new Audio(songUrl)
+    audio.volume = 0.4
+    audio.onended = () => setMusicPreviewId(null)
+    audio.onerror = () => { toast.error('Gagal memutar preview. File belum tersedia'); setMusicPreviewId(null) }
+    musicAudioRef.current = audio
+    audio.play().then(() => setMusicPreviewId(songId)).catch(() => { toast.error('Gagal memutar audio'); setMusicPreviewId(null) })
+  }, [musicPreviewId])
+
+  useEffect(() => {
+    return () => { musicAudioRef.current?.pause() }
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/admin/music')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.tracks) setMusicLibrary(data.tracks)
+        if (data?.categories?.length) setMusicLibraryCats(data.categories)
+      })
+      .catch(() => {})
+  }, [])
 
   // Derived
   const cfg = config.config
@@ -909,6 +986,80 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     () => [...cfg.sections].sort((a, b) => a.order - b.order),
     [cfg.sections]
   )
+
+  // ── Change tracking + Undo/Redo ─────────────────────────────
+  const initialConfigRef = useRef(JSON.stringify(config.config))
+  const historyRef = useRef<string[]>([JSON.stringify(config.config)])
+  const historyIndexRef = useRef(0)
+  const isUndoRedoRef = useRef(false)
+  const MAX_HISTORY = 80
+
+  const changeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const current = JSON.stringify(config.config)
+
+    if (changeTimerRef.current) clearTimeout(changeTimerRef.current)
+    changeTimerRef.current = setTimeout(() => {
+      if (current !== initialConfigRef.current) {
+        const init = JSON.parse(initialConfigRef.current)
+        const curr = config.config
+        let diffs = 0
+        if (JSON.stringify(init.meta) !== JSON.stringify(curr.meta)) diffs++
+        if (JSON.stringify(init.opening) !== JSON.stringify(curr.opening)) diffs++
+        if (JSON.stringify(init.loading) !== JSON.stringify(curr.loading)) diffs++
+        if (JSON.stringify(init.music) !== JSON.stringify(curr.music)) diffs++
+        const initSections = init.sections || []
+        const currSections = curr.sections || []
+        for (let i = 0; i < Math.max(initSections.length, currSections.length); i++) {
+          if (JSON.stringify(initSections[i]) !== JSON.stringify(currSections[i])) diffs++
+        }
+        setChangeCount(Math.max(diffs, 1))
+      } else {
+        setChangeCount(0)
+      }
+    }, 400)
+
+    if (!isUndoRedoRef.current) {
+      const stack = historyRef.current
+      const idx = historyIndexRef.current
+      if (stack[idx] !== current) {
+        historyRef.current = [...stack.slice(0, idx + 1), current].slice(-MAX_HISTORY)
+        historyIndexRef.current = historyRef.current.length - 1
+      }
+    }
+    isUndoRedoRef.current = false
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.config])
+
+  const canUndo = historyIndexRef.current > 0
+  const canRedo = historyIndexRef.current < historyRef.current.length - 1
+
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return
+    historyIndexRef.current -= 1
+    isUndoRedoRef.current = true
+    const restored = JSON.parse(historyRef.current[historyIndexRef.current])
+    setConfig(prev => ({ ...prev, config: restored }))
+  }, [])
+
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return
+    historyIndexRef.current += 1
+    isUndoRedoRef.current = true
+    const restored = JSON.parse(historyRef.current[historyIndexRef.current])
+    setConfig(prev => ({ ...prev, config: restored }))
+  }, [])
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo() }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo() }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   // ── Updaters ──────────────────────────────────────────────────
   const updateMeta = useCallback((patch: Partial<TemplateMeta>) => {
@@ -945,6 +1096,18 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     setConfig(prev => ({
       ...prev,
       config: { ...prev.config, opening: { ...prev.config.opening, ...patch } },
+    }))
+  }, [])
+
+  const musicCfg: MusicConfig = { ...DEFAULT_MUSIC_CFG, ...cfg.music }
+
+  const updateMusic = useCallback((patch: Partial<MusicConfig>) => {
+    setConfig(prev => ({
+      ...prev,
+      config: {
+        ...prev.config,
+        music: { ...DEFAULT_MUSIC_CFG, ...(prev.config.music ?? {}), ...patch },
+      },
     }))
   }, [])
 
@@ -1028,14 +1191,30 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   // applyJson removed - JSON tab replaced with Musik tab
 
   // ── Save/Load lab ─────────────────────────────────────────────
-  function saveLab() {
-    const name = prompt('Nama eksperimen ini:', config.name || 'Lab ' + new Date().toLocaleDateString('id-ID'))
-    if (!name) return
-    const entry = { id: makeId(), name, config }
-    const updated = [...savedLabs, entry]
-    setSavedLabs(updated)
-    localStorage.setItem('akundang-labs', JSON.stringify(updated))
-    toast.success('Eksperimen disimpan di browser!')
+  function saveLabDirect() {
+    const labName = config.name.trim()
+    if (!labName) {
+      toast.error('Nama template belum diisi')
+      return
+    }
+    const now = new Date()
+    if (!isEditMode) {
+      const existing = savedLabs.find(l => l.name === labName)
+      if (existing) {
+        const updated = savedLabs.map(l => l.id === existing.id ? { ...l, config, savedAt: now.toISOString(), description: templateDesc } : l)
+        setSavedLabs(updated)
+        localStorage.setItem('akundang-labs', JSON.stringify(updated))
+      } else {
+        const entry = { id: makeId(), name: labName, config, status: 'draft' as const, savedAt: now.toISOString(), description: templateDesc }
+        const updated = [...savedLabs, entry]
+        setSavedLabs(updated)
+        localStorage.setItem('akundang-labs', JSON.stringify(updated))
+      }
+    }
+    setLastSavedAt(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }))
+    setChangeCount(0)
+    initialConfigRef.current = JSON.stringify(config.config)
+    toast.success(`"${labName}" tersimpan!`)
   }
 
   function loadLab(id: string) {
@@ -1043,6 +1222,8 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     if (!entry) return
     setConfig(deepClone(entry.config))
     setPreviewKey(k => k + 1)
+    setChangeCount(0)
+    initialConfigRef.current = JSON.stringify(entry.config.config)
     toast.success(`"${entry.name}" dimuat`)
   }
 
@@ -1057,7 +1238,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
       name: config.name || 'Template Baru',
       slug: config.slug || 'template-baru',
       category: (config.config.meta.category as typeof releaseForm.category) || 'modern',
-      status: 'draft',
+      status: isEditMode ? (config.status as 'draft' | 'active') || 'draft' : 'draft',
       description: templateDesc || '',
       price: config.price ?? 0,
       required_package: config.required_package ?? 'all',
@@ -1067,49 +1248,94 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
   }
 
   async function submitRelease() {
-    if (!releaseForm.name || !releaseForm.slug) {
-      toast.error('Nama dan slug wajib diisi')
-      return
-    }
-    if (!/^[a-z0-9-]{3,30}$/.test(releaseForm.slug)) {
-      toast.error('Slug: 3-30 karakter, huruf kecil + angka + strip saja')
-      return
+    const useName = isEditMode ? config.name : releaseForm.name
+    const useSlug = isEditMode ? config.slug : releaseForm.slug
+
+    if (!isEditMode) {
+      if (!releaseForm.name || !releaseForm.slug) {
+        toast.error('Nama dan slug wajib diisi')
+        return
+      }
+      if (!/^[a-z0-9-]{3,30}$/.test(releaseForm.slug)) {
+        toast.error('Slug: 3-30 karakter, huruf kecil + angka + strip saja')
+        return
+      }
     }
     setReleasing(true)
     try {
-      // Kirim FULL TemplateRecord ke endpoint baru — config.sections + designTokens ikut tersimpan,
-      // beda dgn endpoint legacy /api/admin/templates yang cuma metadata.
-      const body = {
-        id: releaseForm.slug,
-        name: releaseForm.name,
-        slug: releaseForm.slug,
-        category: releaseForm.category,
-        config: {
-          ...config.config,
-          meta: {
-            ...config.config.meta,
+      const body: Record<string, unknown> = isEditMode
+        ? {
+            id: config.id,
+            name: useName,
+            slug: useSlug,
+            category: config.category,
+            config: config.config,
+            thumbnail_url: config.thumbnail_url,
+            status: config.status,
+            price: config.price,
+            required_package: config.required_package,
+          }
+        : {
+            id: releaseForm.slug,
             name: releaseForm.name,
             slug: releaseForm.slug,
             category: releaseForm.category,
-            thumbnail: releaseForm.thumbnail_url,
-          },
-        },
-        thumbnail_url: releaseForm.thumbnail_url,
-        status: releaseForm.status,
-        price: releaseForm.price,
-        required_package: releaseForm.required_package,
-      }
-      const res = await fetch('/api/admin/template-records', {
-        method: 'POST',
+            config: {
+              ...config.config,
+              meta: {
+                ...config.config.meta,
+                name: releaseForm.name,
+                slug: releaseForm.slug,
+                category: releaseForm.category,
+                thumbnail: releaseForm.thumbnail_url,
+              },
+            },
+            thumbnail_url: releaseForm.thumbnail_url,
+            status: releaseForm.status,
+            price: releaseForm.price,
+            required_package: releaseForm.required_package,
+          }
+
+      const url = isEditMode
+        ? `/api/admin/template-records/${config.id}`
+        : '/api/admin/template-records'
+      const method = isEditMode ? 'PATCH' : 'POST'
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error || 'Gagal mendaftarkan template')
+        throw new Error(data?.error || 'Gagal menyimpan template')
       }
+
+      const savedRecord: TemplateRecord = {
+        ...config,
+        ...body,
+        config: body.config,
+      } as unknown as TemplateRecord
+
+      onTemplateReleased?.(savedRecord)
       setShowRelease(false)
-      setReleaseSuccess(releaseForm.name)
+      if (isEditMode) {
+        toast.success('Perubahan tersimpan')
+        setShowSetup(true)
+        setIsEditMode(false)
+      } else {
+        setReleaseSuccess(useName)
+      }
+      setChangeCount(0)
+      initialConfigRef.current = JSON.stringify(config.config)
+      setLastSavedAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }))
+      // Mark matching saved lab as released
+      const matchIdx = savedLabs.findIndex(l => l.config.slug === config.slug || l.name === useName)
+      if (matchIdx >= 0) {
+        const updLabs = savedLabs.map((l, i) => i === matchIdx ? { ...l, status: 'released' as const } : l)
+        setSavedLabs(updLabs)
+        localStorage.setItem('akundang-labs', JSON.stringify(updLabs))
+      }
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -1117,7 +1343,333 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
     }
   }
 
+  // ── Setup screen completion ──
+  function completeSetup() {
+    if (!setupName.trim()) { toast.error('Nama template wajib diisi'); return }
+    const slug = setupName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    setConfig(prev => ({ ...prev, name: setupName.trim(), slug }))
+    setTemplateDesc(setupDesc)
+    if (setupCategory) updateMeta({ category: setupCategory as typeof cfg.meta.category })
+    setShowSetup(false)
+    setActiveTab('identity')
+  }
+
   // ─────────────────────────────────────────────────────────────
+  // ── Setup Screen: home / studio overview ──
+  if (showSetup && !isEditMode) {
+    const allCards: {
+      type: 'record' | 'lab'
+      id: string
+      name: string
+      status: string
+      category: string
+      sectionCount: number
+      date: string
+      colorScheme?: ColorScheme
+      description?: string
+      labId?: string
+      coverPhoto?: string
+      openingType?: string
+      coupleNames?: string
+      thumbnailUrl?: string
+    }[] = []
+
+    // Template records from management
+    for (const rec of templateRecords) {
+      const cs = rec.config?.meta?.color_scheme
+      const enabledSections = rec.config?.sections?.filter((s: { enabled?: boolean }) => s.enabled)?.length ?? 0
+      const opening = rec.config?.opening
+      allCards.push({
+        type: 'record',
+        id: rec.id,
+        name: rec.name,
+        status: rec.status ?? 'draft',
+        category: rec.config?.meta?.category ?? '',
+        sectionCount: enabledSections,
+        date: rec.created_at ?? '',
+        colorScheme: cs,
+        description: (rec as unknown as Record<string, unknown>).description as string | undefined,
+        coverPhoto: opening?.cover_photo_url || opening?.background_image,
+        openingType: opening?.type,
+        coupleNames: rec.name,
+        thumbnailUrl: rec.thumbnail_url,
+      })
+    }
+
+    // Saved labs from browser localStorage (skip if same name as a Management record)
+    const recordNames = new Set(templateRecords.map(r => r.name))
+    const recordSlugs = new Set(templateRecords.map(r => r.slug))
+    for (const l of savedLabs) {
+      if (recordNames.has(l.name) || recordSlugs.has(l.config.slug)) continue
+      const cs = l.config.config?.meta?.color_scheme
+      const enabledSections = l.config.config?.sections?.filter((s: { enabled?: boolean }) => s.enabled)?.length ?? 0
+      const opening = l.config.config?.opening
+      allCards.push({
+        type: 'lab',
+        id: l.id,
+        name: l.name,
+        status: l.status === 'released' ? 'released' : 'draft',
+        category: '',
+        sectionCount: enabledSections,
+        date: l.savedAt ?? '',
+        colorScheme: cs,
+        description: l.description,
+        labId: l.id,
+        coverPhoto: opening?.cover_photo_url || opening?.background_image,
+        openingType: opening?.type,
+        coupleNames: l.name,
+        thumbnailUrl: l.config.thumbnail_url,
+      })
+    }
+
+    const isEmpty = allCards.length === 0
+
+    return (
+      <div className="flex h-full overflow-hidden">
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20 overflow-y-auto">
+
+          {/* ── Header ── */}
+          <div className="px-8 pt-8 pb-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+                <FlaskConical className="w-6 h-6 text-indigo-600" />
+                Studio Desain
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">Kelola dan buat template undangan digital</p>
+            </div>
+            <button
+              onClick={() => { setSetupName(''); setSetupDesc(''); setSetupCategory('modern'); setShowCreateModal(true) }}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" /> Buat Template Baru
+            </button>
+          </div>
+
+          {/* ── Empty State ── */}
+          {isEmpty && (
+            <div className="flex-1 flex items-center justify-center px-8">
+              <div className="text-center max-w-sm">
+                <svg viewBox="0 0 200 160" className="w-48 h-40 mx-auto mb-6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Palette body */}
+                  <ellipse cx="100" cy="130" rx="70" ry="8" fill="#e0e7ff" opacity="0.6" />
+                  <rect x="50" y="40" rx="16" ry="16" width="100" height="80" fill="#eef2ff" stroke="#a5b4fc" strokeWidth="2" />
+                  {/* Color dots on palette */}
+                  <circle cx="72" cy="65" r="8" fill="#818cf8" />
+                  <circle cx="95" cy="65" r="8" fill="#a78bfa" />
+                  <circle cx="118" cy="65" r="8" fill="#c4b5fd" />
+                  {/* Brush handle */}
+                  <rect x="130" y="28" width="8" height="50" rx="4" fill="#6366f1" transform="rotate(25 134 53)" />
+                  <rect x="124" y="22" width="20" height="12" rx="4" fill="#4f46e5" transform="rotate(25 134 28)" />
+                  {/* Sparkle top-left */}
+                  <path d="M38 30 L40 24 L42 30 L48 32 L42 34 L40 40 L38 34 L32 32 Z" fill="#a5b4fc" />
+                  {/* Sparkle top-right */}
+                  <path d="M158 20 L160 16 L162 20 L166 22 L162 24 L160 28 L158 24 L154 22 Z" fill="#c4b5fd" />
+                  {/* Sparkle small */}
+                  <path d="M165 55 L166 52 L167 55 L170 56 L167 57 L166 60 L165 57 L162 56 Z" fill="#818cf8" opacity="0.6" />
+                  {/* Lines on palette */}
+                  <rect x="68" y="85" width="30" height="3" rx="1.5" fill="#c7d2fe" />
+                  <rect x="68" y="93" width="50" height="3" rx="1.5" fill="#c7d2fe" />
+                  <rect x="68" y="101" width="40" height="3" rx="1.5" fill="#c7d2fe" />
+                </svg>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Belum ada template</h2>
+                <p className="text-sm text-gray-500 mb-6">Mulai buat desain pertama untuk undangan digital kamu</p>
+                <button
+                  onClick={() => { setSetupName(''); setSetupDesc(''); setSetupCategory('modern'); setShowCreateModal(true) }}
+                  className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                  <Sparkles className="w-4 h-4" /> Buat Template Pertama
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Template Cards Grid ── */}
+          {!isEmpty && (
+            <div className="px-8 pb-8 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {allCards.map(card => {
+                  const statusMap: Record<string, { label: string; dot: string; text: string }> = {
+                    active:   { label: 'Aktif',   dot: 'bg-emerald-500', text: 'text-emerald-700 bg-emerald-50' },
+                    draft:    { label: 'Draft',   dot: 'bg-amber-400',   text: 'text-amber-700 bg-amber-50' },
+                    archived: { label: 'Arsip',   dot: 'bg-red-400',     text: 'text-red-600 bg-red-50' },
+                    released: { label: 'Dirilis', dot: 'bg-emerald-500', text: 'text-emerald-700 bg-emerald-50' },
+                  }
+                  const st = statusMap[card.status] ?? statusMap.draft
+                  const cs = card.colorScheme
+                  const textColor = cs?.text || '#fff'
+                  const accentColor = cs?.accent || '#d4a574'
+                  const primaryColor = cs?.primary || '#1a1a2e'
+
+                  return (
+                    <div
+                      key={`${card.type}-${card.id}`}
+                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer relative"
+                      onClick={() => {
+                        if (card.type === 'record') {
+                          const rec = templateRecords.find(r => r.id === card.id)
+                          if (rec) { setConfig(deepClone(rec)); setIsEditMode(true); setShowSetup(false) }
+                        } else {
+                          loadLab(card.id); setShowSetup(false)
+                        }
+                      }}
+                    >
+                      {/* Full-card cover — opening style as thumbnail */}
+                      <div className="aspect-[9/16] w-full relative overflow-hidden" style={{ background: primaryColor }}>
+                        {card.coverPhoto ? (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={card.coverPhoto} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primaryColor}dd 20%, ${primaryColor}40 50%, transparent 80%)` }} />
+                          </>
+                        ) : card.thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={card.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                        ) : null}
+
+                        {/* Opening-style overlay text */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 px-4">
+                          <p className="text-[8px] tracking-[0.2em] uppercase opacity-70" style={{ color: textColor }}>Undangan Pernikahan</p>
+                          <p className="text-base font-bold text-center mt-1 leading-tight" style={{ color: textColor }}>{card.name}</p>
+                          <div className="mt-2 px-4 py-1 rounded-sm" style={{ border: `1px solid ${accentColor}60`, fontSize: 8, color: textColor, letterSpacing: '0.15em' }}>
+                            BUKA UNDANGAN
+                          </div>
+                        </div>
+
+                        {/* Status badge */}
+                        <div className="absolute top-2.5 left-2.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold backdrop-blur-md ${st.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                            {st.label}
+                          </span>
+                        </div>
+
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold bg-black/50 px-4 py-2 rounded-xl backdrop-blur-sm opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all">
+                            Edit Desain
+                          </span>
+                        </div>
+
+                        {/* Delete button for labs only */}
+                        {card.type === 'lab' && (
+                          <button
+                            onClick={e => { e.stopPropagation(); setDeleteLabConfirm({ id: card.id, name: card.name }) }}
+                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/30 text-white/80 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Minimal info bar */}
+                      <div className="bg-white px-3 py-2.5 border-t border-gray-100">
+                        <h3 className="text-xs font-bold text-gray-900 truncate">{card.name}</h3>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
+                          <span>{card.sectionCount} seksi</span>
+                          {card.date && (
+                            <>
+                              <span className="w-0.5 h-0.5 rounded-full bg-gray-300" />
+                              <span>{new Date(card.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Create New Modal ── */}
+        {showCreateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900">Buat Template Baru</h2>
+                <button onClick={() => setShowCreateModal(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Nama Template <span className="text-red-400">*</span></label>
+                  <input
+                    autoFocus
+                    value={setupName}
+                    onChange={e => setSetupName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && setupName.trim()) { setShowCreateModal(false); completeSetup() } }}
+                    placeholder="contoh: Modern Sage, Javanese Royal..."
+                    className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                  {setupName.trim() && (
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Slug: <span className="font-mono font-semibold text-indigo-600">{setupName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Deskripsi</label>
+                  <textarea
+                    value={setupDesc}
+                    onChange={e => setSetupDesc(e.target.value)}
+                    rows={2}
+                    placeholder="Deskripsi singkat tema ini untuk ditampilkan ke user..."
+                    className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Kategori</label>
+                  <div className="flex flex-wrap gap-2">
+                    {categoryList.map(c => (
+                      <button key={c.slug} onClick={() => setSetupCategory(c.slug)}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                          setupCategory === c.slug
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                        }`}>
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6">
+                <button
+                  onClick={() => { setShowCreateModal(false); completeSetup() }}
+                  disabled={!setupName.trim()}
+                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-40 transition-colors shadow-sm"
+                >
+                  <Sparkles className="w-4 h-4" /> Mulai Mendesain
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Delete Confirmation Modal ── */}
+        {deleteLabConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setDeleteLabConfirm(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-5 h-5 text-red-600" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base mb-1">Hapus Draft</h3>
+                <p className="text-sm text-gray-500">Draft &ldquo;{deleteLabConfirm.name}&rdquo; akan dihapus permanen dan tidak bisa dipulihkan.</p>
+              </div>
+              <div className="px-6 pb-6 flex gap-3">
+                <button onClick={() => setDeleteLabConfirm(null)} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                <button onClick={() => { deleteLab(deleteLabConfirm.id); setDeleteLabConfirm(null) }} className="flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-colors">Ya, Hapus</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full overflow-hidden">
 
@@ -1127,9 +1679,34 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-2 mb-3">
+            <button onClick={() => {
+              if (changeCount > 0 && config.name.trim() && !isEditMode) {
+                const now = new Date()
+                const existing = savedLabs.find(l => l.name === config.name)
+                if (existing) {
+                  const updated = savedLabs.map(l => l.id === existing.id ? { ...l, config, savedAt: now.toISOString() } : l)
+                  setSavedLabs(updated)
+                  localStorage.setItem('akundang-labs', JSON.stringify(updated))
+                } else {
+                  const entry = { id: makeId(), name: config.name, config, status: 'draft' as const, savedAt: now.toISOString(), description: templateDesc }
+                  const updated = [...savedLabs, entry]
+                  setSavedLabs(updated)
+                  localStorage.setItem('akundang-labs', JSON.stringify(updated))
+                }
+                toast.success('Perubahan tersimpan otomatis')
+              }
+              setShowSetup(true)
+              setIsEditMode(false)
+            }} className="p-1.5 -ml-1 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Kembali ke Studio">
+              <ArrowLeft className="w-4 h-4" />
+            </button>
             <FlaskConical className="w-5 h-5 text-indigo-600" />
-            <h2 className="font-bold text-gray-900">Template Lab</h2>
-            <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold ml-1">BETA</span>
+            <h2 className="font-bold text-gray-900">{isEditMode ? 'Edit Template' : 'Template Lab'}</h2>
+            {isEditMode ? (
+              <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold ml-1">EDITING</span>
+            ) : (
+              <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold ml-1">BETA</span>
+            )}
           </div>
           <input
             value={config.name}
@@ -1151,6 +1728,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
           {([
             ['identity', LayoutTemplate, 'Identitas'],
             ['colors',   Palette,        'Warna'],
+            ['style',    Paintbrush,     'Gaya'],
             ['opening',  Sparkles,       'Opening'],
             ['loading',  Loader2,        'Loading'],
             ['sections', Type,           'Sections'],
@@ -1329,7 +1907,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         fontWeight: 700,
                         padding: '4px 8px', borderRadius: 6, display: 'inline-block',
                       }}>
-                        Aa — Ikhwal &amp; Fani
+                        Aa · Ikhwal &amp; Fani
                       </p>
                     </div>
                   </div>
@@ -1382,17 +1960,39 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                     Eksperimen Tersimpan ({savedLabs.length})
                   </p>
-                  <p className="text-[9px] text-gray-400 mb-2">Tersimpan di browser kamu — tidak hilang kalau tab ditutup.</p>
+                  <p className="text-[9px] text-gray-400 mb-2">Tersimpan di browser kamu. Tidak hilang kalau tab ditutup.</p>
                   <div className="space-y-1.5">
-                    {savedLabs.map(l => (
-                      <div key={l.id} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-                        <span className="flex-1 text-xs text-gray-700 truncate font-medium">{l.name}</span>
-                        <button onClick={() => loadLab(l.id)} className="text-[10px] text-indigo-600 hover:underline font-semibold shrink-0">Muat</button>
-                        <button onClick={() => deleteLab(l.id)} className="text-gray-300 hover:text-red-500 shrink-0">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+                    {savedLabs.map(l => {
+                      const sIcon = l.status === 'released'
+                        ? <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        : <FileClock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      const sBadge = l.status === 'released'
+                        ? <span className="text-[8px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1 py-0.5 rounded-full font-semibold">Dirilis</span>
+                        : <span className="text-[8px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded-full font-semibold">Draft</span>
+                      const cs = l.config?.config?.meta?.color_scheme
+                      return (
+                        <div key={l.id} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl border border-gray-100 group">
+                          {cs && (
+                            <div className="w-7 h-7 rounded-lg shrink-0"
+                              style={{ background: `linear-gradient(135deg, ${cs.primary}, ${cs.accent})` }} />
+                          )}
+                          {!cs && sIcon}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-700 truncate font-medium">{l.name}</span>
+                              {sBadge}
+                            </div>
+                            {l.savedAt && (
+                              <p className="text-[9px] text-gray-400">{new Date(l.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                            )}
+                          </div>
+                          <button onClick={() => loadLab(l.id)} className="text-[10px] text-indigo-600 hover:underline font-semibold shrink-0">Muat</button>
+                          <button onClick={() => deleteLab(l.id)} className="text-gray-300 hover:text-red-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -1518,31 +2118,393 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     ['accent',     'Aksen',         'Ornamen, garis, border, tombol'],
                     ['text',       'Warna Teks',    'Semua tulisan di atas latar primer'],
                     ['background', 'Latar Kedua',   'Background section selang-seling'],
-                  ] as [keyof typeof cfg.meta.color_scheme, string, string][]).map(([key, label, hint]) => (
-                    <div key={key}>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-semibold text-gray-600">{label}</p>
-                        <p className="text-[9px] text-gray-400">{hint}</p>
+                  ] as [keyof typeof cfg.meta.color_scheme, string, string][]).map(([key, label, hint]) => {
+                    // Inline contrast warning for text/accent against primary
+                    let inlineWarning: { ratio: number; level: string } | null = null
+                    if (key === 'text') {
+                      const r = contrastRatio(cfg.meta.color_scheme.text, cfg.meta.color_scheme.primary)
+                      const lv = wcagLevel(r)
+                      if (lv === 'FAIL') inlineWarning = { ratio: r, level: lv }
+                    } else if (key === 'accent') {
+                      const r = contrastRatio(cfg.meta.color_scheme.accent, cfg.meta.color_scheme.primary)
+                      const lv = wcagLevelLarge(r)
+                      if (lv === 'FAIL') inlineWarning = { ratio: r, level: lv }
+                    }
+
+                    return (
+                      <div key={key}>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-semibold text-gray-600">{label}</p>
+                          <p className="text-[9px] text-gray-400">{hint}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input type="color"
+                            value={cfg.meta.color_scheme[key]}
+                            onChange={e => updateColors(key, e.target.value)}
+                            className={`w-10 h-9 rounded-lg cursor-pointer border shrink-0 ${inlineWarning ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-200'}`}
+                          />
+                          <input
+                            value={cfg.meta.color_scheme[key]}
+                            onChange={e => updateColors(key, e.target.value)}
+                            className={inputCls + ' font-mono flex-1 text-xs'}
+                            placeholder="#000000"
+                          />
+                        </div>
+                        {inlineWarning && (
+                          <p className="text-[9px] text-red-500 mt-1 font-medium">
+                            Kontras {inlineWarning.ratio.toFixed(1)}:1 · tidak terbaca di atas latar utama
+                          </p>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <input type="color"
-                          value={cfg.meta.color_scheme[key]}
-                          onChange={e => updateColors(key, e.target.value)}
-                          className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200 shrink-0"
-                        />
-                        <input
-                          value={cfg.meta.color_scheme[key]}
-                          onChange={e => updateColors(key, e.target.value)}
-                          className={inputCls + ' font-mono flex-1 text-xs'}
-                          placeholder="#000000"
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
+
+              {/* ── Live Contrast Checker ── */}
+              {(() => {
+                const checks = checkColorScheme(cfg.meta.color_scheme)
+                const hasFailure = checks.some(c => c.level === 'FAIL')
+                const allAAA = checks.every(c => c.level === 'AAA')
+
+                return (
+                  <div className={`rounded-2xl border-2 overflow-hidden ${
+                    hasFailure ? 'border-red-300 bg-red-50/50' : allAAA ? 'border-emerald-300 bg-emerald-50/50' : 'border-amber-300 bg-amber-50/50'
+                  }`}>
+                    <div className={`px-4 py-2.5 flex items-center justify-between ${
+                      hasFailure ? 'bg-red-100' : allAAA ? 'bg-emerald-100' : 'bg-amber-100'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">
+                          {hasFailure ? '⚠️' : allAAA ? '✅' : '🔶'}
+                        </span>
+                        <div>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest ${
+                            hasFailure ? 'text-red-700' : allAAA ? 'text-emerald-700' : 'text-amber-700'
+                          }`}>
+                            Contrast Check
+                          </p>
+                          <p className={`text-[9px] ${
+                            hasFailure ? 'text-red-600' : allAAA ? 'text-emerald-600' : 'text-amber-600'
+                          }`}>
+                            {hasFailure ? 'Ada warna tidak terbaca, perlu diperbaiki' : allAAA ? 'Semua warna lolos AAA, sempurna!' : 'Lolos AA, cukup baik'}
+                          </p>
+                        </div>
+                      </div>
+                      {hasFailure && (
+                        <button
+                          onClick={() => {
+                            const fixed = autoFixColorScheme(cfg.meta.color_scheme)
+                            updateColors('text', fixed.text)
+                            updateColors('accent', fixed.accent)
+                          }}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold rounded-lg transition-colors shrink-0"
+                        >
+                          Auto-Fix
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="px-4 py-3 space-y-2">
+                      {checks.map(c => {
+                        const ratioStr = c.ratio.toFixed(1)
+                        return (
+                          <div key={c.pair} className="flex items-center gap-2.5">
+                            {/* Color pair preview */}
+                            <div className="w-10 h-6 rounded-md shrink-0 flex items-center justify-center border border-gray-200"
+                              style={{ backgroundColor: c.bg }}>
+                              <span style={{ color: c.fg, fontSize: 10, fontWeight: 700, lineHeight: 1 }}>Aa</span>
+                            </div>
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-medium text-gray-700 truncate">{c.pair}</p>
+                              <p className="text-[9px] text-gray-400">{ratioStr}:1</p>
+                            </div>
+                            {/* Badges */}
+                            <div className="flex gap-1 shrink-0">
+                              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                                c.level === 'AAA' ? 'bg-emerald-100 text-emerald-700'
+                                : c.level === 'AA' ? 'bg-amber-100 text-amber-700'
+                                : 'bg-red-100 text-red-700'
+                              }`}>
+                                {c.level === 'FAIL' ? 'GAGAL' : c.level}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                                c.levelLarge === 'AAA' ? 'bg-emerald-100 text-emerald-700'
+                                : c.levelLarge === 'AA' ? 'bg-amber-100 text-amber-700'
+                                : 'bg-red-100 text-red-700'
+                              }`}>
+                                {c.levelLarge === 'FAIL' ? '-' : c.levelLarge} lg
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <div className="px-4 py-2 bg-white/50 border-t border-gray-100">
+                      <p className="text-[8px] text-gray-400 leading-relaxed">
+                        AA = rasio 4.5:1 (standar minimum) · AAA = rasio 7:1 (ideal) · lg = teks besar (heading)
+                      </p>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           )}
+
+          {/* ── Gaya Komponen ── */}
+          {activeTab === 'style' && (() => {
+            const _a = cfg.meta.color_scheme.accent
+            const _t = cfg.meta.color_scheme.text
+            const _p = cfg.meta.color_scheme.primary
+            const _cs = cfg.meta.component_style
+            const _brd = _cs?.border ?? 'sharp'
+            const _br = _brd === 'pill' ? 999 : _brd === 'rounded' ? 10 : 2
+            const _updateStyle = (patch: Record<string, string>) => {
+              updateMeta({ component_style: { button: _cs?.button ?? 'outlined', border: _cs?.border ?? 'sharp', ornament: _cs?.ornament ?? 'classic', ...patch } as any })
+              setPreviewKey(k => k + 1)
+              setDecorPreviewKey(k => k + 1)
+            }
+            return (
+            <div className="space-y-5">
+
+              {/* Preview mode toggle */}
+              <div className="flex gap-1.5">
+                {([
+                  { mode: 'opening' as const, label: 'Preview Opening' },
+                  { mode: 'invitation' as const, label: 'Preview Undangan' },
+                ] as const).map(pm => (
+                  <button key={pm.mode}
+                    onClick={() => { setPreviewMode(pm.mode); setPreviewKey(k => k + 1); setDecorPreviewKey(k => k + 1) }}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                      previewMode === pm.mode
+                        ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                        : 'bg-gray-50 border border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {pm.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Live mini preview */}
+              <div className="rounded-2xl overflow-hidden" style={{ background: _p, padding: '20px 16px' }}>
+                <p className="text-center mb-3" style={{ fontSize: 8, color: `${_t}60`, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Live Preview</p>
+                <div className="flex flex-col items-center gap-3">
+                  {/* Button with MailOpen icon — opening CTA */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: `8px ${_br > 10 ? 24 : 28}px`,
+                    fontSize: 8, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase' as const,
+                    borderRadius: _br, cursor: 'default', transition: 'all 0.25s',
+                    ...(_cs?.button === 'filled' ? { backgroundColor: _a, color: _t, border: '1px solid transparent' }
+                      : _cs?.button === 'pill' ? { borderRadius: 999, backgroundColor: `${_a}20`, color: _t, border: `1px solid ${_a}45` }
+                      : _cs?.button === 'ghost' ? { backgroundColor: 'transparent', color: _a, border: '1px solid transparent' }
+                      : _cs?.button === 'underline' ? { backgroundColor: 'transparent', color: _t, border: 'none', borderBottom: `1.5px solid ${_a}60`, borderRadius: 0, paddingLeft: 4, paddingRight: 4 }
+                      : { backgroundColor: 'transparent', color: _t, border: `1px solid ${_a}50` }),
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
+                    BUKA UNDANGAN
+                  </div>
+                  {/* Button with Send icon — form submit */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: `7px ${_br > 10 ? 18 : 22}px`,
+                    fontSize: 7.5, fontWeight: 500, letterSpacing: '0.15em', textTransform: 'uppercase' as const,
+                    borderRadius: _br, cursor: 'default', transition: 'all 0.25s',
+                    ...(_cs?.button === 'filled' ? { backgroundColor: _a, color: _t, border: '1px solid transparent' }
+                      : _cs?.button === 'pill' ? { borderRadius: 999, backgroundColor: `${_a}20`, color: _t, border: `1px solid ${_a}45` }
+                      : _cs?.button === 'ghost' ? { backgroundColor: 'transparent', color: _a, border: '1px solid transparent' }
+                      : _cs?.button === 'underline' ? { backgroundColor: 'transparent', color: _t, border: 'none', borderBottom: `1.5px solid ${_a}60`, borderRadius: 0, paddingLeft: 4, paddingRight: 4 }
+                      : { backgroundColor: 'transparent', color: _t, border: `1px solid ${_a}50` }),
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    KIRIM UCAPAN
+                  </div>
+                  {/* Input field preview */}
+                  <div style={{
+                    width: '80%', padding: _brd === 'sharp' ? '8px 0' : '8px 12px',
+                    fontSize: 8, color: `${_t}50`, fontStyle: 'italic',
+                    background: 'transparent', transition: 'all 0.25s',
+                    ...(_brd === 'pill' ? { border: `1px solid ${_a}35`, borderRadius: 999 }
+                      : _brd === 'rounded' ? { border: `1px solid ${_a}35`, borderRadius: 10 }
+                      : { border: 'none', borderBottom: `1px solid ${_a}35`, borderRadius: 0 }),
+                  }}>
+                    Nama Anda...
+                  </div>
+                  {/* Card preview */}
+                  <div style={{
+                    width: '80%', padding: '10px 14px',
+                    background: `${_a}08`, border: `1px solid ${_a}20`,
+                    borderRadius: _brd === 'pill' ? 20 : _brd === 'rounded' ? 12 : 0,
+                    fontSize: 7.5, color: `${_t}70`, lineHeight: 1.6,
+                  }}>
+                    Contoh card container untuk RSVP / ucapan section.
+                  </div>
+                </div>
+              </div>
+
+              {/* Button Variant */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                  Gaya Tombol
+                </p>
+                <p className="text-[9px] text-gray-400 mb-3">
+                  Berlaku untuk semua tombol: RSVP, ucapan, maps, transfer, opening, dsb
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { id: 'outlined',  label: 'Outlined',  desc: 'Garis tepi' },
+                    { id: 'filled',    label: 'Filled',    desc: 'Solid penuh' },
+                    { id: 'pill',      label: 'Pill',      desc: 'Kapsul blur' },
+                    { id: 'ghost',     label: 'Ghost',     desc: 'Transparan' },
+                    { id: 'underline', label: 'Underline', desc: 'Garis bawah' },
+                  ] as const).map(bv => {
+                    const active = (_cs?.button ?? 'outlined') === bv.id
+                    const _iconSvg = <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"/><path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"/></svg>
+                    const _swatchStyle: React.CSSProperties =
+                      bv.id === 'filled' ? { padding: '5px 12px', background: _a, borderRadius: _br, fontSize: 7.5, color: _t, letterSpacing: '0.12em' }
+                      : bv.id === 'pill' ? { padding: '5px 12px', border: `1.5px solid ${_a}80`, borderRadius: 999, fontSize: 7.5, color: _t, letterSpacing: '0.12em', background: `${_a}20` }
+                      : bv.id === 'ghost' ? { padding: '5px 12px', fontSize: 7.5, color: _a, letterSpacing: '0.12em' }
+                      : bv.id === 'underline' ? { padding: '5px 6px', borderBottom: `2px solid ${_a}`, borderRadius: 0, fontSize: 7.5, color: _t, letterSpacing: '0.12em' }
+                      : { padding: '5px 12px', border: `1.5px solid ${_a}`, borderRadius: _br, fontSize: 7.5, color: _t, letterSpacing: '0.12em' }
+                    return (
+                      <button key={bv.id} type="button"
+                        onClick={() => _updateStyle({ button: bv.id })}
+                        className={`relative p-3 rounded-xl text-center transition-all ${
+                          active
+                            ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
+                            : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="mx-auto mb-2 flex items-center justify-center" style={{ height: 32, background: _p, borderRadius: 8, padding: '0 6px' }}>
+                          <div className="flex items-center gap-1.5" style={_swatchStyle}>
+                            {_iconSvg}
+                            <span>BUKA</span>
+                          </div>
+                        </div>
+                        <p className={`text-[10px] font-semibold leading-tight ${active ? 'text-indigo-700' : 'text-gray-600'}`}>
+                          {bv.label}
+                        </p>
+                        <p className="text-[8px] text-gray-400 mt-0.5">{bv.desc}</p>
+                        {active && (
+                          <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                            <Check className="w-2 h-2 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Border Variant */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                  Gaya Sudut / Border
+                </p>
+                <p className="text-[9px] text-gray-400 mb-3">
+                  Pengaruh pada tombol, kartu, input, dan container
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { id: 'sharp',   label: 'Sharp',   desc: 'Sudut tajam', r: '2px', cr: '0px' },
+                    { id: 'rounded', label: 'Rounded', desc: 'Sudut bulat', r: '10px', cr: '12px' },
+                    { id: 'pill',    label: 'Pill',    desc: 'Super bulat', r: '999px', cr: '20px' },
+                  ] as const).map(brd => {
+                    const active = (_cs?.border ?? 'sharp') === brd.id
+                    return (
+                      <button key={brd.id} type="button"
+                        onClick={() => _updateStyle({ border: brd.id })}
+                        className={`relative p-3 rounded-xl text-center transition-all ${
+                          active
+                            ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
+                            : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="mx-auto mb-2 flex flex-col items-center gap-1.5" style={{ height: 32 }}>
+                          <div style={{
+                            width: 48, height: 14,
+                            border: `1.5px solid ${_a}`,
+                            borderRadius: brd.r,
+                            background: `${_a}15`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 5.5, color: _t, letterSpacing: '0.1em',
+                          }}>BTN</div>
+                          <div style={{
+                            width: 48, height: 14,
+                            border: `1px solid ${_a}30`,
+                            borderRadius: brd.cr,
+                            background: `${_a}08`,
+                          }} />
+                        </div>
+                        <p className={`text-[10px] font-semibold leading-tight ${active ? 'text-indigo-700' : 'text-gray-600'}`}>
+                          {brd.label}
+                        </p>
+                        <p className="text-[8px] text-gray-400 mt-0.5">{brd.desc}</p>
+                        {active && (
+                          <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                            <Check className="w-2 h-2 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Ornament Variant */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                  Gaya Ornamen
+                </p>
+                <p className="text-[9px] text-gray-400 mb-3">
+                  Ornamen dekoratif pada section undangan
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { id: 'classic',   label: 'Classic',   desc: 'Klasik elegan' },
+                    { id: 'minimal',   label: 'Minimal',   desc: 'Bersih simple' },
+                    { id: 'floral',    label: 'Floral',    desc: 'Motif bunga' },
+                    { id: 'geometric', label: 'Geometric', desc: 'Bentuk geometri' },
+                    { id: 'none',      label: 'Tanpa',     desc: 'Tanpa ornamen' },
+                  ] as const).map(orn => {
+                    const active = (_cs?.ornament ?? 'classic') === orn.id
+                    return (
+                      <button key={orn.id} type="button"
+                        onClick={() => _updateStyle({ ornament: orn.id })}
+                        className={`relative p-3 rounded-xl text-center transition-all ${
+                          active
+                            ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
+                            : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        <p className={`text-[10px] font-semibold leading-tight ${active ? 'text-indigo-700' : 'text-gray-600'}`}>
+                          {orn.label}
+                        </p>
+                        <p className="text-[8px] text-gray-400 mt-0.5">{orn.desc}</p>
+                        {active && (
+                          <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                            <Check className="w-2 h-2 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                <p className="text-[10px] text-blue-700 leading-relaxed">
+                  <strong>Info:</strong> Gaya komponen berlaku secara global untuk seluruh section undangan termasuk tombol RSVP, ucapan, maps, transfer, opening, dan download IG Story.
+                  Lihat perubahan langsung di mockup preview.
+                </p>
+              </div>
+
+            </div>
+          )})()}
 
           {/* ── Opening ── */}
           {activeTab === 'opening' && (
@@ -1562,7 +2524,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     const active = cfg.opening.type === ot
                     return (
                       <button key={ot} type="button"
-                        onClick={() => updateOpening({ type: ot as any })}
+                        onClick={() => { updateOpening({ type: ot as any }); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
                         className={`relative p-2.5 rounded-xl text-center transition-all ${
                           active
                             ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
@@ -1698,11 +2660,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
 
-              {/* ── Background Music ── */}
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  Musik Latar
-                </p>
               <div className="pt-4 border-t border-gray-100">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
                   Foto Pasangan
@@ -1793,13 +2750,13 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white tracking-wide">Aset Dekorasi</p>
-                      <p className="text-[9px] text-indigo-200">Ornamen, bunga, kipas, frame — layer visual cover page</p>
+                      <p className="text-[9px] text-indigo-200">Ornamen, bunga, kipas, frame. Layer visual cover page</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {/* Moodboard toggle */}
                     <button
-                      onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('cover') }}
+                      onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('opening') }}
                       className={`flex items-center gap-1 text-[9px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
                         decorEditMode
                           ? 'bg-white text-indigo-700 shadow-sm'
@@ -1844,7 +2801,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                   <div className="mx-4 mt-3 px-3 py-2 bg-indigo-100 border border-indigo-200 rounded-lg flex items-center gap-2">
                     <Move className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                     <p className="text-[9px] text-indigo-700 leading-relaxed">
-                      <strong>Moodboard aktif</strong> — drag aset di mockup untuk mengatur posisi. Klik aset untuk pilih, lalu atur detail di panel bawah.
+                      <strong>Moodboard aktif</strong> · drag aset di mockup untuk mengatur posisi. Klik aset untuk pilih, lalu atur detail di panel bawah.
                     </p>
                   </div>
                 )}
@@ -1887,8 +2844,8 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                         <DecorationLayerList
                           assets={cfg.opening.decoration_assets}
                           onUpdate={assets => updateOpening({ decoration_assets: assets })}
-                          onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
-                          onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                          onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                          onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
                           focusedId={selectedAssetId}
                           onFocusChange={setSelectedAssetId}
                         />
@@ -1900,13 +2857,13 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                   {cfg.opening.decoration_assets && cfg.opening.decoration_assets.length > 0 && (
                     <div className="flex gap-2 pt-2 border-t border-indigo-100">
                       <button
-                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
                         className="flex-1 py-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
                       >
                         ▶ Preview Masuk
                       </button>
                       <button
-                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('cover'); setDecorPreviewKey(k => k + 1) }}
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
                         className="flex-1 py-2 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
                       >
                         ▶▶ Full Flow
@@ -1916,7 +2873,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
               </div>
 
-            </div>
             </div>
           )}
 
@@ -1954,10 +2910,10 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                     const active = (cfg.loading.variant ?? 'dual-ring') === lv.id
                     return (
                       <button key={lv.id} type="button"
-                        onClick={() => setConfig(prev => ({
+                        onClick={() => { setConfig(prev => ({
                           ...prev,
                           config: { ...prev.config, loading: { ...prev.config.loading, variant: lv.id as any } },
-                        }))}
+                        })); setPreviewMode('loading'); setPreviewKey(k => k + 1) }}
                         className={`relative p-2.5 rounded-xl text-center transition-all ${
                           active
                             ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
@@ -2001,31 +2957,174 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                   />
                 </div>
 
-                {/* Warna Background */}
+                {/* Tipe Background */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                    Warna Background
+                    Tipe Background
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={cfg.loading.background_color}
-                      onChange={e => setConfig(prev => ({
-                        ...prev,
-                        config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                      }))}
-                      className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
-                    />
-                    <input
-                      value={cfg.loading.background_color}
-                      onChange={e => setConfig(prev => ({
-                        ...prev,
-                        config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                      }))}
-                      className={inputCls + ' font-mono flex-1'}
-                      placeholder="#2c4a34"
-                    />
+                  <div className="grid grid-cols-3 gap-1.5 mb-3">
+                    {([
+                      { id: 'solid',    label: 'Solid' },
+                      { id: 'gradient', label: 'Gradient' },
+                      { id: 'image',    label: 'Foto' },
+                    ] as const).map(bt => {
+                      const active = (cfg.loading.bg_type ?? 'solid') === bt.id
+                      return (
+                        <button key={bt.id} type="button"
+                          onClick={() => setConfig(prev => ({
+                            ...prev,
+                            config: { ...prev.config, loading: { ...prev.config.loading, bg_type: bt.id as any } },
+                          }))}
+                          className={`py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                            active
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                              : 'bg-gray-50 border border-gray-200 text-gray-500 hover:border-gray-300'
+                          }`}
+                        >
+                          {bt.label}
+                        </button>
+                      )
+                    })}
                   </div>
+
+                  {/* Solid / Gradient color */}
+                  {(cfg.loading.bg_type ?? 'solid') !== 'image' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">
+                          {(cfg.loading.bg_type ?? 'solid') === 'gradient' ? 'Warna Awal' : 'Warna Background'}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                          />
+                          <input
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className={inputCls + ' font-mono flex-1'}
+                            placeholder="#2c4a34"
+                          />
+                        </div>
+                      </div>
+                      {cfg.loading.bg_type === 'gradient' && (
+                        <>
+                          <div>
+                            <label className="block text-[10px] text-gray-400 mb-1">Warna Akhir</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={cfg.loading.bg_gradient_to ?? '#000000'}
+                                onChange={e => setConfig(prev => ({
+                                  ...prev,
+                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
+                                }))}
+                                className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                              />
+                              <input
+                                value={cfg.loading.bg_gradient_to ?? '#000000'}
+                                onChange={e => setConfig(prev => ({
+                                  ...prev,
+                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
+                                }))}
+                                className={inputCls + ' font-mono flex-1'}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-gray-400 mb-1">
+                              Sudut Gradient: {cfg.loading.bg_gradient_angle ?? 135}°
+                            </label>
+                            <input type="range" min={0} max={360} step={15}
+                              value={cfg.loading.bg_gradient_angle ?? 135}
+                              onChange={e => setConfig(prev => ({
+                                ...prev,
+                                config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_angle: Number(e.target.value) } },
+                              }))}
+                              className="w-full accent-indigo-500"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Image background */}
+                  {cfg.loading.bg_type === 'image' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">Foto Latar Belakang</label>
+                        {cfg.loading.bg_image_url ? (
+                          <div className="relative rounded-xl overflow-hidden border border-gray-200" style={{ height: 120 }}>
+                            <img src={cfg.loading.bg_image_url} alt="Loading bg" className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => setConfig(prev => ({
+                                ...prev,
+                                config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: undefined } },
+                              }))}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+                            >
+                              <X className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        ) : (
+                          <ImageUploadField
+                            value=""
+                            onChange={(url) => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: url } },
+                            }))}
+                            label="Upload foto loading"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">
+                          Warna Overlay
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                          />
+                          <input
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className={inputCls + ' font-mono flex-1'}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">
+                          Opacity Overlay: {Math.round((cfg.loading.overlay_opacity ?? 0.85) * 100)}%
+                        </label>
+                        <input type="range" min={0} max={1} step={0.05}
+                          value={cfg.loading.overlay_opacity ?? 0.85}
+                          onChange={e => setConfig(prev => ({
+                            ...prev,
+                            config: { ...prev.config, loading: { ...prev.config.loading, overlay_opacity: Number(e.target.value) } },
+                          }))}
+                          className="w-full accent-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2163,7 +3262,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                               const active = (s.style_variant ?? 'default') === v.value
                               return (
                                 <button key={v.value}
-                                  onClick={() => updateSection(s.id, { style_variant: v.value })}
+                                  onClick={() => { updateSection(s.id, { style_variant: v.value }); setPreviewMode('invitation'); setSectionReplay(p => ({ id: s.id, key: (p?.id === s.id ? p.key + 1 : 0) })) }}
                                   className={`flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all ${
                                     active ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
                                   }`}
@@ -2243,7 +3342,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                             <VideoUploadField
                               value={s.background.url}
                               onChange={url => updateSection(s.id, { background: { ...s.background, url, type: 'video' } })}
-                              hint="MP4, WebM (maks 50MB) — autoplay, muted, loop"
+                              hint="MP4, WebM (maks 50MB) · autoplay, muted, loop"
                             />
                             {s.background.url && (
                               <div className="flex items-center gap-2">
@@ -2276,7 +3375,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                                 setSectionReplay(p => ({ id: s.id, key: (p?.id === s.id ? p.key + 1 : 0) }))
                               }}
                               className="px-1.5 py-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
-                              title="Preview di mockup — scroll ke section ini"
+                              title="Preview di mockup, scroll ke section ini"
                             >
                               <Play className="w-2.5 h-2.5 fill-current" />
                             </button>
@@ -2718,80 +3817,318 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
           {activeTab === 'music' && (
             <div className="space-y-5">
               <p className="text-xs text-gray-500">
-                Konfigurasi musik latar untuk undangan. Musik akan diputar saat tamu membuka undangan.
+                Konfigurasi musik latar dan kontrol player untuk undangan.
               </p>
 
-              {/* Info box */}
-              <div className="p-4 rounded-xl bg-purple-50 border border-purple-200">
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">🎵</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-purple-900 mb-1">
-                      Musik Latar Undangan
-                    </p>
-                    <p className="text-xs text-purple-700 leading-relaxed">
-                      Musik akan diputar otomatis (jika diaktifkan) saat tamu membuka undangan.
-                      Pastikan file musik tidak terlalu besar untuk loading yang cepat.
-                    </p>
-                  </div>
+              {/* Aktifkan Musik */}
+              <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Aktifkan Musik</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Tampilkan kontrol musik di undangan</p>
                 </div>
+                <button
+                  onClick={() => updateMusic({ enabled: !musicCfg.enabled })}
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${musicCfg.enabled ? 'bg-purple-600' : 'bg-gray-200'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${musicCfg.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
               </div>
 
-              {/* Putar Musik Otomatis */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-3">
-                  Putar Musik Otomatis
-                </label>
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Autoplay</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Musik akan diputar otomatis saat undangan dibuka
+              {musicCfg.enabled && (
+                <>
+                  {/* File Musik — Current Selection */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Musik Terpilih</p>
+                    {musicCfg.url ? (
+                      <div className="p-3 rounded-xl border border-purple-200 bg-purple-50 flex items-center gap-3">
+                        <button
+                          onClick={() => toggleMusicPreview('selected', musicCfg.url!)}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                            musicPreviewId === 'selected'
+                              ? 'bg-purple-700 text-white scale-105'
+                              : 'bg-purple-500 text-white hover:bg-purple-600'
+                          }`}
+                          title={musicPreviewId === 'selected' ? 'Stop' : 'Preview'}
+                        >
+                          {musicPreviewId === 'selected' ? (
+                            <div className="flex items-end gap-[2px] h-4">
+                              {[0, 0.15, 0.3, 0.1].map((d, i) => (
+                                <span key={i} className="w-[2.5px] bg-white rounded-full animate-pulse" style={{ height: `${8 + (i % 2) * 8}px`, animationDelay: `${d}s` }} />
+                              ))}
+                            </div>
+                          ) : (
+                            <Play className="w-5 h-5 fill-current" />
+                          )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{musicCfg.title || 'Musik'}</p>
+                          <p className="text-[9px] text-gray-400 truncate">
+                            {musicPreviewId === 'selected' ? 'Sedang diputar...' : 'Klik ikon play untuk preview'}
+                          </p>
+                        </div>
+                        <button onClick={() => { musicAudioRef.current?.pause(); setMusicPreviewId(null); updateMusic({ url: '', title: '' }) }}
+                          className="w-7 h-7 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center">
+                        <div className="text-xl mb-1">🎼</div>
+                        <p className="text-[10px] text-gray-500">Belum ada musik dipilih. Pilih dari library atau upload di bawah</p>
+                      </div>
+                    )}
+
+                    <Field label="Judul Lagu">
+                      <input value={musicCfg.title ?? ''} onChange={e => updateMusic({ title: e.target.value })}
+                        className={inputCls} placeholder="Perfect - Ed Sheeran" />
+                    </Field>
+                  </div>
+
+                  {/* ── Library Musik Admin ── */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-purple-500 uppercase tracking-widest mb-1">Perpustakaan Musik</p>
+                    <p className="text-[9px] text-gray-400 mb-3">
+                      Lagu yang disediakan admin sebagai opsi untuk user. Klik untuk memilih.
+                    </p>
+
+                    {(() => {
+                      const allCats = ['Semua', ...musicLibraryCats]
+                      const filtered = musicLibraryCat === 'Semua' ? musicLibrary : musicLibrary.filter(m => m.category === musicLibraryCat)
+
+                      return (
+                        <>
+                          {allCats.length > 1 && (
+                            <div className="flex gap-1 flex-wrap mb-3">
+                              {allCats.map(cat => (
+                                <button key={cat} onClick={() => setMusicLibraryCat(cat)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                                    musicLibraryCat === cat
+                                      ? 'bg-purple-600 text-white'
+                                      : 'bg-gray-100 text-gray-500 hover:bg-purple-50 hover:text-purple-600'
+                                  }`}>
+                                  {cat}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {musicLibrary.length === 0 ? (
+                            <div className="p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center">
+                              <p className="text-[10px] text-gray-500">Belum ada musik di perpustakaan. Tambahkan melalui tab Musik di sidebar admin.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+                              {filtered.map(song => {
+                                const selected = musicCfg.url === song.url
+                                const isPreviewing = musicPreviewId === song.id
+                                return (
+                                  <div key={song.id}
+                                    className={`flex items-center gap-2 p-2.5 rounded-xl transition-all ${
+                                      selected
+                                        ? 'bg-purple-100 border-2 border-purple-500 ring-1 ring-purple-300'
+                                        : 'bg-white border border-gray-100 hover:border-purple-200'
+                                    }`}>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); toggleMusicPreview(song.id, song.url) }}
+                                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                                        isPreviewing
+                                          ? 'bg-purple-600 text-white scale-105'
+                                          : selected
+                                            ? 'bg-purple-400 text-white hover:bg-purple-500'
+                                            : 'bg-gray-100 text-gray-400 hover:bg-purple-100 hover:text-purple-600'
+                                      }`}
+                                      title={isPreviewing ? 'Stop preview' : 'Preview lagu'}
+                                    >
+                                      {isPreviewing ? (
+                                        <div className="flex items-end gap-[2px] h-3.5">
+                                          {[0, 0.15, 0.3, 0.1].map((d, i) => (
+                                            <span key={i} className="w-[2px] bg-white rounded-full animate-pulse" style={{ height: `${8 + (i % 2) * 6}px`, animationDelay: `${d}s` }} />
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <Play className="w-3.5 h-3.5 fill-current" />
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => updateMusic({ url: song.url, title: song.title })}
+                                      className="flex-1 min-w-0 text-left"
+                                    >
+                                      <p className={`text-[11px] font-semibold truncate ${selected ? 'text-purple-800' : 'text-gray-700'}`}>
+                                        {song.title}
+                                      </p>
+                                      <p className={`text-[9px] truncate ${selected ? 'text-purple-500' : 'text-gray-400'}`}>
+                                        {song.artist} · {song.category}
+                                      </p>
+                                    </button>
+                                    {selected && (
+                                      <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center shrink-0">
+                                        <Check className="w-3.5 h-3.5 text-white" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+
+                  {/* Autoplay & Volume */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Pengaturan Putar</p>
+
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white mb-3">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">Autoplay</p>
+                        <p className="text-[10px] text-gray-400">Putar otomatis saat undangan dibuka</p>
+                      </div>
+                      <button onClick={() => updateMusic({ autoplay: !musicCfg.autoplay })}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${musicCfg.autoplay ? 'bg-purple-600' : 'bg-gray-200'}`}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${musicCfg.autoplay ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white mb-3">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">Loop</p>
+                        <p className="text-[10px] text-gray-400">Ulangi musik dari awal setelah selesai</p>
+                      </div>
+                      <button onClick={() => updateMusic({ loop: !musicCfg.loop })}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${musicCfg.loop ? 'bg-purple-600' : 'bg-gray-200'}`}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${musicCfg.loop ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+
+                    <Field label="Volume Default">
+                      <div className="flex items-center gap-3">
+                        <Volume2 className="w-4 h-4 text-gray-400 shrink-0" />
+                        <input type="range" min="0" max="100" value={Math.round(musicCfg.volume * 100)}
+                          onChange={e => updateMusic({ volume: Number(e.target.value) / 100 })}
+                          className="flex-1 h-1.5 bg-gray-200 rounded-full accent-purple-600 cursor-pointer" />
+                        <span className="text-xs text-gray-500 w-8 text-right">{Math.round(musicCfg.volume * 100)}%</span>
+                      </div>
+                    </Field>
+                  </div>
+
+                  {/* Gaya Tampilan Player */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Gaya Tampilan Player</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { id: 'pill', icon: '💊', name: 'Pill', desc: 'Tombol + judul lagu' },
+                        { id: 'circle', icon: '⭕', name: 'Circle', desc: 'Tombol bulat sederhana' },
+                        { id: 'vinyl', icon: '💿', name: 'Vinyl', desc: 'Piringan berputar' },
+                        { id: 'minimal', icon: '▶', name: 'Minimal', desc: 'Ikon kecil saja' },
+                      ] as const).map(s => {
+                        const selected = musicCfg.player_style === s.id
+                        return (
+                          <button key={s.id} onClick={() => updateMusic({ player_style: s.id })}
+                            className={`p-3 rounded-xl text-center transition-all ${selected
+                              ? 'bg-purple-50 border-2 border-purple-500 ring-1 ring-purple-500/20'
+                              : 'bg-gray-50 border border-gray-200 hover:border-gray-300'}`}>
+                            <span className="text-lg block mb-0.5">{s.icon}</span>
+                            <p className={`text-[10px] font-semibold ${selected ? 'text-purple-700' : 'text-gray-700'}`}>{s.name}</p>
+                            <p className={`text-[9px] ${selected ? 'text-purple-500' : 'text-gray-400'}`}>{s.desc}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Posisi Player */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Posisi Player</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { id: 'bottom-right', name: 'Kanan Bawah', icon: '↘' },
+                        { id: 'bottom-left', name: 'Kiri Bawah', icon: '↙' },
+                        { id: 'bottom-center', name: 'Tengah Bawah', icon: '↓' },
+                        { id: 'top-right', name: 'Kanan Atas', icon: '↗' },
+                      ] as const).map(p => {
+                        const selected = musicCfg.player_position === p.id
+                        return (
+                          <button key={p.id} onClick={() => updateMusic({ player_position: p.id })}
+                            className={`p-2.5 rounded-xl text-center transition-all ${selected
+                              ? 'bg-purple-50 border-2 border-purple-500'
+                              : 'bg-gray-50 border border-gray-200 hover:border-gray-300'}`}>
+                            <span className="text-sm block">{p.icon}</span>
+                            <p className={`text-[10px] font-semibold mt-0.5 ${selected ? 'text-purple-700' : 'text-gray-700'}`}>{p.name}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Animasi Masuk */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Animasi Masuk</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { id: 'fade-slide', name: 'Fade Slide', desc: 'Muncul halus dari bawah' },
+                        { id: 'scale-bounce', name: 'Scale Bounce', desc: 'Membesar dari titik' },
+                        { id: 'slide-up', name: 'Slide Up', desc: 'Geser dari bawah layar' },
+                        { id: 'none', name: 'Tanpa Animasi', desc: 'Langsung muncul' },
+                      ] as const).map(a => {
+                        const selected = musicCfg.player_animation === a.id
+                        return (
+                          <button key={a.id} onClick={() => updateMusic({ player_animation: a.id })}
+                            className={`p-2.5 rounded-xl text-left transition-all ${selected
+                              ? 'bg-purple-50 border-2 border-purple-500'
+                              : 'bg-gray-50 border border-gray-200 hover:border-gray-300'}`}>
+                            <p className={`text-[10px] font-semibold ${selected ? 'text-purple-700' : 'text-gray-700'}`}>{a.name}</p>
+                            <p className={`text-[9px] ${selected ? 'text-purple-500' : 'text-gray-400'}`}>{a.desc}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Ukuran Player */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Ukuran Player</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        { id: 'sm', name: 'Kecil' },
+                        { id: 'md', name: 'Sedang' },
+                        { id: 'lg', name: 'Besar' },
+                      ] as const).map(sz => {
+                        const selected = musicCfg.player_size === sz.id
+                        return (
+                          <button key={sz.id} onClick={() => updateMusic({ player_size: sz.id })}
+                            className={`py-2 rounded-xl text-center transition-all ${selected
+                              ? 'bg-purple-50 border-2 border-purple-500'
+                              : 'bg-gray-50 border border-gray-200 hover:border-gray-300'}`}>
+                            <p className={`text-[10px] font-semibold ${selected ? 'text-purple-700' : 'text-gray-700'}`}>{sz.name}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Tampilkan Judul */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">Tampilkan Judul Lagu</p>
+                        <p className="text-[10px] text-gray-400">Pill label di samping tombol player</p>
+                      </div>
+                      <button onClick={() => updateMusic({ show_title: !musicCfg.show_title })}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${musicCfg.show_title ? 'bg-purple-600' : 'bg-gray-200'}`}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${musicCfg.show_title ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                    <p className="text-[10px] text-blue-700 leading-relaxed">
+                      <strong>Info:</strong> Musik mulai diputar sejak halaman cover/opening. Jika browser memblokir autoplay,
+                      kontrol musik menampilkan animasi pulse mengundang tamu untuk tap. Musik otomatis aktif saat ada interaksi pertama.
                     </p>
                   </div>
-                  <button
-                    onClick={() => updateOpening({ music_autoplay: !cfg.opening.music_autoplay })}
-                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                      cfg.opening.music_autoplay ? 'bg-purple-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      cfg.opening.music_autoplay ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </button>
-                </div>
-              </div>
-
-              {/* File Musik */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-2">
-                  File Musik
-                </label>
-                <div className="p-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center">
-                  <div className="text-3xl mb-2">🎼</div>
-                  <p className="text-xs text-gray-500 mb-3">
-                    Upload file musik (MP3, maksimal 5MB)
-                  </p>
-                  <button className="px-4 py-2 bg-purple-600 text-white text-xs font-semibold rounded-lg hover:bg-purple-700 transition-colors">
-                    Upload Musik
-                  </button>
-                  <p className="text-[9px] text-gray-400 mt-3">
-                    Format: MP3 | Ukuran maks: 5MB | Durasi: 2-3 menit ideal
-                  </p>
-                </div>
-              </div>
-
-              {/* Preview */}
-              {cfg.opening.music_autoplay && (
-                <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-                  <div className="flex items-center gap-2 text-sm text-green-700">
-                    <Check className="w-4 h-4" />
-                    <span className="font-medium">Musik autoplay aktif</span>
-                  </div>
-                  <p className="text-xs text-green-600 mt-1">
-                    Tamu akan mendengar musik segera setelah membuka undangan.
-                  </p>
-                </div>
+                </>
               )}
             </div>
           )}
@@ -2799,18 +4136,56 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
 
         {/* Footer actions */}
         <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 space-y-2 shrink-0">
-          <button
-            onClick={saveLab}
-            className="w-full flex items-center justify-center gap-1.5 bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors"
-          >
-            <Save className="w-3.5 h-3.5" /> Simpan Eksperimen
-          </button>
-          <button
-            onClick={openReleaseModal}
-            className="w-full flex items-center justify-center gap-1.5 border border-dashed border-indigo-300 text-indigo-600 text-xs font-semibold py-2.5 rounded-xl hover:bg-indigo-50 transition-colors"
-          >
-            <Rocket className="w-3.5 h-3.5" /> Rilis ke Manajemen
-          </button>
+
+          {/* Progress indicator + undo/redo */}
+          {(changeCount > 0 || lastSavedAt) && (
+            <div className="flex items-center justify-between px-1 mb-1">
+              {changeCount > 0 ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-[10px] text-amber-600 font-medium">{changeCount} perubahan belum tersimpan</span>
+                  <div className="flex items-center gap-0.5 ml-2">
+                    <button onClick={undo} disabled={!canUndo} title="Undo"
+                      className="p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20 transition-colors"><Undo2 className="w-3 h-3" /></button>
+                    <button onClick={redo} disabled={!canRedo} title="Redo"
+                      className="p-0.5 text-gray-400 hover:text-indigo-600 disabled:opacity-20 transition-colors"><Redo2 className="w-3 h-3" /></button>
+                  </div>
+                </div>
+              ) : lastSavedAt ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] text-emerald-600 font-medium">Tersimpan {lastSavedAt}</span>
+                </div>
+              ) : null}
+              {isEditMode && (
+                <span className="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">editing: {config.slug}</span>
+              )}
+            </div>
+          )}
+
+          {isEditMode ? (
+            <button
+              onClick={openReleaseModal}
+              className="w-full flex items-center justify-center gap-1.5 bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors"
+            >
+              <Save className="w-3.5 h-3.5" /> Simpan Perubahan
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={saveLabDirect}
+                className="w-full flex items-center justify-center gap-1.5 bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors"
+              >
+                <Save className="w-3.5 h-3.5" /> Simpan Eksperimen
+              </button>
+              <button
+                onClick={openReleaseModal}
+                className="w-full flex items-center justify-center gap-1.5 border border-dashed border-indigo-300 text-indigo-600 text-xs font-semibold py-2.5 rounded-xl hover:bg-indigo-50 transition-colors"
+              >
+                <Rocket className="w-3.5 h-3.5" /> Rilis ke Manajemen
+              </button>
+            </>
+          )}
 
           {/* Success banner setelah rilis */}
           {releaseSuccess && (
@@ -2818,10 +4193,10 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
               <span className="text-lg shrink-0">✅</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-emerald-800">
-                  &ldquo;{releaseSuccess}&rdquo; berhasil dirilis!
+                  &ldquo;{releaseSuccess}&rdquo; berhasil {isEditMode ? 'diperbarui' : 'dirilis'}!
                 </p>
                 <p className="text-[10px] text-emerald-600 mt-0.5">
-                  Template sudah ada di Manajemen. Atur harga & aktifkan agar user bisa memilihnya.
+                  {isEditMode ? 'Perubahan tersimpan. Data di Manajemen sudah ter-sync.' : 'Template sudah ada di Manajemen. Atur harga & aktifkan agar user bisa memilihnya.'}
                 </p>
                 <button
                   onClick={() => { onGoToManagement?.(); setReleaseSuccess(null) }}
@@ -2843,9 +4218,27 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
 
         {/* Preview toolbar */}
         <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-semibold text-gray-600">Live Preview</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${changeCount > 0 ? 'bg-amber-400' : 'bg-emerald-400'} animate-pulse`} />
+              <span className="text-xs font-semibold text-gray-600">Live Preview</span>
+            </div>
+            {changeCount > 0 && (
+              <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
+                {changeCount} perubahan
+              </span>
+            )}
+            {/* Undo / Redo */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+              <button onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)"
+                className="p-1.5 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-white disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-gray-500 transition-colors">
+                <Undo2 className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)"
+                className="p-1.5 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-white disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-gray-500 transition-colors">
+                <Redo2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {previewMode === 'invitation' && (
@@ -2855,7 +4248,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
             )}
             {/* Tombol Play — preview animasi opening di dalam mockup */}
             <button
-              onClick={() => { setPreviewMode('cover'); setPreviewPlaying(true) }}
+              onClick={() => { setPreviewMode('opening'); setPreviewPlaying(true) }}
               className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 transition-colors"
               title="Preview animasi opening"
             >
@@ -2898,29 +4291,40 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
               <div className="rounded-[44px] overflow-hidden bg-gray-900"
                 style={{ width: 340, height: 736, position: 'relative' }}>
 
-                {/* ── Opening style preview — static, no click handler ── */}
+                {/* ── Fullscreen + Music overlay — always on top ── */}
+                <div style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
+                  {/* Fullscreen icon — top right corner */}
+                  <button
+                    onClick={() => {
+                      const hasOpening = cfg.opening.show_opening !== false
+                      setFullscreenPhase(hasOpening ? 'opening' : 'loading')
+                      setShowFullscreen(true)
+                    }}
+                    style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'auto' }}
+                    className="bg-black/40 hover:bg-black/60 text-white/80 hover:text-white rounded-full p-1.5 transition-colors backdrop-blur-sm"
+                    title="Full Screen"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Music player */}
+                  {musicCfg.enabled && (
+                    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                      <FloatingMusicPlayer
+                        key={`music-${musicCfg.player_style}-${musicCfg.player_position}-${musicCfg.player_size}-${musicCfg.player_animation}-${musicCfg.show_title}`}
+                        config={musicCfg}
+                        colors={cfg.meta.color_scheme}
+                        static
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Opening preview (single layer — CoverPagePreview) ── */}
                 <div style={{
                   position: 'absolute', inset: 0, overflow: 'hidden',
                   visibility: previewMode === 'opening' && !previewPlaying && !previewLoading ? 'visible' : 'hidden',
                   pointerEvents: previewMode === 'opening' && !previewPlaying && !previewLoading ? 'auto' : 'none',
-                }}>
-                  <div style={{ width: 390, zoom: 340 / 390, height: 845, position: 'relative' }}>
-                    <OpeningScene
-                      key={`opening-preview-${cfg.opening.type}`}
-                      config={{ ...cfg.opening, show_opening: true }}
-                      data={previewData}
-                      meta={cfg.meta}
-                      positionMode="absolute"
-                      onOpen={() => {}}
-                    />
-                  </div>
-                </div>
-
-                {/* ── Cover preview — position absolute, visibility toggle ── */}
-                <div style={{
-                  position: 'absolute', inset: 0, overflow: 'hidden',
-                  visibility: previewMode === 'cover' && !previewPlaying ? 'visible' : 'hidden',
-                  pointerEvents: previewMode === 'cover' && !previewPlaying ? 'auto' : 'none',
                 }}>
                   <div style={{ width: 390, zoom: 340 / 390, height: 845 }}>
                     <CoverPagePreview
@@ -2935,7 +4339,7 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 </div>
 
                 {/* ── Moodboard overlay — drag decoration assets ── */}
-                {decorEditMode && previewMode === 'cover' && !previewPlaying && (
+                {decorEditMode && previewMode === 'opening' && !previewPlaying && (
                   <DecorationMoodboard
                     assets={cfg.opening.decoration_assets ?? []}
                     onUpdate={assets => updateOpening({ decoration_assets: assets })}
@@ -2952,8 +4356,9 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 {/* ── Invitation preview — scroll-snap, satu section = satu layar ── */}
                 <div key={previewKey} style={{
                   position: 'absolute', inset: 0,
-                  overflowY: 'scroll', overflowX: 'hidden', scrollbarWidth: 'none',
-                  scrollSnapType: 'y mandatory',
+                  overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none',
+                  scrollSnapType: 'y proximity',
+                  WebkitOverflowScrolling: 'touch',
                   visibility: previewMode === 'invitation' ? 'visible' : 'hidden',
                   pointerEvents: previewMode === 'invitation' ? 'auto' : 'none',
                 }}>
@@ -3053,16 +4458,6 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
                 Opening
               </button>
               <button
-                onClick={() => setPreviewMode('cover')}
-                className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
-                  previewMode === 'cover'
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                Cover
-              </button>
-              <button
                 onClick={() => setPreviewMode('loading')}
                 className={`flex-1 px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
                   previewMode === 'loading'
@@ -3096,13 +4491,16 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
         <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
           {/* Close button */}
           <button
-            onClick={() => setShowFullscreen(false)}
+            onClick={() => {
+              setShowFullscreen(false)
+              setFullscreenPhase(cfg.opening.show_opening !== false ? 'opening' : 'loading')
+            }}
             className="absolute top-4 right-4 z-[110] bg-black/60 hover:bg-black/80 text-white rounded-full p-2.5 transition-colors backdrop-blur-sm"
           >
             <X className="w-5 h-5" />
           </button>
 
-          {/* Phone-width container */}
+          {/* Phone-width container — simulates real device */}
           <div style={{
             width: '100%',
             maxWidth: 430,
@@ -3111,227 +4509,206 @@ export default function TemplateLab({ onGoToManagement, categories: categoriesPr
             overflow: 'hidden',
             boxShadow: '0 0 80px rgba(0,0,0,0.5)',
           }}>
-            <AnimatePresence mode="wait">
-              {fullscreenPhase === 'opening' && (
-                <motion.div
-                  key="fs-opening"
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  style={{ position: 'absolute', inset: 0 }}
-                >
-                  <OpeningScene
-                    config={cfg.opening}
-                    data={previewData}
-                    meta={cfg.meta}
-                    positionMode="absolute"
-                    onOpen={() => setFullscreenPhase('loading')}
-                  />
-                </motion.div>
-              )}
-
-              {fullscreenPhase === 'loading' && (
-                <motion.div
-                  key="fs-loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  style={{ position: 'absolute', inset: 0 }}
-                >
-                  <LoadingScreen
-                    config={cfg.loading}
-                    onDone={() => setFullscreenPhase('main')}
-                    isPreview
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {fullscreenPhase === 'main' && (
-              <motion.div
-                key="fs-main"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  overflowY: 'scroll',
-                  overflowX: 'hidden',
-                  scrollSnapType: 'y proximity',
-                  scrollbarWidth: 'none',
-                  backgroundColor: cfg.meta.color_scheme.primary,
-                  fontFamily: `'${cfg.meta.font.body}', serif`,
-                }}
-              >
-                <InvitationPreview
-                  template={config}
-                  data={previewData}
-                  invitationId="lab-fullscreen"
-                  initialWishes={PREVIEW_WISHES}
-                  isPreview
-                />
-              </motion.div>
-            )}
+            <InvitationRenderer
+              key={`fs-renderer-${showFullscreen}`}
+              invitationId="lab-fullscreen"
+              invitationData={previewData}
+              template={config}
+              initialWishes={PREVIEW_WISHES}
+              musicUrl={musicCfg.enabled ? musicCfg.url : undefined}
+              contained
+            />
           </div>
         </div>
       )}
 
-      {/* ── Modal Rilis Template ── */}
+
+      {/* ── Modal Simpan / Rilis Template ── */}
       {showRelease && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Rocket className="w-4 h-4 text-indigo-600" />
-                <h3 className="font-bold text-gray-900 text-sm">Rilis Template</h3>
+                {isEditMode ? <Save className="w-4 h-4 text-indigo-600" /> : <Rocket className="w-4 h-4 text-indigo-600" />}
+                <h3 className="font-bold text-gray-900 text-sm">{isEditMode ? 'Simpan Perubahan' : 'Rilis Template'}</h3>
               </div>
               <button onClick={() => setShowRelease(false)} className="text-gray-400 hover:text-gray-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Form */}
-            <div className="px-6 py-5 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nama Template</label>
-                <input
-                  value={releaseForm.name}
-                  onChange={e => setReleaseForm(f => ({
-                    ...f,
-                    name: e.target.value,
-                    slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-                  }))}
-                  className={inputCls}
-                  placeholder="Nama template yang akan tampil ke user"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Slug (ID unik)</label>
-                <input
-                  value={releaseForm.slug}
-                  onChange={e => setReleaseForm(f => ({
-                    ...f,
-                    slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-                  }))}
-                  className={inputCls + ' font-mono'}
-                  placeholder="contoh: modern-floral-gold"
-                />
-                <p className="text-[10px] text-gray-400 mt-1">Huruf kecil dan strip saja. Ini akan menjadi ID template.</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Kategori</label>
-                <select
-                  value={releaseForm.category}
-                  onChange={e => setReleaseForm(f => ({ ...f, category: e.target.value as typeof f.category }))}
-                  className={inputCls}
-                >
-                  {[
-                    ['modern',      'Modern'],
-                    ['tradisional', 'Tradisional'],
-                    ['minimalis',   'Minimalis'],
-                    ['floral',      'Floral'],
-                    ['rustic',      'Rustic'],
-                  ].map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Deskripsi (opsional)</label>
-                <textarea
-                  value={releaseForm.description}
-                  onChange={e => setReleaseForm(f => ({ ...f, description: e.target.value }))}
-                  rows={2}
-                  className={inputCls + ' resize-none text-sm'}
-                  placeholder="Deskripsi singkat template..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Harga (Rp)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={releaseForm.price}
-                    onChange={e => setReleaseForm(f => ({ ...f, price: Math.max(0, Number(e.target.value)) }))}
-                    className={inputCls}
-                    placeholder="0"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">0 = ikuti harga global</p>
+            {isEditMode ? (
+              <>
+                {/* Konfirmasi simpan — tanpa form */}
+                <div className="px-6 py-6">
+                  <p className="text-sm text-gray-700">
+                    Simpan semua perubahan desain ke template <strong>{config.name}</strong>?
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {changeCount} perubahan akan disimpan ke database.
+                  </p>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Akses Paket</label>
-                  <select
-                    value={releaseForm.required_package}
-                    onChange={e => setReleaseForm(f => ({ ...f, required_package: e.target.value as typeof f.required_package }))}
-                    className={inputCls}
+                <div className="px-6 pb-5 flex gap-3">
+                  <button
+                    onClick={() => setShowRelease(false)}
+                    className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    <option value="all">Semua user</option>
-                    <option value="starter">Starter ke atas</option>
-                    <option value="premium">Premium ke atas</option>
-                    <option value="ultimate">Ultimate saja</option>
-                  </select>
+                    Batal
+                  </button>
+                  <button
+                    onClick={submitRelease}
+                    disabled={releasing}
+                    className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    {releasing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                  </button>
                 </div>
-              </div>
+              </>
+            ) : (
+              <>
+                {/* Form rilis template baru */}
+                <div className="px-6 py-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nama Template</label>
+                    <input
+                      value={releaseForm.name}
+                      onChange={e => setReleaseForm(f => ({
+                        ...f,
+                        name: e.target.value,
+                        slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                      }))}
+                      className={inputCls}
+                      placeholder="Nama template yang akan tampil ke user"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">URL Thumbnail (opsional)</label>
-                <input
-                  value={releaseForm.thumbnail_url}
-                  onChange={e => setReleaseForm(f => ({ ...f, thumbnail_url: e.target.value }))}
-                  className={inputCls}
-                  placeholder="/templates/nama-slug/thumbnail.jpg"
-                />
-                <p className="text-[10px] text-gray-400 mt-1">Upload manual ke /public dulu, lalu isi path</p>
-              </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Slug (ID unik)</label>
+                    <input
+                      value={releaseForm.slug}
+                      onChange={e => setReleaseForm(f => ({
+                        ...f,
+                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                      }))}
+                      className={inputCls + ' font-mono'}
+                      placeholder="contoh: modern-floral-gold"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Huruf kecil dan strip saja. Ini akan menjadi ID template.</p>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-2">Status Rilis</label>
-                <div className="flex gap-3">
-                  {(['draft', 'active'] as const).map(s => (
-                    <label key={s} className="flex items-center gap-2 cursor-pointer">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Kategori</label>
+                    <select
+                      value={releaseForm.category}
+                      onChange={e => setReleaseForm(f => ({ ...f, category: e.target.value as typeof f.category }))}
+                      className={inputCls}
+                    >
+                      {[
+                        ['modern',      'Modern'],
+                        ['tradisional', 'Tradisional'],
+                        ['minimalis',   'Minimalis'],
+                        ['floral',      'Floral'],
+                        ['rustic',      'Rustic'],
+                      ].map(([v, l]) => (
+                        <option key={v} value={v}>{l}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Deskripsi (opsional)</label>
+                    <textarea
+                      value={releaseForm.description}
+                      onChange={e => setReleaseForm(f => ({ ...f, description: e.target.value }))}
+                      rows={2}
+                      className={inputCls + ' resize-none text-sm'}
+                      placeholder="Deskripsi singkat template..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">Harga (Rp)</label>
                       <input
-                        type="radio"
-                        name="status"
-                        value={s}
-                        checked={releaseForm.status === s}
-                        onChange={() => setReleaseForm(f => ({ ...f, status: s }))}
-                        className="accent-indigo-600"
+                        type="number"
+                        min={0}
+                        step={1000}
+                        value={releaseForm.price}
+                        onChange={e => setReleaseForm(f => ({ ...f, price: Math.max(0, Number(e.target.value)) }))}
+                        className={inputCls}
+                        placeholder="0"
                       />
-                      <span className="text-xs font-medium text-gray-700 capitalize">
-                        {s === 'draft' ? 'Draft (tidak tampil ke user)' : 'Aktif (langsung tampil)'}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
+                      <p className="text-[10px] text-gray-400 mt-1">0 = ikuti harga global</p>
+                    </div>
 
-            {/* Footer */}
-            <div className="px-6 pb-5 flex gap-3">
-              <button
-                onClick={() => setShowRelease(false)}
-                className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={submitRelease}
-                disabled={releasing || !releaseForm.name || !releaseForm.slug}
-                className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-              >
-                <Rocket className="w-3.5 h-3.5" />
-                {releasing ? 'Merilis...' : 'Rilis Template'}
-              </button>
-            </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">Akses Paket</label>
+                      <select
+                        value={releaseForm.required_package}
+                        onChange={e => setReleaseForm(f => ({ ...f, required_package: e.target.value as typeof f.required_package }))}
+                        className={inputCls}
+                      >
+                        <option value="all">Semua user</option>
+                        <option value="starter">Starter ke atas</option>
+                        <option value="premium">Premium ke atas</option>
+                        <option value="ultimate">Ultimate saja</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">URL Thumbnail (opsional)</label>
+                    <input
+                      value={releaseForm.thumbnail_url}
+                      onChange={e => setReleaseForm(f => ({ ...f, thumbnail_url: e.target.value }))}
+                      className={inputCls}
+                      placeholder="/templates/nama-slug/thumbnail.jpg"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Upload manual ke /public dulu, lalu isi path</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-2">Status Rilis</label>
+                    <div className="flex gap-3">
+                      {(['draft', 'active'] as const).map(s => (
+                        <label key={s} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="status"
+                            value={s}
+                            checked={releaseForm.status === s}
+                            onChange={() => setReleaseForm(f => ({ ...f, status: s }))}
+                            className="accent-indigo-600"
+                          />
+                          <span className="text-xs font-medium text-gray-700 capitalize">
+                            {s === 'draft' ? 'Draft (tidak tampil ke user)' : 'Aktif (langsung tampil)'}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-5 flex gap-3">
+                  <button
+                    onClick={() => setShowRelease(false)}
+                    className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={submitRelease}
+                    disabled={releasing || !releaseForm.name || !releaseForm.slug}
+                    className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Rocket className="w-3.5 h-3.5" />
+                    {releasing ? 'Menyimpan...' : 'Rilis Template'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

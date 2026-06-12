@@ -148,6 +148,33 @@ model GiftProof {
   @@map("gift_proofs")
 }
 
+// ─── MUSIC LIBRARY ───────────────────────────────────────────
+model MusicTrack {
+  id         String   @id @default(cuid())
+  title      String
+  artist     String   @default("")
+  category   String   @default("Lainnya")
+  url        String
+  duration   Int      @default(0)
+  fileSize   Int      @default(0) @map("file_size")
+  isActive   Boolean  @default(true) @map("is_active")
+  sortOrder  Int      @default(0) @map("sort_order")
+  usageCount Int      @default(0) @map("usage_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("music_tracks")
+}
+
+// ─── MUSIC CATEGORIES ────────────────────────────────────────
+model MusicCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("music_categories")
+}
+
 // ─── APP SETTINGS (single row, key = "main") ─────────────────
 model AppSetting {
   key       String   @id

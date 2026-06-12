@@ -4,18 +4,20 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import {
   LayoutDashboard, Users, Mail, ShoppingCart, Settings, LogOut,
-  TrendingUp, CheckCircle2, Clock, Trash2, Eye, EyeOff, Search,
-  Save, Crown, AlertCircle, ExternalLink, Ban, Globe,
-  ToggleLeft, ToggleRight, Package, CreditCard, FlaskConical,
+  Globe, Music, Package, CreditCard, FlaskConical,
+  PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
-import { TEMPLATES } from '@/lib/types'
 import type { AdminTemplateConfig, BankAccount, PaymentProof } from '@/lib/db'
-import type { TemplateRecord, TemplateCategory, ColorPalette } from '@/lib/types'
+import type { TemplateRecord, TemplateCategory, ColorPalette, PriceTier, FlashSale, Coupon } from '@/lib/types'
+import DashboardTab from './tabs/DashboardTab'
+import UsersTab from './tabs/UsersTab'
+import InvitationsTab from './tabs/InvitationsTab'
 import TemplatesTab from './tabs/TemplatesTab'
 import PaymentTab from './tabs/PaymentTab'
 import TemplateLab from './tabs/TemplateLab'
+import MusicLibraryTab from './tabs/MusicLibraryTab'
 import WebsiteTab from './tabs/WebsiteTab'
 import NewSettingsTab from './tabs/SettingsTab'
 import type { SiteSettings } from './tabs/SettingsTab'
@@ -67,6 +69,9 @@ interface LocalAppSettings {
   templates: AdminTemplateConfig[]
   categories: TemplateCategory[]
   colorPalettes: ColorPalette[]
+  priceTiers: PriceTier[]
+  flashSales: FlashSale[]
+  coupons: Coupon[]
   bankAccounts: BankAccount[]
   qrisImageUrl: string
   paymentInstructions: string
@@ -79,6 +84,8 @@ interface LocalAppSettings {
   socialInstagram: string
   socialTwitter: string
   socialGithub: string
+  appDomain: string
+  demoSubdomain: string
 }
 
 interface Stats {
@@ -101,9 +108,9 @@ interface Props {
   adminEmail: string
 }
 
-type NavTab = 'dashboard' | 'users' | 'invitations' | 'template' | 'lab' | 'orders' | 'payment' | 'website' | 'settings'
+type NavTab = 'dashboard' | 'users' | 'invitations' | 'template' | 'lab' | 'music' | 'orders' | 'payment' | 'website' | 'settings'
 
-const VALID_TABS: NavTab[] = ['dashboard', 'users', 'invitations', 'template', 'lab', 'orders', 'payment', 'website', 'settings']
+const VALID_TABS: NavTab[] = ['dashboard', 'users', 'invitations', 'template', 'lab', 'music', 'orders', 'payment', 'website', 'settings']
 
 // ─── Main Component ───────────────────────────────────────────
 
@@ -118,6 +125,8 @@ export default function AdminPanel({
   adminEmail,
 }: Props) {
   const [templateRecords, setTemplateRecords] = useState<TemplateRecord[]>(initialTemplateRecords)
+  const [labEditRecord, setLabEditRecord] = useState<TemplateRecord | null>(null)
+  const [labDirty, setLabDirty] = useState(false)
   // Selalu mulai dengan 'dashboard' agar server & client match (hindari hydration error).
   // URL dibaca di useEffect setelah hydration selesai.
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard')
@@ -133,8 +142,22 @@ export default function AdminPanel({
     return () => window.removeEventListener('popstate', syncFromUrl)
   }, [])
 
-  // Sync URL saat klik tab
+  // Browser close/refresh guard
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (labDirty) { e.preventDefault() }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [labDirty])
+
+  // Sync URL saat klik tab — with unsaved changes guard
   function handleTabChange(tab: NavTab) {
+    if (activeTab === 'lab' && labDirty && tab !== 'lab') {
+      const ok = window.confirm('Ada perubahan yang belum disimpan di Studio Desain. Yakin ingin meninggalkan halaman ini?')
+      if (!ok) return
+      setLabDirty(false)
+    }
     setActiveTab(tab)
     const url = new URL(window.location.href)
     url.searchParams.set('tab', tab)
@@ -275,7 +298,7 @@ export default function AdminPanel({
 
       <main className={`flex-1 ${activeTab === 'lab' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {activeTab === 'dashboard' && (
-          <DashboardTab stats={stats} users={users} invitations={invitations} pendingProofs={pendingProofs} />
+          <DashboardTab stats={stats} users={users} invitations={invitations} pendingProofs={pendingProofs} onGoToTab={(t) => handleTabChange(t as NavTab)} />
         )}
         {activeTab === 'users' && (
           <UsersTab users={users} adminEmail={adminEmail} onDelete={handleDeleteUser} />
@@ -292,19 +315,37 @@ export default function AdminPanel({
             records={templateRecords}
             onRecordsUpdate={(recs) => setTemplateRecords(recs)}
             onGoToLab={() => handleTabChange('lab')}
-            globalPrice={appSettings.price}
-            packageName={appSettings.packageName}
-            packageDuration={appSettings.packageDuration}
-            onPricingUpdate={(pricing) => handleSaveSettings({ ...appSettings, ...pricing })}
+            onEditInLab={(rec) => { setLabEditRecord(rec); handleTabChange('lab') }}
+            categories={appSettings.categories}
+            onCategoriesUpdate={(cats) => handleSaveSettings({ ...appSettings, categories: cats })}
+            priceTiers={appSettings.priceTiers}
+            onPriceTiersUpdate={(tiers) => handleSaveSettings({ ...appSettings, priceTiers: tiers })}
+            flashSales={appSettings.flashSales}
+            onFlashSalesUpdate={(sales) => handleSaveSettings({ ...appSettings, flashSales: sales })}
+            coupons={appSettings.coupons}
+            onCouponsUpdate={(cpns) => handleSaveSettings({ ...appSettings, coupons: cpns })}
           />
         )}
         {activeTab === 'lab' && (
           <TemplateLab
             onGoToManagement={() => handleTabChange('template')}
+            editRecord={labEditRecord}
+            templateRecords={templateRecords}
+            onTemplateReleased={(rec) => {
+              setTemplateRecords(prev => {
+                const idx = prev.findIndex(r => r.id === rec.id)
+                if (idx >= 0) return prev.map(r => r.id === rec.id ? rec : r)
+                return [...prev, rec]
+              })
+              setLabEditRecord(null)
+              setLabDirty(false)
+            }}
+            onDirtyChange={setLabDirty}
             categories={appSettings.categories}
             palettes={appSettings.colorPalettes}
           />
         )}
+        {activeTab === 'music' && <MusicLibraryTab />}
         {activeTab === 'orders' && <OrdersTab orders={orders} />}
         {activeTab === 'payment' && (
           <PaymentTab
@@ -333,6 +374,8 @@ export default function AdminPanel({
               socialInstagram: appSettings.socialInstagram ?? 'akundang.id',
               socialTwitter: appSettings.socialTwitter ?? 'akundang',
               socialGithub: appSettings.socialGithub ?? 'akundang',
+              appDomain: appSettings.appDomain ?? 'akundang.id',
+              demoSubdomain: appSettings.demoSubdomain ?? 'demo',
             }}
             adminEmail={adminEmail}
             onSave={async (siteSettings) => {
@@ -347,6 +390,8 @@ export default function AdminPanel({
                 socialInstagram: siteSettings.socialInstagram,
                 socialTwitter: siteSettings.socialTwitter,
                 socialGithub: siteSettings.socialGithub,
+                appDomain: siteSettings.appDomain,
+                demoSubdomain: siteSettings.demoSubdomain,
               })
             }}
           />
@@ -372,6 +417,7 @@ const NAV_GROUPS = [
     items: [
       { id: 'lab'         as NavTab, label: 'Studio Desain',      icon: FlaskConical,    desc: 'Buat & eksperimen template' },
       { id: 'template'    as NavTab, label: 'Manajemen',          icon: Package,         desc: 'Review, harga & publikasi tema' },
+      { id: 'music'       as NavTab, label: 'Musik',              icon: Music,           desc: 'Perpustakaan musik undangan' },
     ],
   },
   {
@@ -402,32 +448,35 @@ function Sidebar({
   siteName: string
   logoVerticalUrl: string
 }) {
+  const [collapsed, setCollapsed] = useState(false)
+
   return (
-    <aside className="w-52 flex flex-col shrink-0 border-r border-gray-100 bg-white">
+    <aside className={`${collapsed ? 'w-[68px]' : 'w-56'} flex flex-col shrink-0 border-r border-gray-100 bg-white transition-all duration-200 ease-in-out`}>
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0 overflow-hidden">
-            {logoVerticalUrl ? (
-              <Image src={logoVerticalUrl} alt={siteName} width={20} height={20} className="object-contain" />
-            ) : (
-              <Crown className="w-3.5 h-3.5 text-white" />
-            )}
+      <div className={`${collapsed ? 'px-3' : 'px-5'} py-4 border-b border-gray-100`}>
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className="w-8 h-8 rounded-xl shrink-0 overflow-hidden flex items-center justify-center">
+            <Image src="/logos/icons.png" alt={siteName} width={32} height={32} className="object-contain" />
           </div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm leading-none">{siteName}</p>
-            <p className="text-gray-400 text-[10px] mt-0.5">Admin Console</p>
-          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="font-bold text-gray-900 text-sm leading-tight truncate">{siteName}</p>
+              <p className="text-[10px] text-gray-400 leading-tight">Admin Console</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Nav groups */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+      <nav className="flex-1 px-2 py-3 space-y-4 overflow-y-auto overflow-x-hidden">
         {NAV_GROUPS.map(group => (
           <div key={group.label}>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-1">
-              {group.label}
-            </p>
+            {!collapsed && (
+              <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[.15em] px-2 mb-1.5">
+                {group.label}
+              </p>
+            )}
+            {collapsed && <div className="h-px bg-gray-100 mx-1 mb-1.5" />}
             <div className="space-y-0.5">
               {group.items.map(({ id, label, icon: Icon, desc }) => {
                 const isActive = activeTab === id
@@ -440,24 +489,27 @@ function Sidebar({
                     key={id}
                     data-tab={id}
                     onClick={() => onTabChange(id)}
-                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all ${
+                    title={collapsed ? label : undefined}
+                    className={`w-full flex items-center ${collapsed ? 'justify-center px-0 py-2.5' : 'gap-2.5 px-2.5 py-2'} rounded-xl transition-all duration-150 relative ${
                       isActive
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100'
+                        : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-indigo-600' : ''}`} />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-medium leading-none truncate">{label}</p>
-                      {desc && <p className={`text-[9px] mt-0.5 truncate ${isActive ? 'text-indigo-500' : 'text-gray-400'}`}>{desc}</p>}
-                    </div>
+                    <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-indigo-600' : ''}`} />
+                    {!collapsed && (
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-[13px] font-medium leading-tight truncate">{label}</p>
+                      </div>
+                    )}
                     {badge != null && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none shrink-0 ${
+                      <span className={`${collapsed ? 'absolute -top-0.5 -right-0.5 w-4 h-4 text-[8px] flex items-center justify-center' : 'text-[10px] px-1.5 py-0.5 min-w-[18px] text-center'} font-bold rounded-full leading-none shrink-0 ${
                         id === 'payment' ? 'bg-red-100 text-red-600 animate-pulse' :
                         id === 'invitations' ? 'bg-amber-100 text-amber-700' :
                         'bg-gray-100 text-gray-600'
                       }`}>
-                        {badge}
+                        {collapsed ? '' : badge}
+                        {collapsed && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
                       </span>
                     )}
                   </button>
@@ -468,23 +520,48 @@ function Sidebar({
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="px-3 py-3 border-t border-gray-100">
-        <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-gray-50 mb-1">
-          <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase">
-              {adminEmail.charAt(0)}
-            </span>
-          </div>
-          <p className="text-[10px] text-gray-500 truncate flex-1">{adminEmail}</p>
-        </div>
+      {/* Collapse toggle */}
+      <div className="px-2 py-1.5 border-t border-gray-100">
         <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 text-xs font-medium transition-colors"
+          onClick={() => setCollapsed(c => !c)}
+          className="w-full flex items-center justify-center gap-2 px-2 py-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+          title={collapsed ? 'Perluas sidebar' : 'Perkecil sidebar'}
         >
-          <LogOut className="w-3.5 h-3.5" />
-          Keluar
+          {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          {!collapsed && <span className="text-[11px] font-medium">Perkecil</span>}
         </button>
+      </div>
+
+      {/* Footer */}
+      <div className={`${collapsed ? 'px-2' : 'px-3'} py-3 border-t border-gray-100`}>
+        {!collapsed ? (
+          <>
+            <div className="flex items-center gap-2 px-2 py-2 rounded-xl bg-gray-50/80 mb-1.5">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shrink-0">
+                <span className="text-[11px] font-bold text-white uppercase">
+                  {adminEmail.charAt(0)}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500 truncate flex-1">{adminEmail}</p>
+            </div>
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 text-xs font-medium transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Keluar
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center" title={adminEmail}>
+              <span className="text-[11px] font-bold text-white uppercase">{adminEmail.charAt(0)}</span>
+            </div>
+            <button onClick={onLogout} className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Keluar">
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   )
@@ -497,33 +574,6 @@ function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
     <div className="px-8 py-5 border-b border-gray-100 bg-white">
       <h1 className="text-lg font-bold text-gray-900 tracking-tight">{title}</h1>
       {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
-    </div>
-  )
-}
-
-// ─── Stat Card ───────────────────────────────────────────────
-
-function StatCard({
-  label, value, icon: Icon, color, accent,
-}: {
-  label: string
-  value: string | number
-  icon: React.ElementType
-  color: string
-  accent?: string
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${color}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-      </div>
-      <p className="text-2xl font-black text-gray-900 tabular-nums">{value}</p>
-      {accent && (
-        <div className={`h-0.5 rounded-full mt-3 ${accent}`} />
-      )}
     </div>
   )
 }
@@ -542,451 +592,6 @@ function Badge({ variant, children }: { variant: 'green' | 'yellow' | 'red' | 'g
     <span className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${styles[variant]}`}>
       {children}
     </span>
-  )
-}
-
-// ─── Dashboard Tab ───────────────────────────────────────────
-
-function DashboardTab({
-  stats, users, invitations, pendingProofs,
-}: {
-  stats: Stats
-  users: AdminUser[]
-  invitations: AdminInvitation[]
-  pendingProofs: number
-}) {
-  const recentUsers = [...users].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  ).slice(0, 5)
-
-  const recentInvitations = [...invitations].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  ).slice(0, 5)
-
-  return (
-    <div>
-      <PageHeader title="Dashboard" subtitle="Ringkasan aktivitas platform Akundang" />
-      <div className="p-8 space-y-8">
-        {/* Alert bukti transfer pending */}
-        {pendingProofs > 0 && (
-          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900">
-                {pendingProofs} bukti transfer menunggu verifikasi
-              </p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Segera verifikasi agar undangan user bisa aktif.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-          <StatCard label="Total Pengguna"    value={stats.totalUsers}              icon={Users}         color="bg-blue-100 text-blue-600"     accent="bg-blue-400" />
-          <StatCard label="Total Undangan"    value={stats.totalInvitations}        icon={Mail}          color="bg-purple-100 text-purple-600" accent="bg-purple-400" />
-          <StatCard label="Aktif & Lunas"     value={stats.totalActive}             icon={CheckCircle2}  color="bg-emerald-100 text-emerald-600" accent="bg-emerald-400" />
-          <StatCard label="Belum Bayar"       value={stats.totalUnpaid}             icon={AlertCircle}   color="bg-amber-100 text-amber-600"   accent="bg-amber-400" />
-          <StatCard label="Total Lunas"       value={stats.totalPaid}               icon={TrendingUp}    color="bg-indigo-100 text-indigo-600" accent="bg-indigo-400" />
-          <StatCard label="Total Pendapatan"  value={formatPrice(stats.totalRevenue)} icon={Crown}       color="bg-yellow-100 text-yellow-600" accent="bg-yellow-400" />
-        </div>
-
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Recent Users */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-sm">Pengguna Terbaru</h3>
-              <Clock className="w-4 h-4 text-gray-400" />
-            </div>
-            <div className="divide-y divide-gray-50">
-              {recentUsers.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-6">Belum ada pengguna</p>
-              )}
-              {recentUsers.map((u) => (
-                <div key={u.id} className="px-5 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">{u.email}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </p>
-                  </div>
-                  {u.invitation ? (
-                    <Badge variant={u.invitation.is_paid ? 'green' : 'yellow'}>
-                      {u.invitation.is_paid ? 'Lunas' : 'Belum bayar'}
-                    </Badge>
-                  ) : (
-                    <Badge variant="gray">Belum buat</Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Invitations */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-sm">Undangan Terbaru</h3>
-              <Mail className="w-4 h-4 text-gray-400" />
-            </div>
-            <div className="divide-y divide-gray-50">
-              {recentInvitations.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-6">Belum ada undangan</p>
-              )}
-              {recentInvitations.map((inv) => (
-                <div key={inv.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">/{inv.slug}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{inv.user_email}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant={inv.is_paid ? 'green' : 'yellow'}>
-                      {inv.is_paid ? 'Lunas' : 'Unpaid'}
-                    </Badge>
-                    <Badge variant={inv.is_published ? 'blue' : 'gray'}>
-                      {inv.is_published ? 'Live' : 'Draft'}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Users Tab ───────────────────────────────────────────────
-
-function UsersTab({
-  users, adminEmail, onDelete,
-}: {
-  users: AdminUser[]
-  adminEmail: string
-  onDelete: (id: string) => Promise<void>
-}) {
-  const [search, setSearch] = useState('')
-  const [confirmId, setConfirmId] = useState<string | null>(null)
-  const [deleting, setDeleting] = useState(false)
-
-  const filtered = users.filter((u) =>
-    u.email.toLowerCase().includes(search.toLowerCase())
-  )
-
-  async function doDelete(id: string) {
-    setDeleting(true)
-    await onDelete(id)
-    setDeleting(false)
-    setConfirmId(null)
-  }
-
-  return (
-    <div>
-      <PageHeader
-        title="Manajemen Pengguna"
-        subtitle={`${users.length} pengguna terdaftar`}
-      />
-      <div className="p-8 space-y-5">
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Cari email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-          />
-        </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-              <tr>
-                <th className="text-left px-5 py-3 font-medium">Email</th>
-                <th className="text-left px-5 py-3 font-medium">Bergabung</th>
-                <th className="text-left px-5 py-3 font-medium">Undangan</th>
-                <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-left px-5 py-3 font-medium">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">{u.email}</span>
-                      {u.email === adminEmail && (
-                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Admin</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-gray-500">
-                    {new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
-                  <td className="px-5 py-4">
-                    {u.invitation ? (
-                      <span className="font-mono text-gray-700">/{u.invitation.slug}</span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    {u.invitation ? (
-                      <Badge variant={u.invitation.is_paid ? 'green' : 'yellow'}>
-                        {u.invitation.is_paid ? '✓ Lunas' : 'Belum bayar'}
-                      </Badge>
-                    ) : (
-                      <Badge variant="gray">Belum buat undangan</Badge>
-                    )}
-                  </td>
-                  <td className="px-5 py-4">
-                    {u.email === adminEmail ? (
-                      <span className="text-gray-300 text-xs">—</span>
-                    ) : confirmId === u.id ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => doDelete(u.id)}
-                          disabled={deleting}
-                          className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 disabled:opacity-50 font-medium"
-                        >
-                          {deleting ? 'Menghapus...' : 'Ya, hapus'}
-                        </button>
-                        <button
-                          onClick={() => setConfirmId(null)}
-                          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1.5"
-                        >
-                          Batal
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmId(u.id)}
-                        className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Hapus
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <p className="text-center text-gray-400 py-10 text-sm">
-              {search ? 'Tidak ada pengguna yang cocok' : 'Belum ada pengguna'}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Invitations Tab ─────────────────────────────────────────
-
-type InvFilter = 'all' | 'paid' | 'unpaid' | 'published' | 'draft'
-
-function InvitationsTab({
-  invitations,
-  onOverridePaid,
-  onTogglePublished,
-}: {
-  invitations: AdminInvitation[]
-  onOverridePaid: (id: string, paid: boolean) => Promise<void>
-  onTogglePublished: (id: string, published: boolean) => Promise<void>
-}) {
-  const [filter, setFilter] = useState<InvFilter>('all')
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState<string | null>(null)
-
-  const filtered = invitations.filter((inv) => {
-    const matchSearch =
-      inv.slug.includes(search.toLowerCase()) ||
-      inv.user_email.toLowerCase().includes(search.toLowerCase())
-
-    const matchFilter =
-      filter === 'all' ||
-      (filter === 'paid' && inv.is_paid) ||
-      (filter === 'unpaid' && !inv.is_paid) ||
-      (filter === 'published' && inv.is_published) ||
-      (filter === 'draft' && !inv.is_published)
-
-    return matchSearch && matchFilter
-  })
-
-  const FILTERS: { id: InvFilter; label: string }[] = [
-    { id: 'all', label: 'Semua' },
-    { id: 'unpaid', label: 'Belum Bayar' },
-    { id: 'paid', label: 'Lunas' },
-    { id: 'published', label: 'Live' },
-    { id: 'draft', label: 'Draft' },
-  ]
-
-  async function togglePaid(inv: AdminInvitation) {
-    setLoading(inv.id + '-pay')
-    await onOverridePaid(inv.id, !inv.is_paid)
-    setLoading(null)
-  }
-
-  async function togglePublish(inv: AdminInvitation) {
-    setLoading(inv.id + '-pub')
-    await onTogglePublished(inv.id, !inv.is_published)
-    setLoading(null)
-  }
-
-  function templateLabel(id: string) {
-    const found = TEMPLATES.find((t) => t.id === id)
-    return found ? found.name : id
-  }
-
-  return (
-    <div>
-      <PageHeader
-        title="Manajemen Undangan"
-        subtitle={`${invitations.length} undangan dibuat`}
-      />
-      <div className="p-8 space-y-5">
-        {/* Filters + Search */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1">
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFilter(f.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                  filter === f.id
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari slug atau email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white w-64"
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-              <tr>
-                <th className="text-left px-5 py-3 font-medium">Slug</th>
-                <th className="text-left px-5 py-3 font-medium">Template</th>
-                <th className="text-left px-5 py-3 font-medium">Pengguna</th>
-                <th className="text-left px-5 py-3 font-medium">Bayar</th>
-                <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-left px-5 py-3 font-medium">Kadaluarsa</th>
-                <th className="text-left px-5 py-3 font-medium">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((inv) => (
-                <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-medium text-gray-900">/{inv.slug}</span>
-                      <a
-                        href={`/?slug=${inv.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-indigo-600 transition-colors"
-                        title="Lihat undangan"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(inv.created_at).toLocaleDateString('id-ID')}
-                    </p>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600">{templateLabel(inv.template_id)}</td>
-                  <td className="px-5 py-4 text-gray-600 text-xs">{inv.user_email}</td>
-                  <td className="px-5 py-4">
-                    <Badge variant={inv.is_paid ? 'green' : 'yellow'}>
-                      {inv.is_paid ? '✓ Lunas' : 'Belum'}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-4">
-                    <Badge variant={inv.is_published ? 'blue' : 'gray'}>
-                      {inv.is_published ? 'Live' : 'Draft'}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-4 text-gray-500 text-xs">
-                    {inv.expires_at
-                      ? new Date(inv.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-                      : '—'}
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-1">
-                      {/* Toggle Paid */}
-                      <button
-                        onClick={() => togglePaid(inv)}
-                        disabled={loading === inv.id + '-pay'}
-                        title={inv.is_paid ? 'Revoke pembayaran' : 'Tandai lunas'}
-                        className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          inv.is_paid
-                            ? 'text-red-400 hover:bg-red-50 hover:text-red-600'
-                            : 'text-emerald-500 hover:bg-emerald-50 hover:text-emerald-700'
-                        }`}
-                      >
-                        {inv.is_paid ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                      </button>
-
-                      {/* Toggle Published */}
-                      <button
-                        onClick={() => togglePublish(inv)}
-                        disabled={loading === inv.id + '-pub'}
-                        title={inv.is_published ? 'Sembunyikan' : 'Publish'}
-                        className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          inv.is_published
-                            ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                            : 'text-blue-400 hover:bg-blue-50 hover:text-blue-600'
-                        }`}
-                      >
-                        {inv.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <p className="text-center text-gray-400 py-10 text-sm">
-              {search || filter !== 'all' ? 'Tidak ada undangan yang cocok' : 'Belum ada undangan'}
-            </p>
-          )}
-        </div>
-
-        {/* Legend */}
-        <div className="flex gap-4 text-xs text-gray-500">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Tandai lunas + publish
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Ban className="w-3.5 h-3.5 text-red-400" /> Revoke status lunas
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5 text-blue-400" /> Toggle publish/draft
-          </span>
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -1011,8 +616,8 @@ function OrdersTab({ orders }: { orders: AdminOrder[] }) {
             <tbody className="divide-y divide-gray-50">
               {orders.map((o, i) => (
                 <tr key={o.order_id ?? i} className="hover:bg-gray-50">
-                  <td className="px-5 py-4 font-mono text-xs text-gray-600">{o.order_id ?? '—'}</td>
-                  <td className="px-5 py-4 font-medium">{o.amount ? formatPrice(o.amount) : '—'}</td>
+                  <td className="px-5 py-4 font-mono text-xs text-gray-600">{o.order_id ?? '-'}</td>
+                  <td className="px-5 py-4 font-medium">{o.amount ? formatPrice(o.amount) : '-'}</td>
                   <td className="px-5 py-4">
                     <Badge
                       variant={
@@ -1022,14 +627,14 @@ function OrdersTab({ orders }: { orders: AdminOrder[] }) {
                         : 'gray'
                       }
                     >
-                      {o.status ?? '—'}
+                      {o.status ?? '-'}
                     </Badge>
                   </td>
-                  <td className="px-5 py-4 text-gray-500">{o.payment_type ?? '—'}</td>
+                  <td className="px-5 py-4 text-gray-500">{o.payment_type ?? '-'}</td>
                   <td className="px-5 py-4 text-gray-500 text-xs">
                     {o.created_at
                       ? new Date(o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-                      : '—'}
+                      : '-'}
                   </td>
                 </tr>
               ))}

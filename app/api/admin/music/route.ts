@@ -1,0 +1,35 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/session-server'
+import { isAdmin } from '@/lib/auth'
+import { musicTracks, musicCategories } from '@/lib/db'
+
+export async function GET() {
+  const session = await getSession()
+  if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const [tracks, cats, topTracks] = await Promise.all([
+    musicTracks.findAll(),
+    musicCategories.findAll(),
+    musicTracks.topTracks(10),
+  ])
+  return NextResponse.json({ tracks, categories: cats, topTracks })
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getSession()
+  if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const title = String(body?.title || '').trim()
+  const url = String(body?.url || '').trim()
+  if (!title || !url) return NextResponse.json({ error: 'Judul dan URL wajib diisi' }, { status: 400 })
+
+  const track = await musicTracks.create({
+    title,
+    artist: String(body?.artist || '').trim(),
+    category: String(body?.category || 'Lainnya').trim(),
+    url,
+    duration: Number(body?.duration) || 0,
+    file_size: Number(body?.file_size) || 0,
+  })
+  return NextResponse.json({ track }, { status: 201 })
+}

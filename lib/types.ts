@@ -338,6 +338,16 @@ export interface FontConfig {
   body_scale?: number     // 0.6 – 1.6, default 1.0 — ukuran default semua teks
 }
 
+export type ButtonVariant = 'outlined' | 'filled' | 'pill' | 'ghost' | 'underline'
+export type BorderVariant = 'sharp' | 'rounded' | 'pill'
+export type OrnamentVariant = 'classic' | 'minimal' | 'floral' | 'geometric' | 'none'
+
+export interface ComponentStyle {
+  button: ButtonVariant
+  border: BorderVariant
+  ornament: OrnamentVariant
+}
+
 export interface TemplateMeta {
   name: string
   slug: string
@@ -346,12 +356,32 @@ export interface TemplateMeta {
   preview_images?: string[]
   color_scheme: ColorScheme
   font: FontConfig
+  component_style?: ComponentStyle
+}
+
+export type MusicPlayerStyle = 'pill' | 'circle' | 'vinyl' | 'minimal'
+export type MusicPlayerPosition = 'bottom-right' | 'bottom-left' | 'bottom-center' | 'top-right'
+export type MusicPlayerAnimation = 'fade-slide' | 'scale-bounce' | 'slide-up' | 'none'
+
+export interface MusicConfig {
+  enabled: boolean
+  url?: string
+  title?: string
+  autoplay: boolean
+  volume: number
+  loop: boolean
+  player_style: MusicPlayerStyle
+  player_position: MusicPlayerPosition
+  player_animation: MusicPlayerAnimation
+  show_title: boolean
+  player_size: 'sm' | 'md' | 'lg'
 }
 
 export interface JsonTemplateConfig {
   meta: TemplateMeta
   opening: OpeningConfig
   loading: LoadingConfig
+  music?: MusicConfig
   sections: SectionConfig[]
 }
 
@@ -361,12 +391,100 @@ export type TemplatePackageRequirement = 'all' | 'starter' | 'premium' | 'ultima
 
 /** Kategori template — admin bisa CRUD dari Manajemen tab. */
 export interface TemplateCategory {
-  /** Slug (kebab-case), dipakai sebagai value di field category. */
   slug: string
-  /** Nama tampil ke user. */
   label: string
-  /** Bawaan tidak bisa dihapus admin. */
   is_built_in: boolean
+}
+
+/** Fitur yang bisa di-toggle per tier. */
+export interface TierFeatures {
+  max_photos: number
+  music: boolean
+  custom_music: boolean
+  opening_animation: boolean
+  opening_styles: 'basic' | 'all'
+  rsvp: boolean
+  wishes: boolean
+  countdown: boolean
+  gallery: boolean
+  gift: boolean
+  gift_registry: boolean
+  story: boolean
+  video: boolean
+  livestream: boolean
+  ig_story: boolean
+  qrcode: boolean
+  custom_domain: boolean
+  remove_watermark: boolean
+  analytics: boolean
+  priority_support: boolean
+  validity_days: number
+}
+
+/** Tier harga yang bisa dipilih per-template. Admin CRUD dari Manajemen. */
+export interface PriceTier {
+  id: string
+  label: string
+  price: number
+  is_built_in: boolean
+  description?: string
+  features?: TierFeatures
+  color?: string
+  icon?: string
+  highlight?: boolean
+}
+
+/** Scope target untuk promo — berlaku ke semua, per tier, atau per kategori. */
+export type PromoScope = 'all' | 'tier' | 'category'
+
+/** Flash sale — diskon sementara, bisa target per tier atau per kategori. */
+export interface FlashSale {
+  id: string
+  label: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  start_date: string
+  end_date: string
+  scope: PromoScope
+  scope_ids: string[]
+  is_active: boolean
+}
+
+/** Kupon diskon — user memasukkan kode saat checkout, bisa target per tier atau per kategori. */
+export interface Coupon {
+  id: string
+  code: string
+  label: string
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
+  max_uses: number
+  used_count: number
+  valid_from: string
+  valid_until: string
+  scope: PromoScope
+  scope_ids: string[]
+  is_active: boolean
+}
+
+export interface MusicTrack {
+  id: string
+  title: string
+  artist: string
+  category: string
+  url: string
+  duration: number
+  file_size: number
+  is_active: boolean
+  sort_order: number
+  usage_count: number
+  created_at: string
+}
+
+export interface MusicCategory {
+  id: string
+  name: string
+  sort_order: number
+  created_at: string
 }
 
 /** Color palette preset untuk Studio Desain. */

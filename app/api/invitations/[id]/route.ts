@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session-server'
-import { invitations } from '@/lib/db'
+import { invitations, musicTracks } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 interface Params { params: { id: string } }
 
@@ -16,9 +17,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   const body = await req.json()
 
-  // Jika ada slug baru, cek ketersediaannya
   if (body.slug && body.slug !== inv.slug && await invitations.slugExists(body.slug, params.id)) {
     return NextResponse.json({ error: 'Slug sudah dipakai' }, { status: 409 })
+  }
+
+  // Track music usage — if music URL changed, increment usage count
+  const newMusicUrl = body.data?.music?.url
+  const oldMusicUrl = (inv.data as unknown as { music?: { url?: string } })?.music?.url
+  if (newMusicUrl && newMusicUrl !== oldMusicUrl) {
+    const track = await prisma.musicTrack.findFirst({ where: { url: newMusicUrl } })
+    if (track) await musicTracks.incrementUsage(track.id)
   }
 
   const updated = await invitations.update(params.id, body)
