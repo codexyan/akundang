@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
 import path from 'path'
+import { uploadToStorage } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,32 +21,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File terlalu besar (maks 10MB)' }, { status: 400 })
     }
 
-    // Validate MIME type
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json({ error: 'Format tidak didukung. Gunakan JPG, PNG, atau WebP' }, { status: 400 })
     }
 
-    // Validate extension
     const ext = path.extname(file.name).toLowerCase()
     if (!ALLOWED_EXTS.includes(ext)) {
       return NextResponse.json({ error: 'Ekstensi file tidak valid' }, { status: 400 })
     }
 
-    // Generate safe filename (timestamp + random string)
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(2, 9)
     const safeFilename = `proof-${timestamp}-${random}${ext}`
+    const storagePath = `gift-proofs/${safeFilename}`
 
-    // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'gift-proofs')
-    await fs.mkdir(uploadDir, { recursive: true })
-
-    // Write file
     const bytes = await file.arrayBuffer()
-    const filepath = path.join(uploadDir, safeFilename)
-    await fs.writeFile(filepath, Buffer.from(bytes))
+    const publicUrl = await uploadToStorage(Buffer.from(bytes), storagePath, file.type)
 
-    return NextResponse.json({ url: `/uploads/gift-proofs/${safeFilename}` }, { status: 201 })
+    return NextResponse.json({ url: publicUrl }, { status: 201 })
   } catch (error) {
     console.error('Gift proof upload error:', error)
     return NextResponse.json(

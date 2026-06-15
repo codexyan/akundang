@@ -4,7 +4,6 @@
  */
 
 import { LucideIcon } from 'lucide-react'
-import SectionCard from './SectionCard'
 
 interface InfoCardProps {
   title: string
@@ -16,34 +15,25 @@ interface InfoCardProps {
 
 export default function InfoCard({
   title,
-  icon,
+  icon: Icon,
   message,
   actionText,
   actionHref,
 }: InfoCardProps) {
   return (
-    <SectionCard title={title} icon={icon}>
-      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-        <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shrink-0">
-          <span className="text-lg">ℹ️</span>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-blue-900 leading-relaxed">{message}</p>
-
-          {actionText && actionHref && (
-            <a
-              href={actionHref}
-              className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              {actionText}
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          )}
-        </div>
+    <div className="flex items-start gap-2.5 p-3 bg-stone-50 border border-stone-200/80 rounded-lg">
+      <div className="w-7 h-7 rounded-md bg-stone-200 text-stone-500 flex items-center justify-center shrink-0">
+        <Icon size={14} />
       </div>
-    </SectionCard>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-stone-700">{title}</p>
+        <p className="text-[11px] text-stone-400 mt-0.5 leading-relaxed">{message}</p>
+        {actionText && actionHref && (
+          <a href={actionHref} className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-medium text-gold-600 hover:text-gold-700">
+            {actionText} &rarr;
+          </a>
+        )}
+      </div>
+    </div>
   )
 }

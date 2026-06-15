@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { users } from '@/lib/db'
 import { createSessionToken, buildSetCookieHeader, type SessionRole } from '@/lib/session'
-import { isAdmin, getAdminEmail } from '@/lib/auth'
+import { isAdmin, isWriter, getAdminEmail } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Email atau password salah' }, { status: 401 })
   }
 
-  // Role: prefer DB field, fallback ke email match utk user lama tanpa role.
-  const role: SessionRole = user.role ?? (user.email === getAdminEmail() ? 'admin' : 'user')
+  const role: SessionRole = (user.role as SessionRole) ?? (user.email === getAdminEmail() ? 'admin' : 'user')
 
   const token = await createSessionToken({ userId: user.id, email: user.email, role })
+  const sessionPayload = { userId: user.id, email: user.email, role }
 
   return NextResponse.json(
     {
@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
         id: user.id,
         email: user.email,
         role,
-        isAdmin: isAdmin({ userId: user.id, email: user.email, role }),
+        isAdmin: isAdmin(sessionPayload),
+        isWriter: isWriter(sessionPayload),
       },
     },
     {

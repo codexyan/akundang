@@ -124,6 +124,7 @@ export default function InvitationRenderer({
             <LoadingScreen
               config={config.loading}
               onDone={handleLoadDone}
+              isPreview={contained}
             />
           </motion.div>
         )}

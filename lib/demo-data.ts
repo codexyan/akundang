@@ -8,6 +8,7 @@ export const DEMO_INVITATION: Invitation = {
   is_published: true,
   is_paid: true,
   expires_at: null,
+  referred_by: null,
   created_at: new Date().toISOString(),
   data: {
     groomName: 'Budi Santoso',

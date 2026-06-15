@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/Button'
 
 interface Props {
   invitation: Invitation
+  userEmail?: string
 }
 
-export default function SettingsPanel({ invitation }: Props) {
+export default function SettingsPanel({ invitation, userEmail }: Props) {
   return (
     <div className="space-y-6">
       <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -40,7 +41,7 @@ export default function SettingsPanel({ invitation }: Props) {
             <p className="text-sm text-gray-500 mt-2">Kelola akses dan informasi dasar akun.</p>
             <div className="mt-4 rounded-2xl bg-white border border-gray-200 p-4">
               <p className="text-xs text-gray-400">Email login</p>
-              <p className="mt-1 font-medium text-gray-900">{invitation.user_id}@example.com</p>
+              <p className="mt-1 font-medium text-gray-900">{userEmail || '-'}</p>
             </div>
           </div>
         </div>

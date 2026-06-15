@@ -4,31 +4,23 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Eye, CreditCard, Send, Check } from 'lucide-react'
 
-const steps = [
-  {
-    number: '01',
-    icon: Eye,
-    title: 'Coba dulu, gratis',
-    desc: 'Masukkan nama kalian berdua dan pilih gaya yang paling cocok. Lihat sendiri hasilnya, tidak perlu daftar, tidak perlu bayar dulu.',
-    highlight: 'Bebas, tanpa komitmen',
-  },
-  {
-    number: '02',
-    icon: CreditCard,
-    title: 'Bayar sekali, selesai',
-    desc: 'Sudah cocok? Daftar akun, tentukan nama link undangan kalian, dan pilih paket mulai Rp 79.000. Sekali bayar, langsung aktif.',
-    highlight: 'Tidak ada tagihan lagi',
-  },
-  {
-    number: '03',
-    icon: Send,
-    title: 'Isi detail & bagikan',
-    desc: 'Lengkapi info acara, upload foto pasangan, pilih musik. Selesai! Salin link dan kirim ke tamu lewat WhatsApp.',
-    highlight: 'Siap dalam < 30 menit',
-  },
+const defaultSteps = [
+  { title: 'Coba dulu, gratis', description: 'Masukkan nama kalian berdua dan pilih gaya yang paling cocok. Lihat sendiri hasilnya, tidak perlu daftar, tidak perlu bayar dulu.' },
+  { title: 'Bayar sekali, selesai', description: 'Sudah cocok? Daftar akun, tentukan nama link undangan kalian, dan pilih paket mulai Rp 79.000. Sekali bayar, langsung aktif.' },
+  { title: 'Isi detail & bagikan', description: 'Lengkapi info acara, upload foto pasangan, pilih musik. Selesai! Salin link dan kirim ke tamu lewat WhatsApp.' },
 ]
 
-export default function HowItWorks() {
+const ICONS = [Eye, CreditCard, Send]
+const HIGHLIGHTS = ['Bebas, tanpa komitmen', 'Tidak ada tagihan lagi', 'Siap dalam < 30 menit']
+
+export default function HowItWorks({ steps: propSteps }: { steps?: { title: string; description: string }[] }) {
+  const steps = (propSteps ?? defaultSteps).map((s, i) => ({
+    number: String(i + 1).padStart(2, '0'),
+    icon: ICONS[i] ?? Send,
+    title: s.title,
+    desc: s.description,
+    highlight: HIGHLIGHTS[i] ?? '',
+  }))
   return (
     <section id="cara-kerja" className="py-14 sm:py-20 lg:py-28 bg-white">
       <div className="max-w-5xl mx-auto px-5 sm:px-8">

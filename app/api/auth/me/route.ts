@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session-server'
-import { isAdmin } from '@/lib/auth'
+import { isAdmin, isWriter } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +15,7 @@ export async function GET() {
       email: session.email,
       role: session.role ?? (isAdmin(session) ? 'admin' : 'user'),
       isAdmin: isAdmin(session),
+      isWriter: isWriter(session),
     },
   })
 }

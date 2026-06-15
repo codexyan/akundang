@@ -46,6 +46,7 @@ export interface Invitation {
   is_published: boolean
   is_paid: boolean
   expires_at: string | null
+  referred_by: string | null
   created_at: string
 }
 

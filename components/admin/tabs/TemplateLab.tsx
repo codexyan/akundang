@@ -4220,14 +4220,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
         <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${changeCount > 0 ? 'bg-amber-400' : 'bg-emerald-400'} animate-pulse`} />
               <span className="text-xs font-semibold text-gray-600">Live Preview</span>
             </div>
-            {changeCount > 0 && (
-              <span className="text-[10px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                {changeCount} perubahan
-              </span>
-            )}
             {/* Undo / Redo */}
             <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
               <button onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)"

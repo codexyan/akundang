@@ -263,14 +263,6 @@ export default function MusicLibraryTab() {
   const activeCount = tracks.filter(t => t.is_active).length
   const totalUsage = tracks.reduce((sum, t) => sum + t.usage_count, 0)
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-gold-500" size={32} />
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
@@ -290,7 +282,7 @@ export default function MusicLibraryTab() {
         <div>
           <h2 className="text-2xl font-bold text-stone-900">Perpustakaan Musik</h2>
           <p className="text-sm text-stone-500 mt-1">
-            {tracks.length} trek, {activeCount} aktif{totalUsage > 0 ? `, ${totalUsage} total dipilih user` : ''}
+            {loading ? 'Memuat data...' : `${tracks.length} trek, ${activeCount} aktif${totalUsage > 0 ? `, ${totalUsage} total dipilih user` : ''}`}
           </p>
         </div>
         {tab === 'tracks' && (
@@ -418,7 +410,20 @@ export default function MusicLibraryTab() {
           </div>
 
           {/* Track List */}
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="border border-stone-200 rounded-xl overflow-hidden divide-y divide-stone-100">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+                  <div className="w-10 h-10 rounded-lg bg-stone-200 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-stone-200 rounded w-1/3" />
+                    <div className="h-3 bg-stone-100 rounded w-1/4" />
+                  </div>
+                  <div className="h-6 w-16 bg-stone-100 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-16 space-y-3">
               <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center mx-auto">
                 <FolderOpen size={28} className="text-stone-400" />

@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 import { getSession } from '@/lib/session-server'
 import { isAdmin } from '@/lib/auth'
-import { users, invitations } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
+import type { UserRole } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,15 +14,75 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const allUsers = await users.findAll()
-  const allInvitations = await invitations.findAll()
+  const allUsers = await prisma.user.findMany({
+    where: { role: { not: 'admin' } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      invitations: {
+        orderBy: { createdAt: 'desc' },
+      },
+      supportTickets: {
+        orderBy: { createdAt: 'desc' },
+        include: {
+          replies: {
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+      },
+    },
+  })
 
   const data = allUsers.map((u) => ({
     id: u.id,
     email: u.email,
-    created_at: u.created_at,
-    invitation: allInvitations.find((i) => i.user_id === u.id) ?? null,
+    role: u.role ?? 'user',
+    created_at: u.createdAt.toISOString(),
+    invitations: u.invitations.map((i) => ({
+      id: i.id,
+      slug: i.slug,
+      template_id: i.templateId,
+      is_published: i.isPublished,
+      is_paid: i.isPaid,
+      package_tier: i.packageTier,
+      expires_at: i.expiresAt ? i.expiresAt.toISOString() : null,
+      created_at: i.createdAt.toISOString(),
+    })),
+    tickets: u.supportTickets.map((t) => ({
+      id: t.id,
+      subject: t.subject,
+      message: t.message,
+      status: t.status,
+      priority: t.priority,
+      created_at: t.createdAt.toISOString(),
+      closed_at: t.closedAt ? t.closedAt.toISOString() : null,
+      replies: t.replies.map((r) => ({
+        id: r.id,
+        message: r.message,
+        is_admin: r.isAdmin,
+        created_at: r.createdAt.toISOString(),
+      })),
+    })),
   }))
 
   return NextResponse.json({ users: data })
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getSession()
+  if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { email, password, role } = await req.json() as { email?: string; password?: string; role?: UserRole }
+
+  if (!email || !email.includes('@')) return NextResponse.json({ error: 'Email tidak valid' }, { status: 400 })
+  if (!password || password.length < 6) return NextResponse.json({ error: 'Password minimal 6 karakter' }, { status: 400 })
+
+  const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+  if (existing) return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 })
+
+  const passwordHash = await bcrypt.hash(password, 10)
+  const user = await prisma.user.create({
+    data: { email: email.toLowerCase(), passwordHash, role: role || 'user' },
+  })
+
+  return NextResponse.json({ user: { id: user.id, email: user.email, role: user.role } }, { status: 201 })
 }

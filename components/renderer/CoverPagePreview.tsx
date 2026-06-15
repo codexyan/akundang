@@ -15,9 +15,10 @@ interface Props {
   containerHeight?: number | string
   decorPreviewKey?: number
   previewMode?: 'static' | 'entry' | 'exit' | 'full-flow'
+  onEnter?: () => void
 }
 
-export default function CoverPagePreview({ template, data, previewGuestName, containerHeight, decorPreviewKey, previewMode = 'static' }: Props) {
+export default function CoverPagePreview({ template, data, previewGuestName, containerHeight, decorPreviewKey, previewMode = 'static', onEnter }: Props) {
   const { config } = template
   const { meta, opening, loading } = config
   const { primary, accent, text } = meta.color_scheme
@@ -55,6 +56,10 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
   }, [previewMode, decorPreviewKey])
 
   const handleEnterClick = useCallback(() => {
+    if (onEnter) {
+      onEnter()
+      return
+    }
     if (previewMode === 'exit' || previewMode === 'full-flow') {
       setPhase('exiting')
       setExitKey(k => k + 1)
@@ -62,7 +67,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
         setPhase('loading')
       }, 900)
     }
-  }, [previewMode])
+  }, [previewMode, onEnter])
 
   const handleLoadingDone = useCallback(() => {
     setPhase('cover')
@@ -285,7 +290,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                   ...btnStyle(cs.button, cs.border, accent, text, { size: 'lg', icon: true }),
                   fontFamily: `'${meta.font.body}', serif`,
                   marginBottom: 8,
-                  cursor: (previewMode === 'exit' || previewMode === 'full-flow') ? 'pointer' : 'default',
+                  cursor: (onEnter || previewMode === 'exit' || previewMode === 'full-flow') ? 'pointer' : 'default',
                   backdropFilter: 'blur(4px)',
                 }}
               >

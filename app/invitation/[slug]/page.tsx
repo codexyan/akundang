@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { invitations, galleries, wishes, guests, templateRecords } from '@/lib/db'
 import { isExpired } from '@/lib/utils'
+import { getPackage, type PackageTier } from '@/lib/packages'
 
 export const dynamic = 'force-dynamic'
 import { LEGACY_TEMPLATE_IDS } from '@/lib/types'
@@ -44,13 +47,17 @@ export default async function InvitationPage({ params }: Props) {
 
   if (!invitation) notFound()
 
-  if (!invitation.is_published || !invitation.is_paid) {
+  if (!invitation.is_published) {
     return <UnpublishedPage />
   }
 
-  if (isExpired(invitation.expires_at)) {
+  if (invitation.is_paid && isExpired(invitation.expires_at)) {
     return <ExpiredPage />
   }
+
+  const tier = (invitation as unknown as Record<string, unknown>).package_tier as PackageTier | undefined
+  const pkg = getPackage(tier)
+  const showWatermark = !invitation.is_paid || !pkg.hasWatermarkFree
 
   // ── JSON-driven renderer path ─────────────────────────────────
   const isLegacy = (LEGACY_TEMPLATE_IDS as string[]).includes(invitation.template_id)
@@ -63,7 +70,7 @@ export default async function InvitationPage({ params }: Props) {
 
     const invWishes = await wishes.findByInvitationId(invitation.id)
 
-    return (
+    const content = (
       <InvitationRenderer
         invitationId={invitation.id}
         invitationData={invitation.data as unknown as NewInvitationData}
@@ -72,6 +79,8 @@ export default async function InvitationPage({ params }: Props) {
         musicUrl={(invitation.data as unknown as NewInvitationData).music_url}
       />
     )
+
+    return showWatermark ? <WatermarkShell>{content}</WatermarkShell> : content
   }
 
   // ── Legacy hardcoded templates path ───────────────────────────
@@ -82,14 +91,53 @@ export default async function InvitationPage({ params }: Props) {
     guests: await guests.findByInvitationId(invitation.id) as Guest[],
   }
 
+  let content: React.ReactNode
   switch (invitation.template_id) {
     case 'floral-garden':
-      return <FloralGardenTemplate {...props} />
+      content = <FloralGardenTemplate {...props} />; break
     case 'dark-elegant':
-      return <DarkElegantTemplate {...props} />
+      content = <DarkElegantTemplate {...props} />; break
     default:
-      return <ModernWhiteTemplate {...props} />
+      content = <ModernWhiteTemplate {...props} />; break
   }
+
+  return showWatermark ? <WatermarkShell>{content}</WatermarkShell> : content
+}
+
+function WatermarkShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col min-h-[100dvh]">
+      {/* Top watermark bar */}
+      <div className="sticky top-0 z-[100] bg-white/95 backdrop-blur-xl border-b border-stone-200/60 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-11 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logos/logo-horizontal.png" alt="Akundang" width={90} height={24} className="object-contain" />
+          </Link>
+          <Link
+            href="/register"
+            className="flex items-center gap-1.5 bg-forest-500 hover:bg-forest-600 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Buat Undangan
+          </Link>
+        </div>
+      </div>
+
+      {/* Invitation content */}
+      <div className="flex-1">{children}</div>
+
+      {/* Bottom watermark bar */}
+      <div className="sticky bottom-0 z-[100] bg-white/95 backdrop-blur-xl border-t border-stone-200/60">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-10 flex items-center justify-between">
+          <p className="text-[11px] text-stone-400">
+            Dibuat dengan <span className="font-semibold text-stone-600">Akundang</span> · Undangan digital premium
+          </p>
+          <Link href="/register" className="text-[11px] text-forest-600 hover:text-forest-700 transition-colors font-semibold">
+            Buat Undangan Gratis
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function UnpublishedPage({ message }: { message?: string }) {

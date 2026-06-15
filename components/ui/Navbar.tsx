@@ -4,15 +4,34 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LayoutDashboard, PenLine, Megaphone, Shield } from 'lucide-react'
 import Logo from './Logo'
 
 const NAV_LINKS = [
   { href: '/#fitur', label: 'Fitur' },
   { href: '/#templates', label: 'Template' },
   { href: '/#harga', label: 'Harga' },
+  { href: '/blog', label: 'Blog' },
   { href: '/#faq', label: 'FAQ' },
 ]
+
+const ROLE_LINKS: Record<string, { href: string; label: string; icon: React.ReactNode }[]> = {
+  admin: [
+    { href: '/admin', label: 'Admin Panel', icon: <Shield className="w-4 h-4" /> },
+    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  ],
+  content_writer: [
+    { href: '/writer', label: 'Writer Dashboard', icon: <PenLine className="w-4 h-4" /> },
+    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  ],
+  affiliate: [
+    { href: '/affiliate', label: 'Affiliate', icon: <Megaphone className="w-4 h-4" /> },
+    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  ],
+  user: [
+    { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  ],
+}
 
 export default function Navbar() {
   const router = useRouter()
@@ -48,6 +67,7 @@ export default function Navbar() {
   }
 
   const isLanding = pathname === '/'
+  const roleLinks = ROLE_LINKS[user?.role ?? 'user'] ?? ROLE_LINKS.user
 
   return (
     <>
@@ -63,24 +83,28 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Logo variant="horizontal" size="sm" />
 
-          {/* Desktop nav links */}
-          {isLanding && (
-            <div className="hidden md:flex items-center gap-1">
-              {NAV_LINKS.map((link) => (
-                <a
+          {/* Desktop nav links — visible on all pages */}
+          <div className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => {
+              const isAnchor = link.href.startsWith('/#')
+              const isActive = !isAnchor && pathname.startsWith(link.href)
+              return (
+                <Link
                   key={link.href}
                   href={link.href}
                   className={`text-sm font-medium px-3.5 py-2 rounded-xl transition-colors ${
-                    scrolled
-                      ? 'text-stone-600 hover:text-forest-500 hover:bg-forest-50'
-                      : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'
+                    isActive
+                      ? 'text-forest-600 bg-forest-50'
+                      : scrolled || !isLanding
+                        ? 'text-stone-600 hover:text-forest-500 hover:bg-forest-50'
+                        : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'
                   }`}
                 >
                   {link.label}
-                </a>
-              ))}
-            </div>
-          )}
+                </Link>
+              )
+            })}
+          </div>
 
           <div className="flex items-center gap-1.5">
             {!loaded ? (
@@ -90,18 +114,29 @@ export default function Navbar() {
               </div>
             ) : user ? (
               <>
-                <span className="hidden sm:block text-xs text-stone-400 truncate max-w-[140px] mr-2">
+                <span className="hidden lg:block text-xs text-stone-400 truncate max-w-[140px] mr-1">
                   {user.email}
                 </span>
-                <Link
-                  href={user.role === 'admin' ? '/admin' : '/dashboard'}
-                  className="text-sm font-medium text-stone-700 hover:text-forest-500 px-3 py-1.5 rounded-xl hover:bg-forest-50 transition-colors"
-                >
-                  {user.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
-                </Link>
+                {/* Desktop role links */}
+                <div className="hidden md:flex items-center gap-1">
+                  {roleLinks.map((rl) => (
+                    <Link
+                      key={rl.href}
+                      href={rl.href}
+                      className={`text-sm font-medium px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 ${
+                        pathname === rl.href
+                          ? 'text-forest-600 bg-forest-50'
+                          : 'text-stone-700 hover:text-forest-500 hover:bg-forest-50'
+                      }`}
+                    >
+                      {rl.icon}
+                      <span className="hidden lg:inline">{rl.label}</span>
+                    </Link>
+                  ))}
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="text-sm text-stone-400 hover:text-stone-700 px-3 py-1.5 rounded-xl hover:bg-stone-100 transition-colors"
+                  className="hidden md:inline-flex text-sm text-stone-400 hover:text-stone-700 px-3 py-1.5 rounded-xl hover:bg-stone-100 transition-colors"
                 >
                   Keluar
                 </button>
@@ -120,25 +155,23 @@ export default function Navbar() {
                 >
                   Mulai Gratis
                 </Link>
-                {/* Mobile menu button */}
-                {isLanding && (
-                  <button
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    className="md:hidden ml-1 p-2 rounded-xl text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-                    aria-label="Toggle menu"
-                  >
-                    {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-                  </button>
-                )}
               </>
             )}
+            {/* Mobile menu button — always visible on mobile */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden ml-1 p-2 rounded-xl text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+              aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Mobile menu overlay */}
       <AnimatePresence>
-        {mobileOpen && isLanding && (
+        {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -146,25 +179,74 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-x-0 top-16 z-40 md:hidden"
           >
-            <div className="bg-white/95 backdrop-blur-xl border-b border-stone-200 shadow-lg px-4 py-3 space-y-1">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-stone-600 hover:text-forest-500 hover:bg-forest-50 px-4 py-2.5 rounded-xl transition-colors"
-                >
-                  {link.label}
-                </a>
-              ))}
-              <div className="pt-2 border-t border-stone-100 mt-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-stone-600 hover:text-stone-900 px-4 py-2.5 rounded-xl hover:bg-stone-100 transition-colors"
-                >
-                  Masuk
-                </Link>
+            <div className="bg-white/95 backdrop-blur-xl border-b border-stone-200 shadow-lg px-4 py-3 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
+              {/* Nav links */}
+              {NAV_LINKS.map((link) => {
+                const isAnchor = link.href.startsWith('/#')
+                const isActive = !isAnchor && pathname.startsWith(link.href)
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`block text-sm font-medium px-4 py-2.5 rounded-xl transition-colors ${
+                      isActive
+                        ? 'text-forest-600 bg-forest-50'
+                        : 'text-stone-600 hover:text-forest-500 hover:bg-forest-50'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
+
+              {/* Divider + Auth section */}
+              <div className="pt-2 border-t border-stone-100 mt-2 space-y-1">
+                {user ? (
+                  <>
+                    {/* Email */}
+                    <p className="px-4 py-1.5 text-xs text-stone-400 truncate">{user.email}</p>
+                    {/* Role links */}
+                    {roleLinks.map((rl) => (
+                      <Link
+                        key={rl.href}
+                        href={rl.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors ${
+                          pathname === rl.href
+                            ? 'text-forest-600 bg-forest-50'
+                            : 'text-stone-600 hover:text-forest-500 hover:bg-forest-50'
+                        }`}
+                      >
+                        {rl.icon}
+                        {rl.label}
+                      </Link>
+                    ))}
+                    <button
+                      onClick={() => { setMobileOpen(false); handleLogout() }}
+                      className="w-full flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2.5 rounded-xl transition-colors"
+                    >
+                      Keluar
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-sm font-medium text-stone-600 hover:text-stone-900 px-4 py-2.5 rounded-xl hover:bg-stone-100 transition-colors"
+                    >
+                      Masuk
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-sm font-semibold text-center bg-forest-500 hover:bg-forest-600 text-white px-4 py-2.5 rounded-xl transition-colors mx-4"
+                    >
+                      Mulai Gratis
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

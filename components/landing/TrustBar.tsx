@@ -3,14 +3,22 @@
 import { motion } from 'framer-motion'
 import { Users, Star, Zap, Shield } from 'lucide-react'
 
-const stats = [
-  { value: '500+', label: 'Pasangan dipercaya', icon: Users },
-  { value: '4.9', label: 'Rating rata-rata', icon: Star, star: true },
-  { value: '< 5 mnt', label: 'Rata-rata setup', icon: Zap },
-  { value: '6 bln', label: 'Masa aktif undangan', icon: Shield },
+const defaultStats = [
+  { value: '500+', label: 'Pasangan dipercaya' },
+  { value: '4.9', label: 'Rating rata-rata' },
+  { value: '< 5 mnt', label: 'Rata-rata setup' },
+  { value: '6 bln', label: 'Masa aktif undangan' },
 ]
 
-export default function TrustBar() {
+const ICONS = [Users, Star, Zap, Shield]
+const STAR_INDEX = 1
+
+export default function TrustBar({ items }: { items?: { value: string; label: string }[] }) {
+  const stats = (items ?? defaultStats).map((s, i) => ({
+    ...s,
+    icon: ICONS[i] ?? Shield,
+    star: i === STAR_INDEX,
+  }))
   return (
     <section className="bg-forest-500/[0.03] border-y border-forest-100/50">
       <div className="max-w-5xl mx-auto px-5 sm:px-8">

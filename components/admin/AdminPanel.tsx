@@ -1,24 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import {
-  LayoutDashboard, Users, Mail, ShoppingCart, Settings, LogOut,
+  LayoutDashboard, Users, ShoppingCart, Settings, LogOut,
   Globe, Music, Package, CreditCard, FlaskConical,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, AlertTriangle, X, Megaphone,
+  FileText, PenLine, Home, ExternalLink,
 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import type { AdminTemplateConfig, BankAccount, PaymentProof } from '@/lib/db'
 import type { TemplateRecord, TemplateCategory, ColorPalette, PriceTier, FlashSale, Coupon } from '@/lib/types'
 import DashboardTab from './tabs/DashboardTab'
 import UsersTab from './tabs/UsersTab'
-import InvitationsTab from './tabs/InvitationsTab'
+// InvitationsTab merged into UsersTab
 import TemplatesTab from './tabs/TemplatesTab'
 import PaymentTab from './tabs/PaymentTab'
 import TemplateLab from './tabs/TemplateLab'
 import MusicLibraryTab from './tabs/MusicLibraryTab'
-import WebsiteTab from './tabs/WebsiteTab'
+import LandingPageTab from './tabs/LandingPageTab'
+import ArticlesTab from './tabs/ArticlesTab'
+import WriterTab from './tabs/WriterTab'
+import AffiliatesTab from './tabs/AffiliatesTab'
 import NewSettingsTab from './tabs/SettingsTab'
 import type { SiteSettings } from './tabs/SettingsTab'
 
@@ -38,8 +43,9 @@ interface AdminUserInvitation {
 interface AdminUser {
   id: string
   email: string
+  role: string
   created_at: string
-  invitation: AdminUserInvitation | null
+  invitations: AdminUserInvitation[]
 }
 
 interface AdminInvitation {
@@ -109,9 +115,9 @@ interface Props {
   adminEmail: string
 }
 
-type NavTab = 'dashboard' | 'users' | 'invitations' | 'template' | 'lab' | 'music' | 'orders' | 'payment' | 'website' | 'settings'
+type NavTab = 'dashboard' | 'users' | 'template' | 'lab' | 'music' | 'orders' | 'payment' | 'landing' | 'articles' | 'writers' | 'affiliates' | 'settings'
 
-const VALID_TABS: NavTab[] = ['dashboard', 'users', 'invitations', 'template', 'lab', 'music', 'orders', 'payment', 'website', 'settings']
+const VALID_TABS: NavTab[] = ['dashboard', 'users', 'template', 'lab', 'music', 'orders', 'payment', 'landing', 'articles', 'writers', 'affiliates', 'settings']
 
 // ─── Main Component ───────────────────────────────────────────
 
@@ -128,9 +134,10 @@ export default function AdminPanel({
   const [templateRecords, setTemplateRecords] = useState<TemplateRecord[]>(initialTemplateRecords)
   const [labEditRecord, setLabEditRecord] = useState<TemplateRecord | null>(null)
   const [labDirty, setLabDirty] = useState(false)
-  // Selalu mulai dengan 'dashboard' agar server & client match (hindari hydration error).
-  // URL dibaca di useEffect setelah hydration selesai.
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard')
+  const [pendingTab, setPendingTab] = useState<NavTab | null>(null)
+  const [transitioning, setTransitioning] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   // Baca URL setelah hydration + sinkronisasi back/forward
   useEffect(() => {
@@ -152,17 +159,31 @@ export default function AdminPanel({
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [labDirty])
 
-  // Sync URL saat klik tab — with unsaved changes guard
   function handleTabChange(tab: NavTab) {
+    if (tab === activeTab) return
     if (activeTab === 'lab' && labDirty && tab !== 'lab') {
-      const ok = window.confirm('Ada perubahan yang belum disimpan di Studio Desain. Yakin ingin meninggalkan halaman ini?')
-      if (!ok) return
-      setLabDirty(false)
+      setPendingTab(tab)
+      return
     }
-    setActiveTab(tab)
-    const url = new URL(window.location.href)
-    url.searchParams.set('tab', tab)
-    window.history.pushState({}, '', url.toString())
+    applyTabChange(tab)
+  }
+
+  function applyTabChange(tab: NavTab) {
+    setTransitioning(true)
+    setTimeout(() => {
+      setActiveTab(tab)
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', tab)
+      window.history.pushState({}, '', url.toString())
+      requestAnimationFrame(() => setTransitioning(false))
+    }, 150)
+  }
+
+  function confirmLeaveStudio() {
+    setLabDirty(false)
+    const tab = pendingTab!
+    setPendingTab(null)
+    applyTabChange(tab)
   }
   const [users, setUsers] = useState(initialUsers)
   const [invitations, setInvitations] = useState(initialInvitations)
@@ -201,11 +222,12 @@ export default function AdminPanel({
         ? { ...i, is_paid: paid, ...(paid ? { is_published: true, expires_at: expiresAt.toISOString() } : {}) }
         : i
     )
-    const newUsers = users.map((u) =>
-      u.invitation?.id === invId
-        ? { ...u, invitation: { ...u.invitation, is_paid: paid } }
-        : u
-    )
+    const newUsers = users.map((u) => ({
+      ...u,
+      invitations: u.invitations.map((inv) =>
+        inv.id === invId ? { ...inv, is_paid: paid } : inv
+      ),
+    }))
     setInvitations(newInvs)
     setUsers(newUsers)
     recalc(newInvs, newUsers)
@@ -226,6 +248,21 @@ export default function AdminPanel({
     setInvitations(newInvs)
     recalc(newInvs, users)
     toast.success(published ? 'Undangan dipublish' : 'Undangan di-draft')
+  }
+
+  async function handleChangeRole(userId: string, role: string) {
+    const res = await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      toast.error(data.error || 'Gagal ubah role')
+      return
+    }
+    setUsers(users.map(u => u.id === userId ? { ...u, role } : u))
+    toast.success(`Role diubah ke ${role}`)
   }
 
   async function handleDeleteUser(userId: string) {
@@ -298,6 +335,11 @@ export default function AdminPanel({
       />
 
       <main className={`flex-1 ${activeTab === 'lab' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
+        <div
+          ref={contentRef}
+          className={`h-full transition-opacity duration-150 ease-in-out ${transitioning ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'}`}
+          style={{ transition: 'opacity 150ms ease, transform 150ms ease' }}
+        >
         {activeTab === 'dashboard' && (
           <DashboardTab stats={stats} users={users} invitations={invitations} pendingProofs={pendingProofs} onGoToTab={(t) => handleTabChange(t as NavTab)} />
         )}
@@ -306,12 +348,6 @@ export default function AdminPanel({
             users={users}
             templates={appSettings.templates}
             onDelete={handleDeleteUser}
-            onGoToTab={(t) => handleTabChange(t as NavTab)}
-          />
-        )}
-        {activeTab === 'invitations' && (
-          <InvitationsTab
-            invitations={invitations}
             onOverridePaid={handleOverridePaid}
             onTogglePublished={handleTogglePublished}
           />
@@ -367,7 +403,10 @@ export default function AdminPanel({
             onProofReview={handleProofReview}
           />
         )}
-        {activeTab === 'website' && <WebsiteTab />}
+        {activeTab === 'landing' && <LandingPageTab />}
+        {activeTab === 'articles' && <ArticlesTab />}
+        {activeTab === 'writers' && <WriterTab />}
+        {activeTab === 'affiliates' && <AffiliatesTab />}
         {activeTab === 'settings' && (
           <NewSettingsTab
             settings={{
@@ -402,6 +441,38 @@ export default function AdminPanel({
             }}
           />
         )}
+        </div>
+
+        {/* Unsaved changes confirmation modal */}
+        {pendingTab && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Perubahan Belum Disimpan</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Perubahan di Studio Desain akan hilang jika kamu pergi.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-5 pb-5 pt-3 justify-end">
+                <button
+                  onClick={() => setPendingTab(null)}
+                  className="px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Kembali
+                </button>
+                <button
+                  onClick={confirmLeaveStudio}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                >
+                  Tinggalkan
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
@@ -414,8 +485,15 @@ const NAV_GROUPS = [
     label: 'Utama',
     items: [
       { id: 'dashboard'   as NavTab, label: 'Dashboard',          icon: LayoutDashboard, desc: 'Statistik & aktivitas' },
-      { id: 'users'       as NavTab, label: 'Pengguna',           icon: Users,           desc: 'Kelola akun user' },
-      { id: 'invitations' as NavTab, label: 'Undangan',           icon: Mail,            desc: 'Semua undangan' },
+      { id: 'users'       as NavTab, label: 'Pengguna',           icon: Users,           desc: 'Kelola pengguna & undangan' },
+    ],
+  },
+  {
+    label: 'Konten',
+    items: [
+      { id: 'landing'     as NavTab, label: 'Landing Page',       icon: Globe,           desc: 'Konten & layout halaman utama' },
+      { id: 'articles'    as NavTab, label: 'Artikel',            icon: FileText,        desc: 'Blog, SEO & manajemen konten' },
+      { id: 'writers'     as NavTab, label: 'Writer',             icon: PenLine,         desc: 'Kelola penulis konten' },
     ],
   },
   {
@@ -434,9 +512,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'Marketing',
+    items: [
+      { id: 'affiliates'  as NavTab, label: 'Afiliasi',           icon: Megaphone,       desc: 'Kelola program affiliate' },
+    ],
+  },
+  {
     label: 'Sistem',
     items: [
-      { id: 'website'     as NavTab, label: 'Landing Page',       icon: Globe,           desc: 'Konten & struktur website' },
       { id: 'settings'    as NavTab, label: 'Pengaturan',         icon: Settings,        desc: 'Branding, akun & kontak' },
     ],
   },
@@ -488,7 +571,6 @@ function Sidebar({
                 const isActive = activeTab === id
                 const badge =
                   id === 'users'       ? (stats.totalUsers   > 0 ? stats.totalUsers   : null) :
-                  id === 'invitations' ? (stats.totalUnpaid  > 0 ? stats.totalUnpaid  : null) :
                   id === 'payment'     ? (pendingProofs      > 0 ? pendingProofs      : null) : null
                 return (
                   <button
@@ -511,7 +593,6 @@ function Sidebar({
                     {badge != null && (
                       <span className={`${collapsed ? 'absolute -top-0.5 -right-0.5 w-4 h-4 text-[8px] flex items-center justify-center' : 'text-[10px] px-1.5 py-0.5 min-w-[18px] text-center'} font-bold rounded-full leading-none shrink-0 ${
                         id === 'payment' ? 'bg-red-100 text-red-600 animate-pulse' :
-                        id === 'invitations' ? 'bg-amber-100 text-amber-700' :
                         'bg-gray-100 text-gray-600'
                       }`}>
                         {collapsed ? '' : badge}
@@ -525,6 +606,39 @@ function Sidebar({
           </div>
         ))}
       </nav>
+
+      {/* Quick links */}
+      <div className="px-2 py-2 border-t border-gray-100">
+        {!collapsed && (
+          <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[.15em] px-2 mb-1.5">
+            Pintasan
+          </p>
+        )}
+        {collapsed && <div className="h-px bg-gray-100 mx-1 mb-1.5" />}
+        <div className="space-y-0.5">
+          {[
+            { href: '/', label: 'Halaman Utama', icon: Home },
+            { href: '/dashboard', label: 'Dashboard User', icon: LayoutDashboard },
+            { href: '/writer', label: 'Panel Writer', icon: PenLine },
+            { href: '/affiliate', label: 'Panel Affiliate', icon: Megaphone },
+          ].map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              title={collapsed ? label : undefined}
+              className={`w-full flex items-center ${collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-1.5'} rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all duration-150 group`}
+            >
+              <Icon className="w-[16px] h-[16px] shrink-0" />
+              {!collapsed && (
+                <span className="flex-1 text-[12px] font-medium leading-tight truncate">{label}</span>
+              )}
+              {!collapsed && (
+                <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              )}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {/* Collapse toggle */}
       <div className="px-2 py-1.5 border-t border-gray-100">

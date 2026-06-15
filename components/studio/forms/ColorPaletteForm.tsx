@@ -97,37 +97,30 @@ export default function ColorPaletteForm({
       description="Pilih palet warna atau kustomisasi sendiri"
     >
       {/* Preset Palettes */}
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-stone-700">Palet Siap Pakai</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div>
+        <p className="text-xs font-medium text-stone-500 mb-2">Palet Siap Pakai</p>
+        <div className="grid grid-cols-3 gap-2">
           {PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
               onClick={() => applyPreset(preset)}
-              className="group relative p-3 border-2 border-stone-200 rounded-xl hover:border-gold-400 transition-all"
+              className={`group relative p-2 border rounded-lg transition-all ${
+                primaryColor === preset.primary
+                  ? 'border-gold-400 ring-1 ring-gold-200 bg-gold-50/30'
+                  : 'border-stone-200 hover:border-stone-300'
+              }`}
             >
-              {/* Color Preview */}
-              <div className="flex gap-1 mb-2">
-                <div
-                  className="w-full h-8 rounded"
-                  style={{ backgroundColor: preset.primary }}
-                />
-                <div
-                  className="w-full h-8 rounded"
-                  style={{ backgroundColor: preset.accent }}
-                />
+              <div className="flex gap-0.5 mb-1.5">
+                <div className="w-full h-5 rounded-sm" style={{ backgroundColor: preset.primary }} />
+                <div className="w-full h-5 rounded-sm" style={{ backgroundColor: preset.accent }} />
               </div>
-
-              {/* Name */}
-              <p className="text-xs font-semibold text-stone-700 text-center">
+              <p className="text-[10px] font-medium text-stone-500 text-center truncate">
                 {preset.name}
               </p>
-
-              {/* Active indicator */}
               {primaryColor === preset.primary && (
-                <div className="absolute top-2 right-2 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <div className="absolute top-1 right-1 w-4 h-4 bg-gold-500 text-white rounded-full flex items-center justify-center">
+                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -138,20 +131,17 @@ export default function ColorPaletteForm({
       </div>
 
       {/* Custom Colors */}
-      <div className="pt-4 border-t border-stone-200 space-y-4">
-        <p className="text-sm font-semibold text-stone-700">Kustomisasi Warna</p>
+      <div className="pt-3 border-t border-stone-100 space-y-3">
+        <p className="text-xs font-medium text-stone-500">Kustomisasi Warna</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            label="Warna Utama"
-            hint="Warna tema utama undangan"
-          >
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Warna Utama" hint="Warna tema utama undangan">
             <div className="flex gap-2">
               <input
                 type="color"
                 value={primaryColor}
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
-                className="w-16 h-10 rounded-lg border border-stone-300 cursor-pointer"
+                className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
               <input
                 type="text"
@@ -163,16 +153,13 @@ export default function ColorPaletteForm({
             </div>
           </FormField>
 
-          <FormField
-            label="Warna Aksen"
-            hint="Warna untuk highlight dan tombol"
-          >
+          <FormField label="Warna Aksen" hint="Warna untuk highlight dan tombol">
             <div className="flex gap-2">
               <input
                 type="color"
                 value={accentColor}
                 onChange={(e) => onAccentColorChange(e.target.value)}
-                className="w-16 h-10 rounded-lg border border-stone-300 cursor-pointer"
+                className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
               <input
                 type="text"
@@ -184,16 +171,13 @@ export default function ColorPaletteForm({
             </div>
           </FormField>
 
-          <FormField
-            label="Warna Teks"
-            hint="Warna teks utama"
-          >
+          <FormField label="Warna Teks" hint="Warna teks utama">
             <div className="flex gap-2">
               <input
                 type="color"
                 value={textColor}
                 onChange={(e) => onTextColorChange(e.target.value)}
-                className="w-16 h-10 rounded-lg border border-stone-300 cursor-pointer"
+                className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
               <input
                 type="text"
@@ -205,16 +189,13 @@ export default function ColorPaletteForm({
             </div>
           </FormField>
 
-          <FormField
-            label="Warna Latar"
-            hint="Warna latar belakang"
-          >
+          <FormField label="Warna Latar" hint="Warna latar belakang">
             <div className="flex gap-2">
               <input
                 type="color"
                 value={backgroundColor}
                 onChange={(e) => onBackgroundColorChange(e.target.value)}
-                className="w-16 h-10 rounded-lg border border-stone-300 cursor-pointer"
+                className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
               <input
                 type="text"
@@ -228,18 +209,13 @@ export default function ColorPaletteForm({
         </div>
 
         {/* Color Preview */}
-        <div className="p-4 rounded-xl" style={{ backgroundColor }}>
+        <div className="p-3 rounded-lg" style={{ backgroundColor }}>
           <div
-            className="p-4 rounded-lg"
-            style={{
-              background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-            }}
+            className="p-3 rounded-md"
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
           >
-            <p className="text-sm font-semibold text-center" style={{ color: textColor }}>
+            <p className="text-xs font-medium text-center" style={{ color: textColor }}>
               Preview Warna
-            </p>
-            <p className="text-xs text-center opacity-80" style={{ color: textColor }}>
-              Lihat kombinasi warna Anda
             </p>
           </div>
         </div>

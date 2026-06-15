@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { getSession } from '@/lib/session-server'
 import { invitations, templateRecords } from '@/lib/db'
@@ -50,6 +51,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Slug sudah dipakai' }, { status: 409 })
   }
 
+  const cookieStore = cookies()
+  const referralCode = cookieStore.get('ref')?.value || null
+
   const inv = await invitations.create({
     user_id: session.userId,
     slug,
@@ -58,6 +62,7 @@ export async function POST(req: NextRequest) {
     is_published: false,
     is_paid: false,
     expires_at: null,
+    referred_by: referralCode,
   })
 
   return NextResponse.json({ invitation: inv }, { status: 201 })

@@ -18,19 +18,21 @@ import { formatPrice } from '@/lib/utils'
 
 // ─── Types ──────────────────────────────────────────────────
 
+interface AdminUserInvitation {
+  id: string
+  slug: string
+  template_id: string
+  is_published: boolean
+  is_paid: boolean
+  expires_at: string | null
+  created_at: string
+}
+
 interface AdminUser {
   id: string
   email: string
   created_at: string
-  invitation: {
-    id: string
-    slug: string
-    template_id: string
-    is_published: boolean
-    is_paid: boolean
-    expires_at: string | null
-    created_at: string
-  } | null
+  invitations: AdminUserInvitation[]
 }
 
 interface AdminInvitation {
@@ -200,7 +202,7 @@ export default function DashboardTab({
 
           {expiringSoon.length > 0 && (
             <button
-              onClick={() => onGoToTab('invitations')}
+              onClick={() => onGoToTab('users')}
               className="w-full flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left hover:bg-orange-100 transition-colors"
             >
               <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-100">

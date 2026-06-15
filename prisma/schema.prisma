@@ -19,8 +19,11 @@ model User {
   role         String   @default("user")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  invitations   Invitation[]
-  paymentProofs PaymentProof[]
+  invitations    Invitation[]
+  paymentProofs  PaymentProof[]
+  articles       Article[]
+  affiliate      Affiliate?
+  supportTickets SupportTicket[]
 
   @@map("users")
 }
@@ -35,6 +38,7 @@ model Invitation {
   packageTier String?   @map("package_tier")
   isPublished Boolean   @default(false) @map("is_published")
   isPaid      Boolean   @default(false) @map("is_paid")
+  referredBy  String?   @map("referred_by")
   expiresAt   DateTime? @map("expires_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
@@ -173,6 +177,141 @@ model MusicCategory {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("music_categories")
+}
+
+// ─── ARTICLES (Blog / Landing Page) ──────────────────────────
+model Article {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  excerpt        String    @default("")
+  content        String    @default("")
+  coverUrl       String    @default("") @map("cover_url")
+  authorId       String?   @map("author_id")
+  authorName     String    @default("Tim Akundang") @map("author_name")
+  authorAvatar   String    @default("") @map("author_avatar")
+  isPublished    Boolean   @default(false) @map("is_published")
+  publishedAt    DateTime? @map("published_at")
+  allowLikes     Boolean   @default(true) @map("allow_likes")
+  allowComments  Boolean   @default(true) @map("allow_comments")
+  likesCount     Int       @default(0) @map("likes_count")
+  viewsCount     Int       @default(0) @map("views_count")
+  metaTitle      String    @default("") @map("meta_title")
+  metaDesc       String    @default("") @map("meta_desc")
+  tags           String    @default("")
+  settings       Json      @default("{}")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([authorId])
+  @@map("articles")
+}
+
+// ─── AFFILIATES ─────────────────────────────────────────────
+model Affiliate {
+  id             String   @id @default(cuid())
+  userId         String   @unique @map("user_id")
+  referralCode   String   @unique @map("referral_code")
+  commissionRate Int      @default(10) @map("commission_rate")
+  totalEarnings  Int      @default(0) @map("total_earnings")
+  pendingBalance Int      @default(0) @map("pending_balance")
+  paidBalance    Int      @default(0) @map("paid_balance")
+  totalClicks    Int      @default(0) @map("total_clicks")
+  totalConversions Int    @default(0) @map("total_conversions")
+  isActive       Boolean  @default(true) @map("is_active")
+  bankName       String   @default("") @map("bank_name")
+  accountNo      String   @default("") @map("account_no")
+  accountName    String   @default("") @map("account_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals   Referral[]
+  withdrawals AffiliateWithdrawal[]
+
+  @@map("affiliates")
+}
+
+model Referral {
+  id           String   @id @default(cuid())
+  affiliateId  String   @map("affiliate_id")
+  invitationId String?  @map("invitation_id")
+  buyerEmail   String   @default("") @map("buyer_email")
+  packageTier  String   @default("") @map("package_tier")
+  saleAmount   Int      @default(0) @map("sale_amount")
+  commission   Int      @default(0)
+  status       String   @default("clicked")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@map("referrals")
+}
+
+model AffiliateWithdrawal {
+  id          String    @id @default(cuid())
+  affiliateId String    @map("affiliate_id")
+  amount      Int
+  bankName    String    @default("") @map("bank_name")
+  accountNo   String    @default("") @map("account_no")
+  accountName String    @default("") @map("account_name")
+  status      String    @default("pending")
+  adminNotes  String    @default("") @map("admin_notes")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+  @@map("affiliate_withdrawals")
+}
+
+// ─── SUPPORT TICKETS ────────────────────────────────────────
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  subject   String
+  message   String
+  status    String   @default("open")
+  priority  String   @default("normal")
+  createdAt DateTime @default(now()) @map("created_at")
+  closedAt  DateTime? @map("closed_at")
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies TicketReply[]
+
+  @@index([userId])
+  @@map("support_tickets")
+}
+
+model TicketReply {
+  id       String   @id @default(cuid())
+  ticketId String   @map("ticket_id")
+  userId   String   @map("user_id")
+  message  String
+  isAdmin  Boolean  @default(false) @map("is_admin")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_replies")
+}
+
+// ─── PASSWORD RESET TOKENS ──────────────────────────────────
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 // ─── APP SETTINGS (single row, key = "main") ─────────────────

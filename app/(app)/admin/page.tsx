@@ -18,15 +18,16 @@ export default async function AdminPage() {
   const appSettings = await settings.get()
   const allTemplateRecords = await templateRecords.findAll()
 
-  const regularUsers = allUsers.filter((u) => u.email !== adminEmail)
+  const regularUsers = allUsers.filter((u) => u.role !== 'admin' && u.email !== adminEmail)
 
   const usersWithInvitations = regularUsers.map((u) => {
-    const inv = allInvitations.find((i) => i.user_id === u.id)
+    const userInvs = allInvitations.filter((i) => i.user_id === u.id)
     return {
       id: u.id,
       email: u.email,
+      role: u.role || 'user',
       created_at: u.created_at,
-      invitation: inv ? {
+      invitations: userInvs.map((inv) => ({
         id: inv.id,
         slug: inv.slug,
         template_id: inv.template_id,
@@ -35,7 +36,7 @@ export default async function AdminPage() {
         package_tier: inv.package_tier ?? null,
         expires_at: inv.expires_at,
         created_at: inv.created_at,
-      } : null,
+      })),
     }
   })
 

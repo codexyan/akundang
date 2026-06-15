@@ -9,7 +9,7 @@ import {
   useSpring,
   useMotionValue,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   ArrowRight,
   Play,
@@ -90,7 +90,24 @@ function FloatingOrb({
   );
 }
 
-export default function HeroSection() {
+interface HeroContent {
+  headline: string
+  subheadline: string
+  ctaPrimary: string
+  ctaSecondary: string
+  socialProofCount: string
+  socialProofRating: string
+}
+
+export default function HeroSection({ content }: { content?: HeroContent }) {
+  const hero = {
+    headline: content?.headline ?? 'Undangan digital yang bikin tamu kagum sejak klik pertama',
+    subheadline: content?.subheadline ?? 'Tamu klik link → musik langsung mengalir → nama mereka muncul → foto kalian tersaji cantik. Terpukau sejak detik pertama, tanpa ribet scroll atau cari tombol.',
+    ctaPrimary: content?.ctaPrimary ?? 'Mulai Buat Undangan',
+    ctaSecondary: content?.ctaSecondary ?? 'Lihat Demo Live',
+    socialProofCount: content?.socialProofCount ?? '500+',
+    socialProofRating: content?.socialProofRating ?? '4.9',
+  }
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -100,27 +117,6 @@ export default function HeroSection() {
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  // Animated number counter
-  const [activeUsers, setActiveUsers] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      let current = 0;
-      const target = 128;
-      const increment = target / 30;
-      const interval = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-          setActiveUsers(target);
-          clearInterval(interval);
-        } else {
-          setActiveUsers(Math.floor(current));
-        }
-      }, 30);
-      return () => clearInterval(interval);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <section
@@ -214,13 +210,7 @@ export default function HeroSection() {
               }}
               className="mt-7 text-body-lg text-secondary max-w-xl text-no-orphan"
             >
-              Tamu klik link → musik langsung mengalir → nama mereka muncul →
-              foto kalian tersaji cantik.
-              <span className="text-primary font-semibold">
-                {" "}
-                Terpukau sejak detik pertama
-              </span>
-              , tanpa ribet scroll atau cari tombol.
+              {hero.subheadline}
             </motion.p>
 
             {/* 🎯 Stats Bar - Social Proof */}
@@ -270,11 +260,11 @@ export default function HeroSection() {
                       </motion.div>
                     ))}
                     <span className="text-button-base font-bold text-primary ml-1">
-                      4.9
+                      {hero.socialProofRating}
                     </span>
                   </div>
                   <p className="text-caption text-tertiary font-medium">
-                    dari <strong className="text-secondary">500+</strong>{" "}
+                    dari <strong className="text-secondary">{hero.socialProofCount}</strong>{" "}
                     pasangan
                   </p>
                 </div>
@@ -283,17 +273,16 @@ export default function HeroSection() {
               {/* Divider */}
               <div className="hidden sm:block w-px h-10 bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
 
-              {/* Active users */}
+              {/* Quick trust badge */}
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-400 animate-ping" />
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-forest-50 flex items-center justify-center">
+                  <Check size={16} className="text-forest-500" />
                 </div>
                 <div>
-                  <p className="text-h5 font-bold text-primary leading-none">
-                    {activeUsers}
+                  <p className="text-caption font-semibold text-primary leading-none">
+                    Bayar sekali
                   </p>
-                  <p className="text-caption-sm text-tertiary">sedang online</p>
+                  <p className="text-caption-sm text-tertiary">tanpa langganan</p>
                 </div>
               </div>
             </motion.div>
@@ -338,7 +327,7 @@ export default function HeroSection() {
                   />
 
                   <span className="relative flex items-center justify-center gap-2">
-                    Mulai Buat Undangan
+                    {hero.ctaPrimary}
                     <ArrowRight
                       size={18}
                       className="group-hover:translate-x-1 transition-transform"
@@ -365,7 +354,7 @@ export default function HeroSection() {
                         className="fill-white text-white ml-0.5"
                       />
                     </div>
-                    Lihat Demo Live
+                    {hero.ctaSecondary}
                   </span>
                 </motion.button>
               </Link>

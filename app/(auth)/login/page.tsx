@@ -58,9 +58,11 @@ function LoginContent() {
     }
     const { user } = await res.json()
     toast.success('Login berhasil! 🎉')
-    // Check if user is admin by role field or isAdmin flag
     const isAdmin = user?.role === 'admin' || user?.isAdmin === true
-    router.push(isAdmin ? '/admin' : redirect)
+    const isWriterRole = user?.role === 'content_writer'
+    const isAffiliateRole = user?.role === 'affiliate'
+    const destination = isAdmin ? '/admin' : isWriterRole ? '/writer' : isAffiliateRole ? '/affiliate' : redirect
+    router.push(destination)
     router.refresh()
   }
 

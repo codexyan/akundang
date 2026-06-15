@@ -2,44 +2,26 @@
 
 import { motion } from 'framer-motion'
 
-const reviews = [
-  {
-    names: 'Rizky & Aulia',
-    date: 'Maret 2026',
-    template: 'Modern',
-    quote: 'Tamunya banyak yang nanya "link undangannya keren banget, pakai apa?". Langsung kami rekomendasiin Akundang. Setup-nya cepat banget, kurang dari 30 menit sudah jadi.',
-    initial: 'RA',
-    color: '#2c4a34',
-  },
-  {
-    names: 'Dimas & Nadia',
-    date: 'Februari 2026',
-    template: 'Casual',
-    quote: 'Kami berdua kerja penuh waktu dan tidak ada waktu ngurusin undangan fisik. Akundang solusinya: simple, cantik, dan tamu bisa RSVP langsung dari HP mereka.',
-    initial: 'DN',
-    color: '#9a7d3f',
-  },
-  {
-    names: 'Fajar & Syifa',
-    date: 'April 2026',
-    template: 'Traditional',
-    quote: 'Yang paling suka fitur nama tamu personalnya. Tamu merasa diperhatikan karena nama mereka muncul langsung di undangan. Banyak yang WA bilang terkesan.',
-    initial: 'FS',
-    color: '#4a6355',
-  },
-  {
-    names: 'Hendra & Mita',
-    date: 'Januari 2026',
-    template: 'Modern',
-    quote: 'Harga segini sudah dapat semua fitur lengkap, tidak ada tambahan biaya. Undangan kami masih bisa dibuka 6 bulan setelah nikah untuk kenangan.',
-    initial: 'HM',
-    color: '#5d7a6a',
-  },
+interface Review {
+  names: string
+  date: string
+  template: string
+  quote: string
+  initial: string
+  color: string
+}
+
+const defaultReviews: Review[] = [
+  { names: 'Rizky & Aulia', date: 'Maret 2026', template: 'Modern', quote: 'Tamunya banyak yang nanya "link undangannya keren banget, pakai apa?". Langsung kami rekomendasiin Akundang. Setup-nya cepat banget, kurang dari 30 menit sudah jadi.', initial: 'RA', color: '#2c4a34' },
+  { names: 'Dimas & Nadia', date: 'Februari 2026', template: 'Casual', quote: 'Kami berdua kerja penuh waktu dan tidak ada waktu ngurusin undangan fisik. Akundang solusinya: simple, cantik, dan tamu bisa RSVP langsung dari HP mereka.', initial: 'DN', color: '#9a7d3f' },
+  { names: 'Fajar & Syifa', date: 'April 2026', template: 'Traditional', quote: 'Yang paling suka fitur nama tamu personalnya. Tamu merasa diperhatikan karena nama mereka muncul langsung di undangan. Banyak yang WA bilang terkesan.', initial: 'FS', color: '#4a6355' },
+  { names: 'Hendra & Mita', date: 'Januari 2026', template: 'Modern', quote: 'Harga segini sudah dapat semua fitur lengkap, tidak ada tambahan biaya. Undangan kami masih bisa dibuka 6 bulan setelah nikah untuk kenangan.', initial: 'HM', color: '#5d7a6a' },
 ]
 
-export default function Testimonials() {
+export default function Testimonials({ reviews: propReviews }: { reviews?: Review[] }) {
+  const reviews = propReviews ?? defaultReviews
   return (
-    <section className="py-14 sm:py-20 lg:py-28 bg-white overflow-hidden">
+    <section id="testimoni" className="py-14 sm:py-20 lg:py-28 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
 
         <motion.div

@@ -13,7 +13,7 @@ function getSecret() {
   return new TextEncoder().encode(secret)
 }
 
-export type SessionRole = 'admin' | 'user'
+export type SessionRole = 'admin' | 'content_writer' | 'affiliate' | 'user'
 
 export interface SessionPayload {
   userId: string

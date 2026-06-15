@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
 import path from 'path'
 import { getSession } from '@/lib/session-server'
 import { isAdmin } from '@/lib/auth'
+import { uploadToStorage } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +17,6 @@ const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp']
 const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.ogg']
 const AUDIO_EXTS = ['.mp3', '.m4a', '.wav', '.ogg', '.aac']
 
-// Whitelist allowed folders to prevent path traversal
 const ALLOWED_FOLDERS = ['covers', 'thumbnails', 'assets', 'templates', 'decorations', 'music']
 
 function fileKind(file: File): 'image' | 'video' | 'audio' | null {
@@ -41,8 +40,6 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
     const folderParam = (formData.get('folder') as string | null) ?? 'covers'
-
-    // Sanitize folder parameter to prevent path traversal
     const folder = ALLOWED_FOLDERS.includes(folderParam) ? folderParam : 'covers'
 
     if (!file) {
@@ -60,7 +57,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `File terlalu besar (maks ${label})` }, { status: 400 })
     }
 
-    // Validate extension
     const ext = path.extname(file.name).toLowerCase()
     const allowedExts = kind === 'video' ? VIDEO_EXTS : kind === 'audio' ? AUDIO_EXTS : IMAGE_EXTS
     if (!allowedExts.includes(ext)) {
@@ -73,14 +69,11 @@ export async function POST(req: NextRequest) {
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(2, 9)
     const filename = `${kind}-${timestamp}-${random}${ext}`
+    const storagePath = `${folder}/${filename}`
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder)
-    await fs.mkdir(uploadDir, { recursive: true })
+    const publicUrl = await uploadToStorage(buffer, storagePath, file.type || 'application/octet-stream')
 
-    const filepath = path.join(uploadDir, filename)
-    await fs.writeFile(filepath, buffer)
-
-    return NextResponse.json({ url: `/uploads/${folder}/${filename}` }, { status: 201 })
+    return NextResponse.json({ url: publicUrl }, { status: 201 })
   } catch (error) {
     console.error('Admin upload error:', error)
     return NextResponse.json(

@@ -9,7 +9,7 @@ import JAVANESE_GOLD from './template-configs/javanese-gold'
 
 // ─── TYPE EXPORTS ────────────────────────────────────────────────────────────
 
-export type UserRole = 'admin' | 'user'
+export type UserRole = 'admin' | 'content_writer' | 'affiliate' | 'user'
 
 export interface DbUser {
   id: string
@@ -105,7 +105,7 @@ function mapUser(u: { id: string; email: string; passwordHash: string; role: str
 function mapInvitation(i: {
   id: string; userId: string; slug: string; templateId: string; data: unknown;
   packageTier: string | null; isPublished: boolean; isPaid: boolean;
-  expiresAt: Date | null; createdAt: Date
+  expiresAt: Date | null; referredBy: string | null; createdAt: Date
 }): Invitation {
   return {
     id: i.id, user_id: i.userId, slug: i.slug, template_id: i.templateId,
@@ -113,6 +113,7 @@ function mapInvitation(i: {
     package_tier: (i.packageTier ?? undefined) as Invitation['package_tier'],
     is_published: i.isPublished, is_paid: i.isPaid,
     expires_at: i.expiresAt ? i.expiresAt.toISOString() : null,
+    referred_by: i.referredBy,
     created_at: i.createdAt.toISOString(),
   }
 }
@@ -185,6 +186,9 @@ export const users = {
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await prisma.user.update({ where: { id }, data: { passwordHash } })
   },
+  async updateRole(id: string, role: UserRole): Promise<void> {
+    await prisma.user.update({ where: { id }, data: { role } })
+  },
 }
 
 // ─── INVITATIONS ─────────────────────────────────────────────────────────────
@@ -214,6 +218,7 @@ export const invitations = {
         packageTier: data.package_tier ?? null,
         isPublished: data.is_published, isPaid: data.is_paid,
         expiresAt: data.expires_at ? new Date(data.expires_at) : null,
+        referredBy: data.referred_by ?? null,
       },
     })
     return mapInvitation(i)
@@ -540,6 +545,296 @@ export const settings = {
   },
 }
 
+// ─── LANDING PAGE SETTINGS ──────────────────────────────────────────────────
+
+export interface LandingPageSettings {
+  hero: {
+    headline: string
+    subheadline: string
+    ctaPrimary: string
+    ctaSecondary: string
+    socialProofCount: string
+    socialProofRating: string
+  }
+  trustBar: {
+    items: { value: string; label: string }[]
+  }
+  testimonials: {
+    items: { names: string; date: string; template: string; quote: string; initial: string; color: string }[]
+  }
+  faq: {
+    items: { q: string; a: string }[]
+  }
+  howItWorks: {
+    steps: { title: string; description: string }[]
+  }
+}
+
+const DEFAULT_LANDING: LandingPageSettings = {
+  hero: {
+    headline: 'Undangan digital yang bikin tamu kagum sejak klik pertama',
+    subheadline: 'Tamu klik link → musik langsung mengalir → nama mereka muncul personal → animasi memukau terbuka. Terpukau sejak detik pertama, tanpa ribet scroll atau cari tombol.',
+    ctaPrimary: 'Mulai Buat Undangan',
+    ctaSecondary: 'Lihat Demo Live',
+    socialProofCount: '500+',
+    socialProofRating: '4.9',
+  },
+  trustBar: {
+    items: [
+      { value: '500+', label: 'Pasangan dipercaya' },
+      { value: '4.9', label: 'Rating rata-rata' },
+      { value: '< 5 mnt', label: 'Rata-rata setup' },
+      { value: '6 bln', label: 'Masa aktif undangan' },
+    ],
+  },
+  testimonials: {
+    items: [
+      { names: 'Rizky & Aulia', date: 'Maret 2026', template: 'Modern', quote: 'Tamunya banyak yang nanya "link undangannya keren banget, pakai apa?". Langsung kami rekomendasiin Akundang. Setup-nya cepat banget, kurang dari 30 menit sudah jadi.', initial: 'RA', color: '#2c4a34' },
+      { names: 'Dimas & Nadia', date: 'Februari 2026', template: 'Casual', quote: 'Kami berdua kerja penuh waktu dan tidak ada waktu ngurusin undangan fisik. Akundang solusinya: simple, cantik, dan tamu bisa RSVP langsung dari HP mereka.', initial: 'DN', color: '#9a7d3f' },
+      { names: 'Fajar & Syifa', date: 'April 2026', template: 'Traditional', quote: 'Yang paling suka fitur nama tamu personalnya. Tamu merasa diperhatikan karena nama mereka muncul langsung di undangan. Banyak yang WA bilang terkesan.', initial: 'FS', color: '#4a6355' },
+      { names: 'Hendra & Mita', date: 'Januari 2026', template: 'Modern', quote: 'Harga segini sudah dapat semua fitur lengkap, tidak ada tambahan biaya. Undangan kami masih bisa dibuka 6 bulan setelah nikah untuk kenangan.', initial: 'HM', color: '#5d7a6a' },
+    ],
+  },
+  faq: {
+    items: [
+      { q: 'Bisa dilihat dulu hasilnya sebelum bayar?', a: 'Bisa. Pilih gaya yang kalian suka, masukkan nama kalian berdua, dan lihat sendiri hasilnya. Bayar hanya kalau sudah benar-benar cocok dan mau dipublish.' },
+      { q: 'Tamu perlu download atau install sesuatu?', a: 'Tidak perlu sama sekali. Tamu cukup tap link yang kalian kirim lewat WhatsApp, dan undangan langsung terbuka di browser HP mereka.' },
+      { q: 'Berapa lama undangan bisa diakses setelah bayar?', a: '6 bulan penuh sejak tanggal pembelian. Lebih dari cukup untuk sebelum hari H, saat hari H, dan beberapa bulan setelahnya.' },
+      { q: 'Bisa ganti foto atau detail acara setelah dipublish?', a: 'Bisa, kapan saja dan sebanyak yang kalian mau. Edit info acara, ganti foto, ganti musik, bahkan ganti gaya tampilan tanpa biaya tambahan.' },
+      { q: 'Bagaimana cara tamu menerima undangan?', a: 'Setelah undangan kalian publish, kalian dapat link unik seperti ikhwal-fani.akundang.id. Salin dan kirim ke tamu lewat WhatsApp, Line, atau media apapun.' },
+      { q: 'Kalau ada yang membingungkan, ada yang bisa dihubungi?', a: 'Tentu. Hubungi kami lewat WhatsApp dan kami akan bantu dengan senang hati. Kami balas dalam 1 hari kerja.' },
+    ],
+  },
+  howItWorks: {
+    steps: [
+      { title: 'Coba dulu, gratis', description: 'Tanpa daftar, tanpa bayar. Pilih template, masukkan nama, dan lihat hasilnya langsung.' },
+      { title: 'Bayar sekali', description: 'Rp 149.000 untuk 6 bulan penuh. Tidak ada biaya tambahan atau langganan.' },
+      { title: 'Isi detail & bagikan', description: 'Lengkapi detail acara, upload foto, pilih musik. Siap dalam kurang dari 30 menit.' },
+    ],
+  },
+}
+
+export const landingSettings = {
+  async get(): Promise<LandingPageSettings> {
+    const row = await prisma.appSetting.findUnique({ where: { key: 'landing' } })
+    if (!row) return DEFAULT_LANDING
+    const stored = row.value as Partial<LandingPageSettings>
+    return {
+      hero: { ...DEFAULT_LANDING.hero, ...stored.hero },
+      trustBar: { ...DEFAULT_LANDING.trustBar, ...stored.trustBar },
+      testimonials: { ...DEFAULT_LANDING.testimonials, ...stored.testimonials },
+      faq: { ...DEFAULT_LANDING.faq, ...stored.faq },
+      howItWorks: { ...DEFAULT_LANDING.howItWorks, ...stored.howItWorks },
+    }
+  },
+  async save(data: LandingPageSettings): Promise<void> {
+    await prisma.appSetting.upsert({
+      where: { key: 'landing' },
+      update: { value: data as object },
+      create: { key: 'landing', value: data as object },
+    })
+  },
+}
+
+// ─── ARTICLES ────────────────────────────────────────────────────────────────
+
+export interface ArticleSettings {
+  comments: {
+    moderation: 'auto' | 'manual'
+    bannedWords: string
+    closeAfterDays: number
+    requireLogin: boolean
+    allowReplies: boolean
+    maxLength: number
+  }
+  seo: {
+    focusKeyword: string
+    canonicalUrl: string
+    ogImageUrl: string
+    noIndex: boolean
+  }
+  ads: {
+    enabled: boolean
+    positions: string[]
+    adCode: string
+  }
+  backlinks: {
+    internal: string[]
+    external: string[]
+  }
+  featured: boolean
+  pinned: boolean
+}
+
+export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
+  comments: {
+    moderation: 'auto',
+    bannedWords: '',
+    closeAfterDays: 0,
+    requireLogin: false,
+    allowReplies: true,
+    maxLength: 500,
+  },
+  seo: { focusKeyword: '', canonicalUrl: '', ogImageUrl: '', noIndex: false },
+  ads: { enabled: false, positions: [], adCode: '' },
+  backlinks: { internal: [], external: [] },
+  featured: false,
+  pinned: false,
+}
+
+export interface ArticleData {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  coverUrl: string
+  authorId: string | null
+  authorName: string
+  authorAvatar: string
+  isPublished: boolean
+  publishedAt: string | null
+  allowLikes: boolean
+  allowComments: boolean
+  likesCount: number
+  viewsCount: number
+  metaTitle: string
+  metaDesc: string
+  tags: string
+  settings: ArticleSettings
+  createdAt: string
+  updatedAt: string
+}
+
+function mapArticle(row: {
+  id: string; title: string; slug: string; excerpt: string; content: string;
+  coverUrl: string; authorId: string | null; authorName: string; authorAvatar: string;
+  isPublished: boolean; publishedAt: Date | null;
+  allowLikes: boolean; allowComments: boolean; likesCount: number; viewsCount: number;
+  metaTitle: string; metaDesc: string; tags: string; settings: import('@prisma/client').Prisma.JsonValue;
+  createdAt: Date; updatedAt: Date;
+}): ArticleData {
+  const raw = (typeof row.settings === 'object' && row.settings !== null ? row.settings : {}) as Record<string, unknown>
+  const settings: ArticleSettings = {
+    ...DEFAULT_ARTICLE_SETTINGS,
+    ...raw,
+    comments: { ...DEFAULT_ARTICLE_SETTINGS.comments, ...(raw.comments as Record<string, unknown> ?? {}) },
+    seo: { ...DEFAULT_ARTICLE_SETTINGS.seo, ...(raw.seo as Record<string, unknown> ?? {}) },
+    ads: { ...DEFAULT_ARTICLE_SETTINGS.ads, ...(raw.ads as Record<string, unknown> ?? {}) },
+    backlinks: { ...DEFAULT_ARTICLE_SETTINGS.backlinks, ...(raw.backlinks as Record<string, unknown> ?? {}) },
+  }
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt,
+    content: row.content,
+    coverUrl: row.coverUrl,
+    authorId: row.authorId,
+    authorName: row.authorName,
+    authorAvatar: row.authorAvatar,
+    isPublished: row.isPublished,
+    publishedAt: row.publishedAt?.toISOString() ?? null,
+    allowLikes: row.allowLikes,
+    allowComments: row.allowComments,
+    likesCount: row.likesCount,
+    viewsCount: row.viewsCount,
+    metaTitle: row.metaTitle,
+    metaDesc: row.metaDesc,
+    tags: row.tags,
+    settings,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+export const articles = {
+  async findAll(): Promise<ArticleData[]> {
+    const rows = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } })
+    return rows.map(mapArticle)
+  },
+
+  async findPublished(): Promise<ArticleData[]> {
+    const rows = await prisma.article.findMany({
+      where: { isPublished: true },
+      orderBy: { publishedAt: 'desc' },
+    })
+    return rows.map(mapArticle)
+  },
+
+  async findById(id: string): Promise<ArticleData | null> {
+    const row = await prisma.article.findUnique({ where: { id } })
+    return row ? mapArticle(row) : null
+  },
+
+  async findBySlug(slug: string): Promise<ArticleData | null> {
+    const row = await prisma.article.findUnique({ where: { slug } })
+    return row ? mapArticle(row) : null
+  },
+
+  async findByAuthorId(authorId: string): Promise<ArticleData[]> {
+    const rows = await prisma.article.findMany({
+      where: { authorId },
+      orderBy: { createdAt: 'desc' },
+    })
+    return rows.map(mapArticle)
+  },
+
+  async incrementViews(id: string): Promise<void> {
+    try { await prisma.article.update({ where: { id }, data: { viewsCount: { increment: 1 } } }) } catch {}
+  },
+
+  async incrementLikes(id: string): Promise<void> {
+    try { await prisma.article.update({ where: { id }, data: { likesCount: { increment: 1 } } }) } catch {}
+  },
+
+  async create(data: {
+    title: string; slug: string; excerpt: string; content: string; coverUrl?: string;
+    authorId?: string; authorName?: string; authorAvatar?: string;
+    allowLikes?: boolean; allowComments?: boolean; metaTitle?: string; metaDesc?: string; tags?: string;
+    settings?: ArticleSettings;
+  }): Promise<ArticleData> {
+    const row = await prisma.article.create({
+      data: {
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        content: data.content,
+        coverUrl: data.coverUrl ?? '',
+        authorId: data.authorId ?? null,
+        authorName: data.authorName ?? 'Tim Akundang',
+        authorAvatar: data.authorAvatar ?? '',
+        allowLikes: data.allowLikes,
+        allowComments: data.allowComments,
+        metaTitle: data.metaTitle ?? '',
+        metaDesc: data.metaDesc ?? '',
+        tags: data.tags ?? '',
+        settings: (data.settings ?? DEFAULT_ARTICLE_SETTINGS) as unknown as import('@prisma/client').Prisma.InputJsonValue,
+      },
+    })
+    return mapArticle(row)
+  },
+
+  async update(id: string, data: Partial<{
+    title: string; slug: string; excerpt: string; content: string;
+    coverUrl: string; authorId: string | null; authorName: string; authorAvatar: string;
+    isPublished: boolean; publishedAt: string | null;
+    allowLikes: boolean; allowComments: boolean; metaTitle: string; metaDesc: string; tags: string;
+    settings: ArticleSettings;
+  }>): Promise<ArticleData> {
+    const updateData: Record<string, unknown> = { ...data }
+    if (data.publishedAt !== undefined) {
+      updateData.publishedAt = data.publishedAt ? new Date(data.publishedAt) : null
+    }
+    const row = await prisma.article.update({ where: { id }, data: updateData })
+    return mapArticle(row)
+  },
+
+  async delete(id: string): Promise<void> {
+    await prisma.article.delete({ where: { id } })
+  },
+}
+
 // ─── PAYMENT PROOFS ──────────────────────────────────────────────────────────
 
 export const paymentProofs = {
@@ -685,5 +980,253 @@ export const musicCategories = {
 
   async delete(id: string): Promise<boolean> {
     try { await prisma.musicCategory.delete({ where: { id } }); return true } catch { return false }
+  },
+}
+
+// ─── AFFILIATES ─────────────────────────────────────────────────────────────
+
+export interface AffiliateData {
+  id: string
+  userId: string
+  userEmail: string
+  referralCode: string
+  commissionRate: number
+  totalEarnings: number
+  pendingBalance: number
+  paidBalance: number
+  totalClicks: number
+  totalConversions: number
+  isActive: boolean
+  bankName: string
+  accountNo: string
+  accountName: string
+  createdAt: string
+}
+
+export interface ReferralData {
+  id: string
+  affiliateId: string
+  invitationId: string | null
+  buyerEmail: string
+  packageTier: string
+  saleAmount: number
+  commission: number
+  status: string
+  createdAt: string
+}
+
+export interface WithdrawalData {
+  id: string
+  affiliateId: string
+  amount: number
+  bankName: string
+  accountNo: string
+  accountName: string
+  status: string
+  adminNotes: string
+  createdAt: string
+  processedAt: string | null
+}
+
+export const affiliates = {
+  async findByUserId(userId: string): Promise<AffiliateData | null> {
+    const a = await prisma.affiliate.findUnique({ where: { userId }, include: { user: { select: { email: true } } } })
+    if (!a) return null
+    return { ...mapAffiliate(a), userEmail: a.user.email }
+  },
+
+  async findByCode(code: string): Promise<AffiliateData | null> {
+    const a = await prisma.affiliate.findUnique({ where: { referralCode: code }, include: { user: { select: { email: true } } } })
+    if (!a) return null
+    return { ...mapAffiliate(a), userEmail: a.user.email }
+  },
+
+  async findAll(): Promise<AffiliateData[]> {
+    const rows = await prisma.affiliate.findMany({ include: { user: { select: { email: true } } }, orderBy: { createdAt: 'desc' } })
+    return rows.map(a => ({ ...mapAffiliate(a), userEmail: a.user.email }))
+  },
+
+  async create(userId: string, referralCode: string): Promise<AffiliateData> {
+    const a = await prisma.affiliate.create({
+      data: { userId, referralCode },
+      include: { user: { select: { email: true } } },
+    })
+    return { ...mapAffiliate(a), userEmail: a.user.email }
+  },
+
+  async updateBank(id: string, data: { bankName: string; accountNo: string; accountName: string }): Promise<void> {
+    await prisma.affiliate.update({ where: { id }, data })
+  },
+
+  async incrementClicks(id: string): Promise<void> {
+    try { await prisma.affiliate.update({ where: { id }, data: { totalClicks: { increment: 1 } } }) } catch {}
+  },
+
+  async recordConversion(affiliateId: string, data: { invitationId: string; buyerEmail: string; packageTier: string; saleAmount: number; commission: number }): Promise<void> {
+    await prisma.$transaction([
+      prisma.referral.create({
+        data: {
+          affiliateId,
+          invitationId: data.invitationId,
+          buyerEmail: data.buyerEmail,
+          packageTier: data.packageTier,
+          saleAmount: data.saleAmount,
+          commission: data.commission,
+          status: 'converted',
+        },
+      }),
+      prisma.affiliate.update({
+        where: { id: affiliateId },
+        data: {
+          totalConversions: { increment: 1 },
+          totalEarnings: { increment: data.commission },
+          pendingBalance: { increment: data.commission },
+        },
+      }),
+    ])
+  },
+
+  async toggleActive(id: string, isActive: boolean): Promise<void> {
+    await prisma.affiliate.update({ where: { id }, data: { isActive } })
+  },
+}
+
+export const referrals = {
+  async findByAffiliateId(affiliateId: string): Promise<ReferralData[]> {
+    const rows = await prisma.referral.findMany({ where: { affiliateId }, orderBy: { createdAt: 'desc' } })
+    return rows.map(mapReferral)
+  },
+
+  async findAll(): Promise<ReferralData[]> {
+    const rows = await prisma.referral.findMany({ orderBy: { createdAt: 'desc' } })
+    return rows.map(mapReferral)
+  },
+}
+
+export const affiliateWithdrawals = {
+  async findByAffiliateId(affiliateId: string): Promise<WithdrawalData[]> {
+    const rows = await prisma.affiliateWithdrawal.findMany({ where: { affiliateId }, orderBy: { createdAt: 'desc' } })
+    return rows.map(mapWithdrawal)
+  },
+
+  async findAll(): Promise<WithdrawalData[]> {
+    const rows = await prisma.affiliateWithdrawal.findMany({ orderBy: { createdAt: 'desc' } })
+    return rows.map(mapWithdrawal)
+  },
+
+  async create(data: { affiliateId: string; amount: number; bankName: string; accountNo: string; accountName: string }): Promise<WithdrawalData> {
+    const w = await prisma.affiliateWithdrawal.create({ data })
+    return mapWithdrawal(w)
+  },
+
+  async approve(id: string, adminNotes?: string): Promise<void> {
+    const w = await prisma.affiliateWithdrawal.update({
+      where: { id },
+      data: { status: 'approved', adminNotes: adminNotes ?? '', processedAt: new Date() },
+    })
+    await prisma.affiliate.update({
+      where: { id: w.affiliateId },
+      data: {
+        pendingBalance: { decrement: w.amount },
+        paidBalance: { increment: w.amount },
+      },
+    })
+  },
+
+  async reject(id: string, adminNotes: string): Promise<void> {
+    const w = await prisma.affiliateWithdrawal.update({
+      where: { id },
+      data: { status: 'rejected', adminNotes, processedAt: new Date() },
+    })
+    await prisma.affiliate.update({
+      where: { id: w.affiliateId },
+      data: { pendingBalance: { decrement: w.amount } },
+    })
+  },
+}
+
+function mapAffiliate(a: {
+  id: string; userId: string; referralCode: string; commissionRate: number;
+  totalEarnings: number; pendingBalance: number; paidBalance: number;
+  totalClicks: number; totalConversions: number; isActive: boolean;
+  bankName: string; accountNo: string; accountName: string; createdAt: Date;
+}): Omit<AffiliateData, 'userEmail'> {
+  return {
+    id: a.id, userId: a.userId, referralCode: a.referralCode,
+    commissionRate: a.commissionRate, totalEarnings: a.totalEarnings,
+    pendingBalance: a.pendingBalance, paidBalance: a.paidBalance,
+    totalClicks: a.totalClicks, totalConversions: a.totalConversions,
+    isActive: a.isActive, bankName: a.bankName, accountNo: a.accountNo,
+    accountName: a.accountName, createdAt: a.createdAt.toISOString(),
+  }
+}
+
+function mapReferral(r: {
+  id: string; affiliateId: string; invitationId: string | null;
+  buyerEmail: string; packageTier: string; saleAmount: number;
+  commission: number; status: string; createdAt: Date;
+}): ReferralData {
+  return {
+    id: r.id, affiliateId: r.affiliateId, invitationId: r.invitationId,
+    buyerEmail: r.buyerEmail, packageTier: r.packageTier,
+    saleAmount: r.saleAmount, commission: r.commission,
+    status: r.status, createdAt: r.createdAt.toISOString(),
+  }
+}
+
+function mapWithdrawal(w: {
+  id: string; affiliateId: string; amount: number;
+  bankName: string; accountNo: string; accountName: string;
+  status: string; adminNotes: string; createdAt: Date; processedAt: Date | null;
+}): WithdrawalData {
+  return {
+    id: w.id, affiliateId: w.affiliateId, amount: w.amount,
+    bankName: w.bankName, accountNo: w.accountNo, accountName: w.accountName,
+    status: w.status, adminNotes: w.adminNotes,
+    createdAt: w.createdAt.toISOString(),
+    processedAt: w.processedAt?.toISOString() ?? null,
+  }
+}
+
+// ─── LANDING SECTIONS CONFIG ────────────────────────────────────────────────
+
+export interface LandingSectionConfig {
+  id: string
+  label: string
+  visible: boolean
+  order: number
+}
+
+const DEFAULT_SECTIONS: LandingSectionConfig[] = [
+  { id: 'hero', label: 'Hero', visible: true, order: 0 },
+  { id: 'trustBar', label: 'Trust Bar', visible: true, order: 1 },
+  { id: 'templatePreview', label: 'Template Preview', visible: true, order: 2 },
+  { id: 'featureShowcase', label: 'Fitur Unggulan', visible: true, order: 3 },
+  { id: 'howItWorks', label: 'Cara Kerja', visible: true, order: 4 },
+  { id: 'testimonials', label: 'Testimoni', visible: true, order: 5 },
+  { id: 'pricing', label: 'Harga', visible: true, order: 6 },
+  { id: 'blogShowcase', label: 'Blog', visible: true, order: 7 },
+  { id: 'faq', label: 'FAQ', visible: true, order: 8 },
+  { id: 'closingCta', label: 'Closing CTA', visible: true, order: 9 },
+]
+
+export const landingSections = {
+  async get(): Promise<LandingSectionConfig[]> {
+    const row = await prisma.appSetting.findUnique({ where: { key: 'landing_sections' } })
+    if (!row) return DEFAULT_SECTIONS
+    const stored = row.value as unknown as LandingSectionConfig[]
+    if (!Array.isArray(stored) || stored.length === 0) return DEFAULT_SECTIONS
+    for (const def of DEFAULT_SECTIONS) {
+      if (!stored.find(s => s.id === def.id)) stored.push(def)
+    }
+    return stored.sort((a, b) => a.order - b.order)
+  },
+
+  async save(sections: LandingSectionConfig[]): Promise<void> {
+    await prisma.appSetting.upsert({
+      where: { key: 'landing_sections' },
+      update: { value: sections as unknown as import('@prisma/client').Prisma.InputJsonValue },
+      create: { key: 'landing_sections', value: sections as unknown as import('@prisma/client').Prisma.InputJsonValue },
+    })
   },
 }

@@ -7,37 +7,16 @@ import toast from 'react-hot-toast'
 import {
   ArrowRight, ArrowLeft, Check, Loader2,
   MapPin, Calendar, Clock, Link2, User, Users, ExternalLink,
+  Crown, Sparkles, Leaf,
 } from 'lucide-react'
 import type { Invitation } from '@/lib/types'
-import { PRICE_FORMATTED } from '@/lib/types'
 import { generateSlugSuggestions } from '@/lib/slug-generator'
-import { Button } from '@/components/ui/Button'
+import { PACKAGES, PACKAGE_LIST, formatPrice, type PackageTier } from '@/lib/packages'
+import type { TemplateInfo } from './DashboardClient'
 
-// ─── Template card data ────────────────────────────────────────
-const TEMPLATE_CARDS = [
-  {
-    id: 'modern-white',
-    label: 'Casual',
-    tagline: 'Hangat, simpel, modern',
-    photo: '/images/templates/casual.jpg',
-  },
-  {
-    id: 'floral-garden',
-    label: 'Traditional',
-    tagline: 'Klasik, anggun, berkesan',
-    photo: '/images/templates/traditional.jpg',
-  },
-  {
-    id: 'dark-elegant',
-    label: 'Modern',
-    tagline: 'Berani, dramatis, mewah',
-    photo: '/images/templates/modern.jpg',
-  },
-]
-
-// ─── Types ─────────────────────────────────────────────────────
 interface FormData {
   templateId: string
+  packageTier: PackageTier
   groomName: string
   brideName: string
   slug: string
@@ -55,34 +34,45 @@ interface FormData {
 
 interface Props {
   onInvitationCreated: (inv: Invitation) => void
-  onSimulatePay: () => void
-  invitation: Invitation | null  // existing unpaid invitation
+  onSimulatePay?: () => void
+  invitation?: Invitation | null
+  allTemplates: TemplateInfo[]
 }
 
-// ─── Steps config ──────────────────────────────────────────────
-const STEPS = [
-  { id: 1, label: 'Template'  },
+const STEPS_WITH_TEMPLATE = [
+  { id: 1, label: 'Template' },
+  { id: 2, label: 'Paket' },
+  { id: 3, label: 'Nama & Link' },
+  { id: 4, label: 'Acara' },
+  { id: 5, label: 'Konfirmasi' },
+]
+
+const STEPS_WITHOUT_TEMPLATE = [
+  { id: 1, label: 'Paket' },
   { id: 2, label: 'Nama & Link' },
-  { id: 3, label: 'Acara'    },
+  { id: 3, label: 'Acara' },
   { id: 4, label: 'Konfirmasi' },
 ]
 
-// ─── Main component ────────────────────────────────────────────
-export default function OnboardingWizard({ onInvitationCreated, onSimulatePay, invitation }: Props) {
-  // If already has unpaid invitation, go straight to payment
-  if (invitation && !invitation.is_paid) {
-    return <PaymentStep invitation={invitation} onSimulatePay={onSimulatePay} />
-  }
-
-  return <Wizard onInvitationCreated={onInvitationCreated} />
+export default function OnboardingWizard({ onInvitationCreated, allTemplates }: Props) {
+  return <Wizard onInvitationCreated={onInvitationCreated} allTemplates={allTemplates} />
 }
 
-// ─── Wizard ───────────────────────────────────────────────────
-function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation) => void }) {
+type StepKey = 'template' | 'package' | 'names' | 'acara' | 'konfirmasi'
+
+function Wizard({ onInvitationCreated, allTemplates }: { onInvitationCreated: (inv: Invitation) => void; allTemplates: TemplateInfo[] }) {
+  const showTemplateStep = allTemplates.length > 1
+  const STEPS = showTemplateStep ? STEPS_WITH_TEMPLATE : STEPS_WITHOUT_TEMPLATE
+  const stepKeys: StepKey[] = showTemplateStep
+    ? ['template', 'package', 'names', 'acara', 'konfirmasi']
+    : ['package', 'names', 'acara', 'konfirmasi']
+
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
+  const defaultTemplateId = allTemplates[0]?.id ?? ''
   const [form, setForm] = useState<FormData>({
-    templateId: 'modern-white',
+    templateId: defaultTemplateId,
+    packageTier: 'premium',
     groomName: '',
     brideName: '',
     slug: '',
@@ -102,12 +92,13 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
   const [slugError, setSlugError] = useState('')
 
   const slugSuggestions = generateSlugSuggestions(form.groomName, form.brideName)
+  const currentKey = stepKeys[step - 1]
+  const lastStep = STEPS.length
 
   function patch(key: keyof FormData, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
-  // Slug checker
   useEffect(() => {
     if (!form.slug || form.slug.length < 3) { setSlugStatus('idle'); return }
     setSlugStatus('checking')
@@ -127,8 +118,9 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
   }
 
   function canNext(): boolean {
-    if (step === 1) return !!form.templateId
-    if (step === 2) {
+    if (currentKey === 'template') return !!form.templateId
+    if (currentKey === 'package') return !!form.packageTier
+    if (currentKey === 'names') {
       return !!form.groomName.trim() && !!form.brideName.trim() &&
         form.slug.length >= 3 && slugStatus === 'ok'
     }
@@ -163,14 +155,20 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
     const res = await fetch('/api/invitations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: form.slug, template_id: form.templateId, data }),
+      body: JSON.stringify({
+        slug: form.slug,
+        template_id: form.templateId,
+        package_tier: form.packageTier,
+        data,
+      }),
     })
     setSaving(false)
 
     if (!res.ok) {
       const { error } = await res.json()
       if (error?.includes('Slug') || error?.includes('slug')) {
-        setStep(2)
+        const namesIdx = stepKeys.indexOf('names') + 1
+        setStep(namesIdx)
         setSlugError('Nama link ini sudah dipakai, coba yang lain')
       } else {
         toast.error(error || 'Gagal membuat undangan')
@@ -181,35 +179,32 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
     onInvitationCreated(created)
   }
 
-  const dir = 1 // forward animation
-
   return (
     <div className="min-h-[70vh] flex flex-col">
 
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
-          {/* Track line */}
           <div className="absolute top-4 left-0 right-0 h-px bg-stone-100 z-0" />
           <motion.div
             className="absolute top-4 left-0 h-px bg-stone-800 z-0"
             initial={{ width: '0%' }}
-            animate={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
+            animate={{ width: `${((step - 1) / (lastStep - 1)) * 100}%` }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           />
 
-          {STEPS.map(s => (
+          {STEPS.map((s, i) => (
             <div key={s.id} className="relative z-10 flex flex-col items-center gap-1.5">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                s.id < step
+                i + 1 < step
                   ? 'bg-stone-800 text-white'
-                  : s.id === step
+                  : i + 1 === step
                   ? 'bg-stone-900 text-white ring-4 ring-stone-100'
                   : 'bg-white border-2 border-stone-200 text-stone-300'
               }`}>
-                {s.id < step ? <Check size={14} /> : s.id}
+                {i + 1 < step ? <Check size={14} /> : i + 1}
               </div>
-              <span className={`text-[10px] font-semibold hidden sm:block ${s.id === step ? 'text-stone-800' : 'text-stone-300'}`}>
+              <span className={`text-[10px] font-semibold hidden sm:block ${i + 1 === step ? 'text-stone-800' : 'text-stone-300'}`}>
                 {s.label}
               </span>
             </div>
@@ -222,13 +217,14 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: dir * 30 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -dir * 30 }}
+            exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
-            {step === 1 && <StepTemplate form={form} onSelect={id => patch('templateId', id)} />}
-            {step === 2 && (
+            {currentKey === 'template' && <StepTemplate form={form} onSelect={id => patch('templateId', id)} allTemplates={allTemplates} />}
+            {currentKey === 'package' && <StepPackage form={form} onSelect={tier => patch('packageTier', tier)} />}
+            {currentKey === 'names' && (
               <StepNames
                 form={form}
                 slugStatus={slugStatus}
@@ -238,8 +234,8 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
                 onSlugInput={handleSlugInput}
               />
             )}
-            {step === 3 && <StepAcara form={form} onPatch={patch} />}
-            {step === 4 && <StepKonfirmasi form={form} />}
+            {currentKey === 'acara' && <StepAcara form={form} onPatch={patch} />}
+            {currentKey === 'konfirmasi' && <StepKonfirmasi form={form} allTemplates={allTemplates} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -255,7 +251,7 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
         </button>
 
         <div className="flex items-center gap-3">
-          {step < 3 && (
+          {currentKey === 'acara' && (
             <button
               onClick={() => setStep(s => s + 1)}
               className="text-sm text-stone-400 hover:text-stone-600 font-medium transition-colors"
@@ -263,7 +259,7 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
               Lewati
             </button>
           )}
-          {step < 4 ? (
+          {step < lastStep ? (
             <button
               onClick={() => setStep(s => s + 1)}
               disabled={!canNext()}
@@ -288,50 +284,56 @@ function Wizard({ onInvitationCreated }: { onInvitationCreated: (inv: Invitation
 }
 
 // ─── Step 1: Pilih Template ────────────────────────────────────
-function StepTemplate({ form, onSelect }: { form: FormData; onSelect: (id: string) => void }) {
+function StepTemplate({ form, onSelect, allTemplates }: { form: FormData; onSelect: (id: string) => void; allTemplates: TemplateInfo[] }) {
   return (
     <div>
-      <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Pilih gaya tampilan</h2>
-      <p className="text-stone-400 text-sm mb-6">Pilih yang paling mencerminkan kalian. Bisa diganti kapan saja.</p>
+      <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Pilih template undangan</h2>
+      <p className="text-stone-400 text-sm mb-6">Pilih desain yang paling mencerminkan kalian.</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {TEMPLATE_CARDS.map(tpl => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {allTemplates.map(tpl => (
           <button
             key={tpl.id}
             onClick={() => onSelect(tpl.id)}
             className="group relative rounded-2xl overflow-hidden border-2 transition-all duration-200 text-left focus:outline-none"
             style={{ borderColor: form.templateId === tpl.id ? '#1c1917' : '#e7e5e4' }}
           >
-            {/* Photo */}
             <div className="relative aspect-[3/4]">
-              <Image
-                src={tpl.photo}
-                alt={tpl.label}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                sizes="(max-width: 640px) 100vw, 33vw"
-              />
+              {tpl.thumbnailUrl ? (
+                <Image
+                  src={tpl.thumbnailUrl}
+                  alt={tpl.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-              {/* Selected checkmark */}
               {form.templateId === tpl.id && (
                 <div className="absolute top-3 right-3 w-7 h-7 bg-stone-900 rounded-full flex items-center justify-center">
                   <Check size={14} className="text-white" />
                 </div>
               )}
 
-              {/* Label overlay */}
+              {tpl.isNew && (
+                <div className="absolute top-3 left-3">
+                  <span className="text-[9px] bg-gold-500 text-white px-1.5 py-0.5 rounded-full font-bold">NEW</span>
+                </div>
+              )}
+
               <div className="absolute bottom-0 inset-x-0 p-4">
-                <p className="text-[9px] font-bold tracking-widest uppercase text-white/60 mb-0.5">{tpl.label}</p>
-                <p className="font-semibold text-white text-sm">{tpl.tagline}</p>
+                <p className="font-semibold text-white text-sm">{tpl.name}</p>
+                <p className="text-[10px] text-white/60 capitalize">{tpl.category}</p>
               </div>
             </div>
 
-            {/* Demo link */}
             <div className="px-3 py-2.5 bg-white flex items-center justify-between">
-              <span className="text-xs font-medium text-stone-600">{tpl.label}</span>
+              <span className="text-xs font-medium text-stone-600">{tpl.name}</span>
               <a
-                href={`/demo/${tpl.id}`}
+                href={tpl.demoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
@@ -347,7 +349,101 @@ function StepTemplate({ form, onSelect }: { form: FormData; onSelect: (id: strin
   )
 }
 
-// ─── Step 2: Nama & Link ───────────────────────────────────────
+// ─── Step 2: Pilih Paket ──────────────────────────────────────
+const TIER_ICONS: Record<PackageTier, React.ElementType> = {
+  starter: Leaf,
+  premium: Sparkles,
+  ultimate: Crown,
+}
+
+const TIER_COLORS: Record<PackageTier, { bg: string; border: string; badge: string; ring: string }> = {
+  starter: { bg: 'from-blue-50 to-blue-100', border: 'border-blue-300', badge: 'bg-blue-100 text-blue-700', ring: 'ring-blue-200' },
+  premium: { bg: 'from-rose-50 to-rose-100', border: 'border-rose-300', badge: 'bg-rose-100 text-rose-700', ring: 'ring-rose-200' },
+  ultimate: { bg: 'from-amber-50 to-amber-100', border: 'border-amber-300', badge: 'bg-amber-100 text-amber-700', ring: 'ring-amber-200' },
+}
+
+function StepPackage({ form, onSelect }: { form: FormData; onSelect: (tier: string) => void }) {
+  return (
+    <div>
+      <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Pilih paket</h2>
+      <p className="text-stone-400 text-sm mb-6">Sesuaikan dengan kebutuhan undangan kalian.</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {PACKAGE_LIST.map(tier => {
+          const pkg = PACKAGES[tier]
+          const Icon = TIER_ICONS[tier]
+          const colors = TIER_COLORS[tier]
+          const selected = form.packageTier === tier
+
+          return (
+            <button
+              key={tier}
+              onClick={() => onSelect(tier)}
+              className={`relative rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
+                selected
+                  ? `${colors.border} ring-4 ${colors.ring} shadow-md`
+                  : 'border-stone-200 hover:border-stone-300'
+              }`}
+            >
+              {tier === 'premium' && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="text-[10px] bg-rose-500 text-white px-3 py-1 rounded-full font-bold uppercase tracking-wide">
+                    Populer
+                  </span>
+                </div>
+              )}
+
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors.bg} flex items-center justify-center mb-3`}>
+                <Icon size={20} className="text-stone-700" />
+              </div>
+
+              <h3 className="font-bold text-stone-900 text-lg">{pkg.emoji} {pkg.name}</h3>
+              <p className="text-2xl font-bold text-stone-900 mt-1">{formatPrice(pkg.price)}</p>
+              <p className="text-xs text-stone-400 mb-4">{pkg.activeMonths} bulan aktif</p>
+
+              <ul className="space-y-2 text-sm text-stone-600">
+                <li className="flex items-center gap-2">
+                  <Check size={14} className="text-green-500 shrink-0" />
+                  {pkg.maxPhotos === -1 ? 'Foto unlimited' : `Maks. ${pkg.maxPhotos} foto`}
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check size={14} className="text-green-500 shrink-0" />
+                  {pkg.maxGuests === -1 ? 'Tamu unlimited' : `Maks. ${pkg.maxGuests} blast tamu`}
+                </li>
+                {pkg.hasWatermarkFree && (
+                  <li className="flex items-center gap-2">
+                    <Check size={14} className="text-green-500 shrink-0" />
+                    Tanpa watermark
+                  </li>
+                )}
+                {pkg.hasCustomDomain && (
+                  <li className="flex items-center gap-2">
+                    <Check size={14} className="text-green-500 shrink-0" />
+                    Custom domain
+                  </li>
+                )}
+                {pkg.canHideWishes && (
+                  <li className="flex items-center gap-2">
+                    <Check size={14} className="text-green-500 shrink-0" />
+                    Sembunyikan ucapan
+                  </li>
+                )}
+              </ul>
+
+              {selected && (
+                <div className="absolute top-3 right-3 w-6 h-6 bg-stone-900 rounded-full flex items-center justify-center">
+                  <Check size={12} className="text-white" />
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Step 3: Nama & Link ───────────────────────────────────────
 function StepNames({
   form, slugStatus, slugError, slugSuggestions, onPatch, onSlugInput,
 }: {
@@ -370,7 +466,6 @@ function StepNames({
       <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Nama & link undangan</h2>
       <p className="text-stone-400 text-sm mb-6">Nama kalian untuk personalisasi undangan, dan link unik untuk dibagikan ke tamu.</p>
 
-      {/* Nama */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label className="block text-xs font-semibold text-stone-500 mb-1.5 flex items-center gap-1.5">
@@ -396,19 +491,18 @@ function StepNames({
         </div>
       </div>
 
-      {/* Slug */}
       <div className="mb-4">
         <label className="block text-xs font-semibold text-stone-500 mb-1.5 flex items-center gap-1.5">
-          <Link2 size={11} /> Link Undangan
+          <Link2 size={11} /> Subdomain Undangan
         </label>
         <div className="flex items-center border border-stone-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-stone-400 bg-white">
-          <span className="pl-3.5 pr-1 text-sm text-stone-400 shrink-0 select-none">nama.akundang.id/</span>
           <input
             value={form.slug}
             onChange={e => onSlugInput(e.target.value)}
             placeholder="ahmad-siti"
-            className="flex-1 pr-3 py-2.5 text-sm font-mono text-stone-800 bg-transparent focus:outline-none"
+            className="flex-1 pl-3.5 pr-1 py-2.5 text-sm font-mono text-stone-800 bg-transparent focus:outline-none text-right"
           />
+          <span className="pr-3.5 pl-1 text-sm text-stone-400 shrink-0 select-none">.akundang.id</span>
           <span className={`pr-3 text-xs font-medium shrink-0 ${slugIndicator.color}`}>
             {slugStatus === 'checking'
               ? <Loader2 size={12} className="animate-spin inline" />
@@ -416,12 +510,16 @@ function StepNames({
           </span>
         </div>
         {slugError && <p className="text-xs text-red-500 mt-1">{slugError}</p>}
-        {!slugError && (
+        {!slugError && form.slug && (
+          <p className="text-xs text-stone-400 mt-1.5">
+            Undangan Anda akan tersedia di <span className="font-mono font-medium text-stone-600">{form.slug}.akundang.id</span>
+          </p>
+        )}
+        {!slugError && !form.slug && (
           <p className="text-xs text-stone-400 mt-1">Hanya huruf kecil, angka, tanda hubung. Min. 3 karakter.</p>
         )}
       </div>
 
-      {/* Suggestions */}
       {slugSuggestions.length > 0 && (
         <div>
           <p className="text-xs text-stone-400 mb-2">Rekomendasi:</p>
@@ -446,14 +544,13 @@ function StepNames({
   )
 }
 
-// ─── Step 3: Detail Acara ──────────────────────────────────────
+// ─── Step 4: Detail Acara ──────────────────────────────────────
 function StepAcara({ form, onPatch }: { form: FormData; onPatch: (key: keyof FormData, value: string) => void }) {
   return (
     <div className="max-w-lg">
       <h2 className="font-serif text-2xl font-bold text-stone-900 mb-1">Detail acara</h2>
       <p className="text-stone-400 text-sm mb-6">Opsional, bisa diisi atau dilengkapi nanti di dashboard.</p>
 
-      {/* Akad */}
       <div className="bg-stone-50 rounded-2xl border border-stone-100 p-5 mb-4">
         <h3 className="text-sm font-bold text-stone-700 mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-stone-800 text-white text-[10px] flex items-center justify-center font-bold">1</span>
@@ -481,7 +578,6 @@ function StepAcara({ form, onPatch }: { form: FormData; onPatch: (key: keyof For
         </div>
       </div>
 
-      {/* Resepsi */}
       <div className="bg-stone-50 rounded-2xl border border-stone-100 p-5">
         <h3 className="text-sm font-bold text-stone-700 mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-stone-800 text-white text-[10px] flex items-center justify-center font-bold">2</span>
@@ -512,9 +608,10 @@ function StepAcara({ form, onPatch }: { form: FormData; onPatch: (key: keyof For
   )
 }
 
-// ─── Step 4: Konfirmasi ────────────────────────────────────────
-function StepKonfirmasi({ form }: { form: FormData }) {
-  const tpl = TEMPLATE_CARDS.find(t => t.id === form.templateId)
+// ─── Step 5: Konfirmasi ────────────────────────────────────────
+function StepKonfirmasi({ form, allTemplates }: { form: FormData; allTemplates: TemplateInfo[] }) {
+  const tpl = allTemplates.find(t => t.id === form.templateId)
+  const pkg = PACKAGES[form.packageTier]
 
   return (
     <div className="max-w-md">
@@ -522,12 +619,16 @@ function StepKonfirmasi({ form }: { form: FormData }) {
       <p className="text-stone-400 text-sm mb-6">Periksa sekali lagi sebelum membuat undangan.</p>
 
       <div className="bg-stone-50 rounded-2xl border border-stone-100 divide-y divide-stone-100 overflow-hidden mb-5">
-        <Row icon={<span className="text-base">{tpl?.label === 'Casual' ? '🌿' : tpl?.label === 'Traditional' ? '🌙' : '✨'}</span>}
-          label="Tampilan" value={tpl?.tagline ?? form.templateId} />
+        <Row icon={<Sparkles size={14} className="text-stone-400" />}
+          label="Template" value={tpl?.name ?? form.templateId} />
+        <Row icon={<Crown size={14} className="text-stone-400" />}
+          label="Paket" value={`${pkg.emoji} ${pkg.name} — ${formatPrice(pkg.price)}`} />
         <Row icon={<Users size={14} className="text-stone-400" />}
           label="Pasangan" value={`${form.groomName} & ${form.brideName}`} />
         <Row icon={<Link2 size={14} className="text-stone-400" />}
           label="Link" value={`${form.slug}.akundang.id`} mono />
+        <Row icon={<Calendar size={14} className="text-stone-400" />}
+          label="Masa aktif" value={`${pkg.activeMonths} bulan`} />
         {form.akadVenue && (
           <Row icon={<MapPin size={14} className="text-stone-400" />}
             label="Akad" value={`${form.akadVenue}${form.akadDate ? ' · ' + new Date(form.akadDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}`} />
@@ -538,9 +639,9 @@ function StepKonfirmasi({ form }: { form: FormData }) {
         )}
       </div>
 
-      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-sm text-amber-700">
-        <p className="font-semibold mb-0.5">Setelah dibuat:</p>
-        <p className="text-amber-600 text-xs">Semua data masih bisa diedit kapan saja dari dashboard. Undangan baru aktif setelah pembayaran {PRICE_FORMATTED}.</p>
+      <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-sm text-green-700">
+        <p className="font-semibold mb-0.5">Coba gratis!</p>
+        <p className="text-green-600 text-xs">Setelah dibuat, Anda bisa langsung mengedit undangan secara gratis. Bayar hanya saat siap publish ke tamu.</p>
       </div>
     </div>
   )
@@ -558,64 +659,4 @@ function Row({ icon, label, value, mono }: { icon: React.ReactNode; label: strin
   )
 }
 
-// ─── Payment step (unpaid invitation) ─────────────────────────
-function PaymentStep({ invitation, onSimulatePay }: { invitation: Invitation; onSimulatePay: () => void }) {
-  return (
-    <div className="max-w-md space-y-4">
-      {/* Header */}
-      <div className="bg-stone-900 rounded-3xl p-7 text-white relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(184,152,110,0.15) 0%, transparent 65%)' }} />
-        <div className="relative z-10">
-          <p className="text-stone-400 text-xs font-semibold uppercase tracking-widest mb-4">Satu langkah lagi</p>
-          <h2 className="font-serif text-2xl font-bold mb-2">Aktifkan undangan kalian</h2>
-          <p className="text-stone-400 text-sm mb-6">Lakukan pembayaran untuk mempublish undangan ke tamu.</p>
-
-          <div className="bg-stone-800 rounded-2xl p-4 space-y-2.5">
-            <div className="flex justify-between text-sm">
-              <span className="text-stone-400">Template</span>
-              <span className="font-medium capitalize">{invitation.template_id.replace(/-/g, ' ')}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-stone-400">Link</span>
-              <span className="font-mono text-stone-200">{invitation.slug}.akundang.id</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-stone-400">Masa aktif</span>
-              <span>6 bulan</span>
-            </div>
-            <div className="h-px bg-stone-700" />
-            <div className="flex justify-between items-center">
-              <span className="font-semibold">Total</span>
-              <span className="font-bold text-xl">{PRICE_FORMATTED}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment action */}
-      <div className="bg-white rounded-2xl border border-stone-100 p-5">
-        <p className="text-sm text-stone-500 mb-4">Hubungi kami untuk informasi pembayaran.</p>
-        <a
-          href="https://wa.me/628123456789"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors"
-        >
-          Konfirmasi Pembayaran via WhatsApp
-        </a>
-      </div>
-
-      {/* Dev mode */}
-      <div className="border-t border-dashed border-stone-200 pt-4 text-center">
-        <p className="text-xs text-stone-300 mb-2">⚙️ Mode Development</p>
-        <Button variant="secondary" size="sm" className="w-full" onClick={onSimulatePay}>
-          Simulasi Bayar (Dev Only)
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-// ─── Shared ────────────────────────────────────────────────────
 const inputCls = 'w-full px-3.5 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 bg-white'

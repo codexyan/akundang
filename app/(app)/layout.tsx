@@ -1,4 +1,5 @@
-// Layout untuk halaman app (dashboard, admin) — tanpa Navbar dan Footer landing
+import AppShell from '@/components/app/AppShell'
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <AppShell>{children}</AppShell>
 }

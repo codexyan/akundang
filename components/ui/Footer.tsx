@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Instagram, Mail, MessageCircle, Github, Twitter } from 'lucide-react'
+import { Instagram, Mail, MessageCircle } from 'lucide-react'
 
 const productLinks = [
   { href: '/templates', label: 'Template' },
@@ -13,17 +13,15 @@ const productLinks = [
 ]
 
 const companyLinks = [
-  { href: '/#tentang', label: 'Tentang Kami' },
+  { href: '/#cara-kerja', label: 'Cara Kerja' },
   { href: '/#testimoni', label: 'Testimoni' },
-  { href: '/#faq', label: 'FAQ' },
   { href: '/blog', label: 'Blog' },
+  { href: '/#faq', label: 'FAQ' },
 ]
 
 const socials = [
-  { href: 'https://instagram.com/akundang.id', icon: Instagram, hoverBg: 'hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200' },
-  { href: 'https://twitter.com/akundang', icon: Twitter, hoverBg: 'hover:bg-blue-50 hover:text-blue-500 hover:border-blue-200' },
-  { href: 'https://wa.me/628123456789', icon: MessageCircle, hoverBg: 'hover:bg-green-50 hover:text-green-600 hover:border-green-200' },
-  { href: 'https://github.com/akundang', icon: Github, hoverBg: 'hover:bg-stone-100 hover:text-stone-700 hover:border-stone-300' },
+  { href: 'https://instagram.com/akundang.id', icon: Instagram, label: 'Instagram', hoverBg: 'hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200' },
+  { href: 'https://wa.me/628123456789', icon: MessageCircle, label: 'WhatsApp', hoverBg: 'hover:bg-green-50 hover:text-green-600 hover:border-green-200' },
 ]
 
 function FooterLinkGroup({ title, links }: { title: string; links: { href: string; label: string }[] }) {
@@ -59,15 +57,18 @@ export default function Footer() {
 
   const accountLinks = user
     ? [
-        {
-          href: user.role === 'admin' ? '/admin' : '/dashboard',
-          label: user.role === 'admin' ? 'Admin Panel' : 'Dashboard',
-        },
+        ...(user.role === 'admin'
+          ? [{ href: '/admin', label: 'Admin Panel' }]
+          : user.role === 'content_writer'
+            ? [{ href: '/writer', label: 'Writer Dashboard' }]
+            : user.role === 'affiliate'
+              ? [{ href: '/affiliate', label: 'Affiliate' }]
+              : []),
+        { href: '/dashboard', label: 'Dashboard' },
       ]
     : [
         { href: '/login', label: 'Masuk' },
         { href: '/register', label: 'Daftar' },
-        { href: '/dashboard', label: 'Dashboard' },
       ]
 
   return (
@@ -84,7 +85,7 @@ export default function Footer() {
               <Link href="/" className="inline-block">
                 <Image
                   src="/logos/logo-horizontal.png"
-                  alt="Akundang - Digital Wedding Invitation"
+                  alt="Akundang - Undangan Digital Premium"
                   width={160}
                   height={46}
                   className="object-contain"
@@ -93,17 +94,18 @@ export default function Footer() {
               </Link>
             </div>
             <p className="text-stone-500 text-sm leading-relaxed mb-5 max-w-xs">
-              Platform undangan digital premium untuk pasangan modern Indonesia.
+              Platform undangan digital premium untuk pasangan modern Indonesia. Buat undangan yang bikin tamu kagum, tanpa ribet.
             </p>
 
             {/* Social Links */}
             <div className="flex items-center gap-2.5">
-              {socials.map(({ href, icon: Icon, hoverBg }) => (
+              {socials.map(({ href, icon: Icon, label, hoverBg }) => (
                 <a
                   key={href}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={label}
                   className={`w-9 h-9 rounded-lg bg-stone-50 border border-stone-200 flex items-center justify-center text-stone-400 ${hoverBg} transition-all duration-300`}
                 >
                   <Icon className="w-4 h-4" />

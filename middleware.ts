@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/session'
-import { isAdmin } from '@/lib/auth'
+import { isAdmin, isWriter, isAffiliate } from '@/lib/auth'
 
-const PROTECTED_PATHS = ['/dashboard', '/admin']
+const PROTECTED_PATHS = ['/dashboard', '/admin', '/writer', '/affiliate']
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || 'akundang.id'
 
 export async function middleware(req: NextRequest) {
@@ -10,7 +10,6 @@ export async function middleware(req: NextRequest) {
   const host = hostname.replace(/:\d+$/, '')
   const isLocalhost = host === 'localhost'
 
-  // Subdomain routing
   let slug: string | null = null
   if (isLocalhost) {
     slug = req.nextUrl.searchParams.get('slug')
@@ -26,7 +25,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Auth guard untuk protected routes
   const isProtected = PROTECTED_PATHS.some((p) => req.nextUrl.pathname.startsWith(p))
   if (!isProtected) return NextResponse.next()
 
@@ -39,6 +37,14 @@ export async function middleware(req: NextRequest) {
   }
 
   if (req.nextUrl.pathname.startsWith('/admin') && !isAdmin(session)) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  if (req.nextUrl.pathname.startsWith('/writer') && !isWriter(session)) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  if (req.nextUrl.pathname.startsWith('/affiliate') && !isAffiliate(session)) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
