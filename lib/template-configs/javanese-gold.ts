@@ -73,8 +73,8 @@ const JAVANESE_GOLD: TemplateRecord = {
     },
     music: {
       enabled: true,
-      url: 'https://www.bensound.com/bensound-music/bensound-romantic.mp3',
-      title: 'Romantic Wedding',
+      url: 'https://zwburqdtpxvqotpcunzh.supabase.co/storage/v1/object/public/uploads/music/iqro.mp3',
+      title: 'Iqro',
       autoplay: true,
       volume: 0.3,
       loop: true,
