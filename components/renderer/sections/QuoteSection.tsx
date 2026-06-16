@@ -27,9 +27,7 @@ const ARABIC_FONT_STACK = `'Amiri', 'Scheherazade New', 'Traditional Arabic', 'N
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -37,9 +35,7 @@ function Ornament({ accent }: { accent: string }) {
 function FooterOrnament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3" style={{ marginTop: 24 }}>
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -136,12 +132,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
         initial="hidden" whileInView="visible" viewport={{ once: true }}
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.15 } } }}
       >
-        {/* Top accent line */}
-        <motion.div
-          style={{ width: 40, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}60, transparent)`, margin: '0 auto 28px' }}
-          variants={{ hidden: { scaleX: 0, opacity: 0 }, visible: { scaleX: 1, opacity: 1 } }}
-        />
-
         {arabic && (
           <motion.p
             dir="rtl"
@@ -156,12 +146,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
             {arabic}
           </motion.p>
         )}
-
-        {/* Divider between Arabic and translation */}
-        <motion.div
-          style={{ width: 24, height: '0.5px', background: `${accent}50`, margin: '20px auto' }}
-          variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-        />
 
         {translation && (
           <motion.p
@@ -194,11 +178,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
           </motion.p>
         )}
 
-        {/* Bottom accent line */}
-        <motion.div
-          style={{ width: 40, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}60, transparent)`, margin: '28px auto 0' }}
-          variants={{ hidden: { scaleX: 0, opacity: 0 }, visible: { scaleX: 1, opacity: 1 } }}
-        />
       </motion.div>
     </SectionWrapper>
   )
@@ -238,13 +217,11 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             style={{ margin: '18px 0' }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
           >
-            <div style={{ width: 28, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}40)` }} />
             <div style={{
               width: 7, height: 7,
               border: `0.5px solid ${accent}50`,
               transform: 'rotate(45deg)',
             }} />
-            <div style={{ width: 28, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}40)` }} />
           </motion.div>
         )}
 
@@ -348,14 +325,6 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               </motion.p>
             )}
 
-            {/* Small divider */}
-            {arabic && translation && (
-              <motion.div
-                style={{ width: 20, height: '0.5px', background: `${accent}35`, margin: '14px 0' }}
-                variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-              />
-            )}
-
             {translation && (
               <motion.p
                 style={{
@@ -407,12 +376,6 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         initial="hidden" whileInView="visible" viewport={{ once: true }}
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
       >
-        {/* Tiny ornament line */}
-        <motion.div
-          style={{ width: 18, height: '0.5px', background: `${accent}35`, margin: '0 auto 22px' }}
-          variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-        />
-
         {arabic && (
           <motion.p
             dir="rtl"
@@ -460,11 +423,6 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </motion.p>
         )}
 
-        {/* Tiny ornament line */}
-        <motion.div
-          style={{ width: 18, height: '0.5px', background: `${accent}35`, margin: '22px auto 0' }}
-          variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
-        />
       </motion.div>
     </SectionWrapper>
   )

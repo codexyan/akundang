@@ -20,23 +20,34 @@ interface TestimonialItem { names: string; date: string; template: string; quote
 interface FAQItem { q: string; a: string }
 interface HowItWorksStep { title: string; description: string }
 
+interface HeroMockup { groomName: string; brideName: string; date: string; venue: string }
+interface TemplateShowcaseFeatured { name: string; tagline: string; coverPhoto: string; primary: string; accent: string; href: string }
+interface TemplateShowcaseComingSoon { label: string; accent: string; bg: string }
+interface PersonalisasiMockup { guestName: string; groomName: string; brideName: string }
+
 interface LandingPageSettings {
   hero: HeroContent
   trustBar: { items: TrustBarItem[] }
   testimonials: { items: TestimonialItem[] }
   faq: { items: FAQItem[] }
   howItWorks: { steps: HowItWorksStep[] }
+  heroMockup: HeroMockup
+  templateShowcase: { featured: TemplateShowcaseFeatured; comingSoon: TemplateShowcaseComingSoon[] }
+  personalisasiMockup: PersonalisasiMockup
 }
 
 interface LandingSectionConfigItem {
   id: string; label: string; visible: boolean; order: number
 }
 
-type SectionId = 'hero' | 'trustBar' | 'testimonials' | 'faq' | 'howItWorks'
+type SectionId = 'hero' | 'trustBar' | 'testimonials' | 'faq' | 'howItWorks' | 'heroMockup' | 'templateShowcase' | 'personalisasiMockup'
 
 const SECTIONS: { id: SectionId; icon: React.ElementType; title: string; desc: string }[] = [
   { id: 'hero', icon: Sparkles, title: 'Hero', desc: 'Headline, subheadline, CTA' },
+  { id: 'heroMockup', icon: Eye, title: 'Hero Mockup', desc: 'Nama pasangan, tanggal, venue di mockup' },
   { id: 'trustBar', icon: BarChart3, title: 'Trust Bar', desc: 'Statistik sosial proof' },
+  { id: 'templateShowcase', icon: Star, title: 'Koleksi Template', desc: 'Featured template & coming soon' },
+  { id: 'personalisasiMockup', icon: Tag, title: 'Personalisasi Mockup', desc: 'Nama tamu & pasangan di preview' },
   { id: 'howItWorks', icon: Megaphone, title: 'Cara Kerja', desc: '3 langkah' },
   { id: 'testimonials', icon: MessageSquareQuote, title: 'Testimoni', desc: 'Review pasangan' },
   { id: 'faq', icon: HelpCircle, title: 'FAQ', desc: 'Pertanyaan umum' },
@@ -147,6 +158,76 @@ function TestimonialsEditor({ items, onChange }: { items: TestimonialItem[]; onC
         </div>
       ))}
       <button onClick={addItem} className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-forest-600 hover:text-forest-700 border border-dashed border-gray-200 hover:border-forest-300 rounded-lg py-2.5 transition-colors"><Plus className="w-3.5 h-3.5" /> Tambah Testimoni</button>
+    </div>
+  )
+}
+
+function HeroMockupEditor({ data, onChange }: { data: HeroMockup; onChange: (v: HeroMockup) => void }) {
+  const set = (key: keyof HeroMockup, value: string) => onChange({ ...data, [key]: value })
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div><FieldLabel>Nama Mempelai Pria</FieldLabel><TextInput value={data.groomName} onChange={v => set('groomName', v)} placeholder="Rizky" /></div>
+        <div><FieldLabel>Nama Mempelai Wanita</FieldLabel><TextInput value={data.brideName} onChange={v => set('brideName', v)} placeholder="Aulia" /></div>
+      </div>
+      <div><FieldLabel>Tanggal</FieldLabel><TextInput value={data.date} onChange={v => set('date', v)} placeholder="12 · 04 · 2026" /></div>
+      <div><FieldLabel>Venue</FieldLabel><TextInput value={data.venue} onChange={v => set('venue', v)} placeholder="Hotel Grand Ballroom, Jakarta" /></div>
+    </div>
+  )
+}
+
+function TemplateShowcaseEditor({ data, onChange }: { data: LandingPageSettings['templateShowcase']; onChange: (v: LandingPageSettings['templateShowcase']) => void }) {
+  const setFeatured = (key: keyof TemplateShowcaseFeatured, value: string) => onChange({ ...data, featured: { ...data.featured, [key]: value } })
+  const updateComingSoon = (i: number, key: keyof TemplateShowcaseComingSoon, value: string) => {
+    const next = [...data.comingSoon]; next[i] = { ...next[i], [key]: value }; onChange({ ...data, comingSoon: next })
+  }
+  const addComingSoon = () => onChange({ ...data, comingSoon: [...data.comingSoon, { label: '', accent: '#64ffda', bg: '#060e1f' }] })
+  const removeComingSoon = (i: number) => { if (data.comingSoon.length <= 1) return; onChange({ ...data, comingSoon: data.comingSoon.filter((_, idx) => idx !== i) }) }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-bold text-gray-700 mb-3">Featured Template</p>
+        <div className="space-y-3 bg-gray-50 rounded-lg p-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><FieldLabel>Nama Template</FieldLabel><TextInput value={data.featured.name} onChange={v => setFeatured('name', v)} placeholder="Javanese Gold" /></div>
+            <div><FieldLabel>Tagline</FieldLabel><TextInput value={data.featured.tagline} onChange={v => setFeatured('tagline', v)} /></div>
+          </div>
+          <div><FieldLabel>URL Cover Photo</FieldLabel><TextInput value={data.featured.coverPhoto} onChange={v => setFeatured('coverPhoto', v)} placeholder="https://..." /></div>
+          <div className="grid grid-cols-3 gap-3">
+            <div><FieldLabel>Primary Color</FieldLabel><TextInput value={data.featured.primary} onChange={v => setFeatured('primary', v)} placeholder="#1a4a1a" /></div>
+            <div><FieldLabel>Accent Color</FieldLabel><TextInput value={data.featured.accent} onChange={v => setFeatured('accent', v)} placeholder="#d4af37" /></div>
+            <div><FieldLabel>Link Demo</FieldLabel><TextInput value={data.featured.href} onChange={v => setFeatured('href', v)} placeholder="/demo/renderer?id=..." /></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-bold text-gray-700 mb-3">Coming Soon</p>
+        <div className="space-y-2">
+          {data.comingSoon.map((item, i) => (
+            <div key={i} className="bg-gray-50 rounded-lg p-3 flex items-end gap-2">
+              <div className="flex-1"><FieldLabel>Label</FieldLabel><TextInput value={item.label} onChange={v => updateComingSoon(i, 'label', v)} placeholder="Modern Minimal" /></div>
+              <div className="w-28"><FieldLabel>Accent</FieldLabel><TextInput value={item.accent} onChange={v => updateComingSoon(i, 'accent', v)} placeholder="#64ffda" /></div>
+              <div className="w-28"><FieldLabel>Background</FieldLabel><TextInput value={item.bg} onChange={v => updateComingSoon(i, 'bg', v)} placeholder="#060e1f" /></div>
+              <button onClick={() => removeComingSoon(i)} className="text-gray-400 hover:text-red-500 p-2 mb-0.5"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          ))}
+          <button onClick={addComingSoon} className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-forest-600 hover:text-forest-700 border border-dashed border-gray-200 hover:border-forest-300 rounded-lg py-2.5 transition-colors"><Plus className="w-3.5 h-3.5" /> Tambah Template</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PersonalisasiMockupEditor({ data, onChange }: { data: PersonalisasiMockup; onChange: (v: PersonalisasiMockup) => void }) {
+  const set = (key: keyof PersonalisasiMockup, value: string) => onChange({ ...data, [key]: value })
+  return (
+    <div className="space-y-4">
+      <div><FieldLabel>Nama Tamu (tampil di &quot;Kepada Yth.&quot;)</FieldLabel><TextInput value={data.guestName} onChange={v => set('guestName', v)} placeholder="Bapak & Ibu Hendra" /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><FieldLabel>Nama Mempelai Pria</FieldLabel><TextInput value={data.groomName} onChange={v => set('groomName', v)} placeholder="Rizky" /></div>
+        <div><FieldLabel>Nama Mempelai Wanita</FieldLabel><TextInput value={data.brideName} onChange={v => set('brideName', v)} placeholder="Aulia" /></div>
+      </div>
     </div>
   )
 }
@@ -429,7 +510,10 @@ export default function LandingPageTab() {
                       {isOpen && (
                         <div className="px-4 pb-4 border-t border-gray-50 pt-4">
                           {section.id === 'hero' && <HeroEditor hero={landing.hero} onChange={v => update('hero', v)} />}
+                          {section.id === 'heroMockup' && <HeroMockupEditor data={landing.heroMockup} onChange={v => update('heroMockup', v)} />}
                           {section.id === 'trustBar' && <TrustBarEditor items={landing.trustBar.items} onChange={items => update('trustBar', { items })} />}
+                          {section.id === 'templateShowcase' && <TemplateShowcaseEditor data={landing.templateShowcase} onChange={v => update('templateShowcase', v)} />}
+                          {section.id === 'personalisasiMockup' && <PersonalisasiMockupEditor data={landing.personalisasiMockup} onChange={v => update('personalisasiMockup', v)} />}
                           {section.id === 'howItWorks' && <HowItWorksEditor steps={landing.howItWorks.steps} onChange={steps => update('howItWorks', { steps })} />}
                           {section.id === 'testimonials' && <TestimonialsEditor items={landing.testimonials.items} onChange={items => update('testimonials', { items })} />}
                           {section.id === 'faq' && <FAQEditor items={landing.faq.items} onChange={items => update('faq', { items })} />}

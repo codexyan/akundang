@@ -220,6 +220,55 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                 </div>
               )}
 
+              {/* Couple names */}
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <h1 style={{
+                  fontSize: nameFontSize, fontWeight: 900, lineHeight: 1.1,
+                  color: text,
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  margin: 0, letterSpacing: `${nameSpacing}em`,
+                  textTransform: nameTransform,
+                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+                }}>
+                  {data.groom_name}
+                </h1>
+                <p style={{
+                  fontSize: 18, color: accent, margin: '3px 0',
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  fontWeight: 300, letterSpacing: '0.1em',
+                  textShadow: `0 2px 12px ${primary}aa`,
+                }}>
+                  &amp;
+                </p>
+                <h1 style={{
+                  fontSize: nameFontSize, fontWeight: 900, lineHeight: 1.1,
+                  color: text,
+                  fontFamily: `'${meta.font.heading}', serif`,
+                  margin: 0, letterSpacing: `${nameSpacing}em`,
+                  textTransform: nameTransform,
+                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
+                }}>
+                  {data.bride_name}
+                </h1>
+              </div>
+
+              {/* Ornament separator */}
+              {showBottomSep && (
+                <div style={{ marginBottom: 14 }}>
+                  <SeparatorOrnament style={sepStyle} accent={accent} primary={primary} width={200} />
+                </div>
+              )}
+
+              {/* Invitation text */}
+              <p style={{
+                fontSize: 10.5, lineHeight: 1.8, color: `${text}bb`,
+                textAlign: 'center', marginBottom: 14,
+                fontFamily: `'${meta.font.body}', serif`, maxWidth: 280,
+                textShadow: `0 1px 6px ${primary}88`,
+              }}>
+                {inviteText}
+              </p>
+
               {/* Guest name */}
               {showGuest && (
                 <div style={{
@@ -253,55 +302,6 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                   )}
                 </div>
               )}
-
-              {/* Invitation text */}
-              <p style={{
-                fontSize: 10.5, lineHeight: 1.8, color: `${text}bb`,
-                textAlign: 'center', marginBottom: 14,
-                fontFamily: `'${meta.font.body}', serif`, maxWidth: 280,
-                textShadow: `0 1px 6px ${primary}88`,
-              }}>
-                {inviteText}
-              </p>
-
-              {/* Ornament separator */}
-              {showBottomSep && (
-                <div style={{ marginBottom: 14 }}>
-                  <SeparatorOrnament style={sepStyle} accent={accent} primary={primary} width={200} />
-                </div>
-              )}
-
-              {/* Couple names */}
-              <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                <h1 style={{
-                  fontSize: nameFontSize, fontWeight: 900, lineHeight: 1.1,
-                  color: text,
-                  fontFamily: `'${meta.font.heading}', serif`,
-                  margin: 0, letterSpacing: `${nameSpacing}em`,
-                  textTransform: nameTransform,
-                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
-                }}>
-                  {data.groom_name}
-                </h1>
-                <p style={{
-                  fontSize: 18, color: accent, margin: '3px 0',
-                  fontFamily: `'${meta.font.heading}', serif`,
-                  fontWeight: 300, letterSpacing: '0.1em',
-                  textShadow: `0 2px 12px ${primary}aa`,
-                }}>
-                  &amp;
-                </p>
-                <h1 style={{
-                  fontSize: nameFontSize, fontWeight: 900, lineHeight: 1.1,
-                  color: text,
-                  fontFamily: `'${meta.font.heading}', serif`,
-                  margin: 0, letterSpacing: `${nameSpacing}em`,
-                  textTransform: nameTransform,
-                  textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
-                }}>
-                  {data.bride_name}
-                </h1>
-              </div>
 
               {/* Enter button */}
               <motion.div

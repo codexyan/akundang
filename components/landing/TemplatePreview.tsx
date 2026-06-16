@@ -30,23 +30,29 @@ function PhoneMockup({ children, className = '' }: { children: React.ReactNode; 
   )
 }
 
-const FEATURED = {
+const DEFAULT_FEATURED = {
   name: 'Javanese Gold',
   tagline: 'Elegansi tradisi Jawa dalam sentuhan modern',
   coverPhoto: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&h=1200&fit=crop',
   primary: '#1a4a1a',
   accent: '#d4af37',
-  textColor: '#ffffff',
-  background: '#0f2d0f',
   href: '/demo/renderer?id=javanese-gold',
 }
 
-const COMING_SOON = [
-  { label: 'Modern Minimal', accent: '#64ffda', bg: '#060e1f', photo: '/images/templates/modern.jpg' },
-  { label: 'Romantic Bloom', accent: '#f5a0b5', bg: '#1a0810', photo: '/images/templates/casual.jpg' },
+const DEFAULT_COMING_SOON = [
+  { label: 'Modern Minimal', accent: '#64ffda', bg: '#060e1f' },
+  { label: 'Romantic Bloom', accent: '#f5a0b5', bg: '#1a0810' },
 ]
 
-export default function TemplatePreview() {
+interface ShowcaseData {
+  featured: { name: string; tagline: string; coverPhoto: string; primary: string; accent: string; href: string }
+  comingSoon: { label: string; accent: string; bg: string }[]
+}
+
+export default function TemplatePreview({ showcase }: { showcase?: ShowcaseData }) {
+  const FEATURED = { ...DEFAULT_FEATURED, ...showcase?.featured, textColor: '#ffffff', background: '#0f2d0f' }
+  const COMING_SOON = (showcase?.comingSoon ?? DEFAULT_COMING_SOON).map(c => ({ ...c, photo: '/images/templates/modern.jpg' }))
+
   return (
     <section id="templates" className="py-20 sm:py-28 lg:py-32 bg-[#fafaf9] overflow-hidden">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">

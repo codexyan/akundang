@@ -121,7 +121,14 @@ interface HeroContent {
   socialProofRating: string;
 }
 
-export default function HeroSection({ content }: { content?: HeroContent }) {
+interface MockupData {
+  groomName?: string
+  brideName?: string
+  date?: string
+  venue?: string
+}
+
+export default function HeroSection({ content, mockup }: { content?: HeroContent; mockup?: MockupData }) {
   const hero = {
     headline:
       content?.headline ??
@@ -133,6 +140,13 @@ export default function HeroSection({ content }: { content?: HeroContent }) {
     ctaSecondary: content?.ctaSecondary ?? "Lihat Demo",
     socialProofCount: content?.socialProofCount ?? "500+",
     socialProofRating: content?.socialProofRating ?? "4.9",
+  };
+
+  const mockupData = {
+    groomName: mockup?.groomName ?? 'Rizky',
+    brideName: mockup?.brideName ?? 'Aulia',
+    date: mockup?.date ?? '12 · 04 · 2026',
+    venue: mockup?.venue ?? 'Hotel Grand Ballroom, Jakarta',
   };
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -548,7 +562,7 @@ export default function HeroSection({ content }: { content?: HeroContent }) {
                               textShadow: "0 2px 20px rgba(0,0,0,0.4)",
                             }}
                           >
-                            Rizky
+                            {mockupData.groomName}
                           </h2>
                           <p
                             className="text-xl sm:text-2xl my-1.5"
@@ -569,7 +583,7 @@ export default function HeroSection({ content }: { content?: HeroContent }) {
                               textShadow: "0 2px 20px rgba(0,0,0,0.4)",
                             }}
                           >
-                            Aulia
+                            {mockupData.brideName}
                           </h2>
                         </motion.div>
 
@@ -603,7 +617,7 @@ export default function HeroSection({ content }: { content?: HeroContent }) {
                             className="text-[9px] sm:text-[10px] tracking-[0.25em] uppercase"
                             style={{ color: "rgba(255,255,255,0.5)" }}
                           >
-                            12 · 04 · 2026
+                            {mockupData.date}
                           </p>
                           <div className="flex items-center justify-center gap-1">
                             <MapPin
@@ -614,7 +628,7 @@ export default function HeroSection({ content }: { content?: HeroContent }) {
                               className="text-[8px] sm:text-[9px] tracking-wide"
                               style={{ color: "rgba(255,255,255,0.35)" }}
                             >
-                              Hotel Mulia, Jakarta
+                              {mockupData.venue}
                             </p>
                           </div>
                         </motion.div>

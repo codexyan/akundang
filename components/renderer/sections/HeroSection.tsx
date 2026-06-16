@@ -235,7 +235,6 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
             marginBottom: 18,
           }}
         >
-          <div style={{ height: '0.5px', width: 30, backgroundColor: `${accent}88` }} />
           <p style={{
             fontSize: labelSz, letterSpacing: '0.3em', textTransform: 'uppercase',
             color: `${accent}cc`, fontFamily: `'${font.body}', serif`,
@@ -244,7 +243,6 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
               : section.hero_bismillah === 'arabic' ? 'بِسْمِ اللَّهِ'
               : (section.hero_bismillah_custom || 'Bismillahirrahmanirrahim')}
           </p>
-          <div style={{ height: '0.5px', width: 30, backgroundColor: `${accent}88` }} />
         </motion.div>
 
         {/* Couple names — elegant stacked layout */}
@@ -260,16 +258,12 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
         >{data.groom_name}</motion.h1>
 
         {/* Divider with accent dot */}
-        <motion.div
+        <motion.p
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(3) } }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '10px 0' }}
+          style={{ fontSize: andSz, margin: '10px 0', fontStyle: 'italic', color: accent, fontFamily: `'${font.heading}', serif`, fontWeight: font.bw as number }}
         >
-          <div style={{ height: '0.5px', width: 40, backgroundColor: `${accent}66` }} />
-          <span style={{ fontSize: andSz, fontStyle: 'italic', color: accent, fontFamily: `'${font.heading}', serif`, fontWeight: font.bw as number }}>
-            &amp;
-          </span>
-          <div style={{ height: '0.5px', width: 40, backgroundColor: `${accent}66` }} />
-        </motion.div>
+          &amp;
+        </motion.p>
 
         <motion.h1
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: ts(4) } }}
@@ -330,13 +324,11 @@ function HeroMinimal({ section, data, font, accent, text }: {
           style={{ fontSize: titleSz, fontWeight: font.hw as number, lineHeight: 1.1, color: text, fontFamily: `'${font.heading}', serif`, margin: 0 }}
         >{data.groom_name}</motion.h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '10px 0' }}>
-          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}44` }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '10px 0' }}>
           <motion.span
             variants={{ hidden: { opacity: 0, rotate: -180 }, visible: { opacity: 1, rotate: 0, transition: ts(4) } }}
             style={{ fontSize: 14, color: accent }}
           >✦</motion.span>
-          <div style={{ flex: 1, height: '0.5px', backgroundColor: `${accent}44` }} />
         </div>
 
         <motion.h1
@@ -506,14 +498,12 @@ function HeroEditorial({ section, data, font, accent, text }: {
         style={{ fontSize: titleSz, fontWeight: 300, lineHeight: 0.95, color: text, fontFamily: `'${font.heading}', serif`, margin: 0, letterSpacing: '0.05em', textShadow: shadow ? '0 2px 24px rgba(0,0,0,0.25)' : 'none' }}
       >{data.groom_name}</motion.h1>
 
-      <motion.div
-        variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1, transition: ts(3) } }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, margin: '14px 0' }}
+      <motion.p
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(3) } }}
+        style={{ fontSize: 10, margin: '14px 0', color: `${accent}aa`, fontFamily: `'${font.body}', serif`, letterSpacing: '0.3em' }}
       >
-        <div style={{ flex: 1, maxWidth: 60, height: '0.5px', backgroundColor: `${accent}55` }} />
-        <span style={{ fontSize: 10, color: `${accent}aa`, fontFamily: `'${font.body}', serif`, letterSpacing: '0.3em' }}>&amp;</span>
-        <div style={{ flex: 1, maxWidth: 60, height: '0.5px', backgroundColor: `${accent}55` }} />
-      </motion.div>
+        &amp;
+      </motion.p>
 
       <motion.h1
         variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: ts(4) } }}

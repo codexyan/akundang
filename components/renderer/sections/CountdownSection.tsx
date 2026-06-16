@@ -42,25 +42,6 @@ function getTimeLeft(target: string): TimeLeft {
 
 // ─── Shared components ─────────────────────────────────────────────────────
 
-function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
-    </div>
-  )
-}
-
-function FooterOrnament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
-      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
-    </div>
-  )
-}
 
 function EventPassed({ accent, headingFont, bodyFont, formattedDate }: {
   accent: string; headingFont: string; bodyFont: string; formattedDate: string | null
@@ -96,11 +77,8 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
 
         <div className="text-center" style={{ marginBottom: 32 }}>
-          <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
-            <Ornament accent={accent} />
-          </motion.div>
           <motion.p
-            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginTop: 20, marginBottom: 10 }}
+            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginBottom: 10 }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Menuju Hari Bahagia
           </motion.p>
@@ -145,7 +123,6 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </div>
         )}
 
-        <FooterOrnament accent={accent} />
       </motion.div>
     </SectionWrapper>
   )
@@ -167,14 +144,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
         style={{ minHeight: 420, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 24px' }}
         initial="hidden" whileInView="visible" viewport={{ once: true }}
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
-
-        <motion.div
-          className="flex items-center justify-center gap-3"
-          variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
-          <div style={{ width: 32, height: '0.5px', background: 'rgba(255,255,255,0.25)' }} />
-          <div style={{ width: 5, height: 5, borderRadius: '50%', border: '0.5px solid rgba(255,255,255,0.2)' }} />
-          <div style={{ width: 32, height: '0.5px', background: 'rgba(255,255,255,0.25)' }} />
-        </motion.div>
 
         <motion.p
           style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', fontFamily: bodyFont, marginTop: 24, marginBottom: 10, textAlign: 'center' }}
@@ -231,11 +200,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-2" style={{ marginTop: 36 }}>
-          <div style={{ width: 20, height: '0.5px', background: 'rgba(255,255,255,0.15)' }} />
-          <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
-          <div style={{ width: 20, height: '0.5px', background: 'rgba(255,255,255,0.15)' }} />
-        </div>
       </motion.div>
     </SectionWrapper>
   )
@@ -259,11 +223,8 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
 
         <div className="text-center" style={{ marginBottom: 36 }}>
-          <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
-            <Ornament accent={accent} />
-          </motion.div>
           <motion.p
-            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginTop: 20, marginBottom: 10 }}
+            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginBottom: 10 }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Menuju Hari Bahagia
           </motion.p>
@@ -297,14 +258,6 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               </p>
             </motion.div>
 
-            {/* Divider */}
-            <motion.div className="flex items-center gap-3" style={{ width: 160, marginBottom: 28 }}
-              variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
-              <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}40)` }} />
-              <div style={{ width: 5, height: 5, transform: 'rotate(45deg)', border: `0.5px solid ${accent}40` }} />
-              <div style={{ flex: 1, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}40)` }} />
-            </motion.div>
-
             {/* H:M:S row */}
             <div className="flex items-center gap-8">
               {sub.map((u, i) => (
@@ -327,7 +280,6 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </div>
         )}
 
-        <FooterOrnament accent={accent} />
       </motion.div>
     </SectionWrapper>
   )
@@ -351,9 +303,6 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Menuju Hari Bahagia
           </motion.p>
-          <motion.div
-            style={{ width: 28, height: '0.5px', background: `${accent}40`, margin: '0 auto' }}
-            variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }} />
           {formattedDate && (
             <motion.p
               className="capitalize"
@@ -391,7 +340,6 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </div>
         )}
 
-        <FooterOrnament accent={accent} />
       </motion.div>
     </SectionWrapper>
   )
@@ -413,11 +361,8 @@ function RingsView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
 
         <div className="text-center" style={{ marginBottom: 32 }}>
-          <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
-            <Ornament accent={accent} />
-          </motion.div>
           <motion.p
-            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginTop: 20, marginBottom: 10 }}
+            style={{ fontSize: fsb(9), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginBottom: 10 }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Menuju Hari Bahagia
           </motion.p>
@@ -477,7 +422,6 @@ function RingsView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
           </div>
         )}
 
-        <FooterOrnament accent={accent} />
       </motion.div>
     </SectionWrapper>
   )
@@ -549,8 +493,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               </div>
             )}
 
-            <FooterOrnament accent={accent} />
-          </div>
+              </div>
         </motion.div>
       </div>
     </SectionWrapper>

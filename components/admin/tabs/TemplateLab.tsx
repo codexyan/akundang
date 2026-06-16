@@ -2402,14 +2402,15 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               </div>
 
               {/* ── Font Pairing ── */}
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Pasangan Font
-                </p>
-                <p className="text-[9px] text-gray-400 mb-3">
-                  Kombinasi font heading + body yang sudah dikurasi untuk hasil elegan
-                </p>
-                <div className="grid grid-cols-1 gap-2 mb-4">
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer select-none py-1 list-none [&::-webkit-details-marker]:hidden">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pasangan Font</p>
+                    <p className="text-[9px] text-gray-400 mt-0.5">Kombinasi heading + body terkurasi — klik untuk buka</p>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 transition-transform group-open:rotate-180 shrink-0" />
+                </summary>
+                <div className="grid grid-cols-1 gap-2 mt-3 mb-4">
                   {([
                     { heading: 'Playfair Display', body: 'Lato',                name: 'Classic Elegance',   desc: 'Serif mewah + sans-serif bersih' },
                     { heading: 'Cinzel',           body: 'Raleway',             name: 'Royal Formal',       desc: 'Romawi agung + modern ringan' },
@@ -2470,7 +2471,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                     )
                   })}
                 </div>
-              </div>
+              </details>
 
               {/* ── Custom Font Override ── */}
               <div className="pt-4 border-t border-gray-100">

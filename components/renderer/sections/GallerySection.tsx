@@ -23,9 +23,7 @@ type StyleCtx = {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -71,9 +69,7 @@ function FooterOrnament({ accent, text, bodyFont, count }: { accent: string; tex
         </p>
       </div>
       <div className="flex items-center justify-center gap-2 px-6" style={{ marginTop: 12 }}>
-        <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-        <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
       </div>
     </>
   )
@@ -290,7 +286,6 @@ function DramaticView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
             </h2>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 32, height: '0.5px', background: 'rgba(255,255,255,0.25)' }} />
               <span style={{
                 fontSize: 10, fontWeight: 600, letterSpacing: '0.2em',
                 color: 'rgba(255,255,255,0.4)',

@@ -32,9 +32,7 @@ const MARKETPLACE_LABEL: Record<string, string> = {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }

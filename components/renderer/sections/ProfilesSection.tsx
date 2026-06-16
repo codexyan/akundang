@@ -24,9 +24,7 @@ type StyleCtx = {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -81,9 +79,7 @@ function AndDivider({ accent, headingFont, style: s }: {
         className="flex items-center justify-center gap-3"
         style={{ margin: '4px 0' }}
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-        <div style={{ width: 20, height: '0.5px', background: `${accent}35` }} />
         <span style={{ fontSize: fsh(14), fontStyle: 'italic', color: `${accent}80`, fontFamily: headingFont }}>&amp;</span>
-        <div style={{ width: 20, height: '0.5px', background: `${accent}35` }} />
       </motion.div>
     )
   }
@@ -92,13 +88,9 @@ function AndDivider({ accent, headingFont, style: s }: {
       className="flex flex-col items-center"
       style={{ padding: '16px 0' }}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-      <div style={{ width: '0.5px', height: 24, background: `${accent}30` }} />
-      <div className="flex items-center gap-3" style={{ margin: '8px 0' }}>
-        <div style={{ width: 16, height: '0.5px', background: `${accent}30` }} />
+      <div style={{ margin: '8px 0' }}>
         <span style={{ fontSize: fsh(16), fontStyle: 'italic', color: `${accent}70`, fontFamily: headingFont }}>&amp;</span>
-        <div style={{ width: 16, height: '0.5px', background: `${accent}30` }} />
       </div>
-      <div style={{ width: '0.5px', height: 24, background: `${accent}30` }} />
     </motion.div>
   )
 }
@@ -149,7 +141,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                 <h3 style={{ fontSize: fsh(16), fontWeight: 400, color: text, fontFamily: headingFont, lineHeight: 1.25, marginBottom: 8 }}>
                   {p.name}
                 </h3>
-                <div style={{ width: 20, height: '0.5px', background: `${accent}30`, margin: '0 auto 8px' }} />
+
                 {p.parents && (
                   <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.7 }}>
                     {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
@@ -168,9 +160,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 24 }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </motion.div>
     </SectionWrapper>
@@ -229,7 +219,7 @@ function CardView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
                   }}>
                     {p.name}
                   </h2>
-                  <div style={{ width: 28, height: '0.5px', background: `${accent}80`, marginBottom: 10 }} />
+
                   {p.parents && (
                     <p style={{ fontSize: fsb(9.5), color: 'rgba(255,255,255,0.6)', fontFamily: bodyFont, lineHeight: 1.7 }}>
                       {p.side === 'groom' ? 'Putra' : 'Putri'} dari {p.parents}
@@ -297,7 +287,7 @@ function VerticalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               <h3 style={{ fontSize: fsh(22), fontWeight: 400, color: text, fontFamily: headingFont, lineHeight: 1.25, marginBottom: 10, letterSpacing: '-0.01em' }}>
                 {p.name}
               </h3>
-              <div style={{ width: 24, height: '0.5px', background: `${accent}35`, marginBottom: 10 }} />
+
               {p.parents && (
                 <p style={{ fontSize: fsb(9), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
                   {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
@@ -316,9 +306,7 @@ function VerticalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         ))}
 
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 20 }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </motion.div>
     </SectionWrapper>
@@ -371,10 +359,6 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                   <h3 style={{ fontSize: fsh(18), fontWeight: 400, color: text, fontFamily: headingFont, lineHeight: 1.25, marginBottom: 8, letterSpacing: '-0.01em' }}>
                     {p.name}
                   </h3>
-                  <div style={{
-                    width: 20, height: '0.5px', background: `${accent}35`, marginBottom: 10,
-                    ...(isRight ? { marginLeft: 'auto' } : {}),
-                  }} />
                   {p.parents && (
                     <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
                       {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
@@ -395,9 +379,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         })}
 
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 20 }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </motion.div>
     </SectionWrapper>
@@ -485,9 +467,7 @@ function OverlapView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         </div>
 
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 24 }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </motion.div>
     </SectionWrapper>

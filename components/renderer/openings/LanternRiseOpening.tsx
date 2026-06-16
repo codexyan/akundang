@@ -243,10 +243,8 @@ export default function LanternRiseOpening({ config, data, meta, onOpen, positio
             {data.groom_name}
           </h1>
 
-          <div className="flex items-center justify-center gap-4 my-3">
-            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
+          <div className="flex items-center justify-center my-3">
             <CoupleNameConnector style={connectorStyle} size={connectorSize} color={accent} fontFamily={`'${meta.font.heading}', serif`} primary={primary} />
-            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
           </div>
 
           <h1 style={{

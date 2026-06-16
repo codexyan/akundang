@@ -204,20 +204,12 @@ export default function EnvelopeOpening({ config, data, meta, onOpen, positionMo
               padding: '12px 8px',
             }}
           >
-            <div style={{
-              width: 60, height: '0.5px',
-              background: `linear-gradient(to right, transparent, ${accent}66, transparent)`,
-            }} />
             <p style={{
               fontSize: 7, letterSpacing: '0.3em', textTransform: 'uppercase',
               color: `${accent}99`, fontFamily: `'${meta.font.body}', serif`,
             }}>
               Undangan Pernikahan
             </p>
-            <div style={{
-              width: 40, height: '0.5px',
-              background: `linear-gradient(to right, transparent, ${accent}44, transparent)`,
-            }} />
           </motion.div>
         </motion.div>
       </div>
@@ -276,10 +268,8 @@ export default function EnvelopeOpening({ config, data, meta, onOpen, positionMo
             {data.groom_name}
           </h1>
 
-          <div className="flex items-center justify-center gap-4 my-3">
-            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
+          <div className="flex items-center justify-center my-3">
             <CoupleNameConnector style={connectorStyle} size={connectorSize} color={accent} fontFamily={`'${meta.font.heading}', serif`} primary={primary} />
-            <div style={{ width: 40, height: '0.5px', backgroundColor: `${accent}66` }} />
           </div>
 
           <h1 style={{

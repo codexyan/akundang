@@ -17,9 +17,7 @@ interface Props {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -95,10 +93,6 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
                 {name.split(' ')[0]}
               </motion.p>
-
-              <motion.div
-                style={{ width: 28, height: '0.5px', background: `${accent}40`, margin: '18px auto' }}
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.35 }} />
 
               <motion.p
                 style={{ fontSize: fsb(10.5), color: `${text}65`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 240 }}

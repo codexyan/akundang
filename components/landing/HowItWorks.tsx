@@ -2,24 +2,33 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Eye, CreditCard, Send, Check } from 'lucide-react'
+import { Palette, CreditCard, Share2, Check } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
 const defaultSteps = [
-  { title: 'Coba dulu, gratis', description: 'Masukkan nama kalian berdua dan pilih gaya yang paling cocok. Lihat sendiri hasilnya, tidak perlu daftar, tidak perlu bayar dulu.' },
-  { title: 'Bayar sekali, selesai', description: 'Sudah cocok? Daftar akun, tentukan nama link undangan kalian, dan pilih paket mulai Rp 79.000. Sekali bayar, langsung aktif.' },
-  { title: 'Isi detail & bagikan', description: 'Lengkapi info acara, upload foto pasangan, pilih musik. Selesai! Salin link dan kirim ke tamu lewat WhatsApp.' },
+  {
+    title: 'Pilih desain & preview langsung',
+    description: 'Pilih gaya undangan yang kalian suka. Masukkan nama pasangan, lihat hasilnya real‑time. Tidak perlu daftar atau bayar dulu.',
+  },
+  {
+    title: 'Bayar sekali, langsung aktif',
+    description: 'Sudah cocok? Pilih paket mulai Rp 79.000 — sekali bayar, tanpa langganan. Undangan langsung aktif dengan subdomain nama kalian.',
+  },
+  {
+    title: 'Lengkapi & bagikan ke tamu',
+    description: 'Isi detail acara, upload foto, pilih musik. Salin link undangan dan kirim ke tamu lewat WhatsApp — setiap tamu dapat undangan personal.',
+  },
 ]
 
-const ICONS = [Eye, CreditCard, Send]
-const HIGHLIGHTS = ['Bebas, tanpa komitmen', 'Tidak ada tagihan lagi', 'Siap dalam < 30 menit']
+const ICONS = [Palette, CreditCard, Share2]
+const HIGHLIGHTS = ['Gratis, tanpa registrasi', 'Tanpa biaya bulanan', 'Tiap tamu dapat link unik']
 const STEP_COLORS = ['#2c4a34', '#c9a961', '#4a6355']
 
 export default function HowItWorks({ steps: propSteps }: { steps?: { title: string; description: string }[] }) {
   const steps = (propSteps ?? defaultSteps).map((s, i) => ({
     number: String(i + 1).padStart(2, '0'),
-    icon: ICONS[i] ?? Send,
+    icon: ICONS[i] ?? Share2,
     title: s.title,
     desc: s.description,
     highlight: HIGHLIGHTS[i] ?? '',
@@ -27,7 +36,7 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
   }))
 
   return (
-    <section id="cara-kerja" className="py-20 sm:py-28 lg:py-32 bg-white">
+    <section id="cara-kerja" className="py-20 sm:py-28 lg:py-32 bg-[#fafaf9]">
       <div className="max-w-5xl mx-auto px-5 sm:px-8">
 
         <motion.div
@@ -41,19 +50,18 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
             Cara Kerja
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-            Serius, semudah itu
+            Dari pilih desain sampai kirim undangan, cuma 3 langkah
           </h2>
-          <p className="mt-3 text-stone-400 text-[15px]">
-            Tiga langkah. Tidak perlu keahlian apapun.
+          <p className="mt-3 text-stone-400 text-[15px] max-w-lg mx-auto">
+            Tidak perlu skill desain. Tidak perlu unduh aplikasi. Semua lewat browser.
           </p>
         </motion.div>
 
-        {/* Steps */}
         <div className="relative">
-          {/* Horizontal connector (desktop) */}
+          {/* Desktop connector */}
           <motion.div
             className="hidden md:block absolute top-[56px] left-[calc(16.7%+28px)] right-[calc(16.7%+28px)] h-px"
-            style={{ background: 'linear-gradient(90deg, transparent, #e7e5e4 15%, #e7e5e4 85%, transparent)' }}
+            style={{ background: 'linear-gradient(90deg, transparent, #d6d3d1 15%, #d6d3d1 85%, transparent)' }}
             initial={{ scaleX: 0, originX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
@@ -70,9 +78,9 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
                 transition={{ duration: 0.55, delay: i * 0.12, ease: EASE }}
                 className="relative flex md:flex-col gap-5 md:gap-0"
               >
-                {/* Vertical connector (mobile) */}
+                {/* Mobile connector */}
                 {i < steps.length - 1 && (
-                  <div className="absolute left-6 top-14 bottom-[-32px] w-px bg-stone-100 md:hidden" />
+                  <div className="absolute left-6 top-14 bottom-[-32px] w-px bg-stone-200 md:hidden" />
                 )}
 
                 {/* Icon */}
@@ -95,9 +103,8 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
                 </div>
 
                 <div className="md:mt-6">
-                  <p className="text-[10px] font-semibold tracking-[0.2em] text-stone-300 uppercase mb-2">{step.number}</p>
                   <h3 className="font-semibold text-stone-900 text-base mb-2 leading-snug">{step.title}</h3>
-                  <p className="text-[13px] text-stone-400 leading-relaxed mb-4">{step.desc}</p>
+                  <p className="text-[13px] text-stone-500 leading-relaxed mb-4">{step.desc}</p>
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-forest-600 bg-forest-50 px-3 py-1.5 rounded-full">
                     <Check size={12} strokeWidth={3} />
                     {step.highlight}
@@ -121,10 +128,10 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
               whileTap={{ scale: 0.98 }}
               className="inline-flex items-center gap-2 bg-forest-500 text-white font-semibold px-7 py-3.5 rounded-xl text-[14px] shadow-lg shadow-forest-500/15 hover:shadow-xl hover:shadow-forest-500/20 transition-shadow"
             >
-              Mulai pilih gaya undangan
+              Coba sekarang, gratis
             </motion.span>
           </Link>
-          <p className="text-[12px] text-stone-400">Tidak perlu daftar dulu. Tidak perlu bayar dulu.</p>
+          <p className="text-[12px] text-stone-400">Langsung preview hasil undangan tanpa daftar.</p>
         </motion.div>
 
       </div>

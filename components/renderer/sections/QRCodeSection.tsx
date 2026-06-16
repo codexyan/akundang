@@ -18,9 +18,7 @@ function buildQrUrl(target: string, color: string, bg: string) {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -92,7 +90,6 @@ export default function QRCodeSection({ section, data, meta }: Props) {
         <motion.div
           style={{ marginTop: 24 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}25`, margin: '0 auto 14px' }} />
           <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
             Simpan atau screenshot QR code ini<br />dan tunjukkan kepada panitia di lokasi.
           </p>

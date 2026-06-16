@@ -28,9 +28,7 @@ function fmt(d: string) {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -38,9 +36,7 @@ function Ornament({ accent }: { accent: string }) {
 function FooterOrnament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
       <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
     </div>
   )
 }
@@ -208,9 +204,7 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
             <div className="text-center">
               <motion.div variants={{ hidden: { opacity: 0, scaleX: 0 }, visible: { opacity: 1, scaleX: 1 } }}>
                 <div className="flex items-center justify-center gap-3">
-                  <div style={{ width: 32, height: '0.5px', background: 'rgba(255,255,255,0.2)' }} />
                   <div style={{ width: 5, height: 5, borderRadius: '50%', border: '0.5px solid rgba(255,255,255,0.15)' }} />
-                  <div style={{ width: 32, height: '0.5px', background: 'rgba(255,255,255,0.2)' }} />
                 </div>
               </motion.div>
               <motion.p
@@ -250,7 +244,6 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
                 position: 'absolute', top: 24, left: 24,
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>
-                <div style={{ width: 28, height: '0.5px', background: 'rgba(255,255,255,0.2)' }} />
                 <span style={{ fontSize: fsb(8), letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', fontFamily: bodyFont }}>
                   {String(index + 1).padStart(2, '0')}
                 </span>
@@ -278,9 +271,7 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
         </div>
 
         <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </div>
       </div>
     </SectionWrapper>
@@ -442,9 +433,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               {/* Divider between events */}
               {index > 0 && (
                 <div className="flex items-center justify-center gap-3" style={{ margin: '28px 0' }}>
-                  <div style={{ width: 40, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}35)` }} />
                   <div style={{ width: 5, height: 5, transform: 'rotate(45deg)', border: `0.5px solid ${accent}30` }} />
-                  <div style={{ width: 40, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}35)` }} />
                 </div>
               )}
 

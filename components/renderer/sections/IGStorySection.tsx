@@ -24,9 +24,7 @@ type StyleCtx = {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -49,9 +47,7 @@ function Placeholder({ accent, text, bodyFont }: { accent: string; text: string;
 function FooterOrnament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-2" style={{ marginTop: 20 }}>
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
       <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-      <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
     </div>
   )
 }
@@ -243,9 +239,6 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Bagikan Momen
           </motion.p>
-          <motion.div
-            style={{ width: 28, height: '0.5px', background: `${accent}40`, margin: '0 auto' }}
-            variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }} />
         </motion.div>
 
         {/* Full-width image with overlay */}

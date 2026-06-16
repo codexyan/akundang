@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, GiftAccount } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
@@ -354,6 +354,12 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
   accent: string
   thankyouText: string
 }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   const [step, setStep]         = useState<ProofStep>('form')
   const [name, setName]         = useState('')
   const [amount, setAmount]     = useState('')
@@ -400,7 +406,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
     <AnimatePresence>
       <motion.div
         key="backdrop"
-        className="absolute inset-0 z-50"
+        className="fixed inset-0 z-[9998]"
         style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
@@ -408,7 +414,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
 
       <motion.div
         key="sheet"
-        className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-[28px] overflow-hidden"
+        className="fixed bottom-0 left-0 right-0 z-[9999] bg-white rounded-t-[28px] overflow-hidden"
         style={{ maxHeight: '88%' }}
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 320, damping: 34 }}
@@ -581,17 +587,19 @@ function ProofCTA({ accent, text, onClick, cs }: { accent: string; text: string;
         <div style={{ flex: 1, height: 0.5, background: `${accent}30` }} />
       </div>
 
-      <motion.button
-        onClick={onClick}
-        whileTap={{ scale: 0.98 }}
-        className="flex items-center justify-center gap-2 mx-auto transition-all"
-        style={{
-          ...btnStyle(cs.button, cs.border, accent, text, { size: 'sm', icon: true }),
-        }}
-      >
-        <Upload size={12} />
-        Konfirmasi &amp; kirim bukti
-      </motion.button>
+      <div className="flex justify-center">
+        <motion.button
+          onClick={onClick}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center justify-center gap-2 transition-all"
+          style={{
+            ...btnStyle(cs.button, cs.border, accent, text, { size: 'sm', icon: true }),
+          }}
+        >
+          <Upload size={12} />
+          Konfirmasi &amp; kirim bukti
+        </motion.button>
+      </div>
     </motion.div>
   )
 }

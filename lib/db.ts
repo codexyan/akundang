@@ -556,6 +556,21 @@ export interface LandingPageSettings {
     socialProofCount: string
     socialProofRating: string
   }
+  heroMockup: {
+    groomName: string
+    brideName: string
+    date: string
+    venue: string
+  }
+  templateShowcase: {
+    featured: { name: string; tagline: string; coverPhoto: string; primary: string; accent: string; href: string }
+    comingSoon: { label: string; accent: string; bg: string }[]
+  }
+  personalisasiMockup: {
+    guestName: string
+    groomName: string
+    brideName: string
+  }
   trustBar: {
     items: { value: string; label: string }[]
   }
@@ -578,6 +593,31 @@ const DEFAULT_LANDING: LandingPageSettings = {
     ctaSecondary: 'Lihat Demo Live',
     socialProofCount: '500+',
     socialProofRating: '4.9',
+  },
+  heroMockup: {
+    groomName: 'Rizky',
+    brideName: 'Aulia',
+    date: '12 · 04 · 2026',
+    venue: 'Hotel Grand Ballroom, Jakarta',
+  },
+  templateShowcase: {
+    featured: {
+      name: 'Javanese Gold',
+      tagline: 'Elegansi tradisi Jawa dalam sentuhan modern',
+      coverPhoto: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&h=1200&fit=crop',
+      primary: '#1a4a1a',
+      accent: '#d4af37',
+      href: '/demo/renderer?id=javanese-gold',
+    },
+    comingSoon: [
+      { label: 'Modern Minimal', accent: '#64ffda', bg: '#060e1f' },
+      { label: 'Romantic Bloom', accent: '#f5a0b5', bg: '#1a0810' },
+    ],
+  },
+  personalisasiMockup: {
+    guestName: 'Bapak & Ibu Hendra',
+    groomName: 'Rizky',
+    brideName: 'Aulia',
   },
   trustBar: {
     items: [
@@ -621,6 +661,9 @@ export const landingSettings = {
     const stored = row.value as Partial<LandingPageSettings>
     return {
       hero: { ...DEFAULT_LANDING.hero, ...stored.hero },
+      heroMockup: { ...DEFAULT_LANDING.heroMockup, ...stored.heroMockup },
+      templateShowcase: { ...DEFAULT_LANDING.templateShowcase, ...stored.templateShowcase },
+      personalisasiMockup: { ...DEFAULT_LANDING.personalisasiMockup, ...stored.personalisasiMockup },
       trustBar: { ...DEFAULT_LANDING.trustBar, ...stored.trustBar },
       testimonials: { ...DEFAULT_LANDING.testimonials, ...stored.testimonials },
       faq: { ...DEFAULT_LANDING.faq, ...stored.faq },

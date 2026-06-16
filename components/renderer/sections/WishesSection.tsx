@@ -31,9 +31,7 @@ function makePreviewWishes(): Wish[] {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -325,11 +323,9 @@ export default function WishesSection({ section, data, meta, invitationId, initi
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.25 } } }}>
 
             <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
-              <div style={{ flex: 1, height: '0.5px', background: `${accent}25` }} />
               <span style={{ fontSize: fsb(8), color: `${text}60`, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: bodyFont }}>
                 {wishes.length} Ucapan
               </span>
-              <div style={{ flex: 1, height: '0.5px', background: `${accent}25` }} />
             </div>
 
             {shouldMarquee ? (

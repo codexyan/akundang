@@ -14,9 +14,7 @@ interface Props {
 function Ornament({ accent }: { accent: string }) {
   return (
     <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to right, transparent, ${accent}50)` }} />
       <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-      <div style={{ width: 32, height: '0.5px', background: `linear-gradient(to left, transparent, ${accent}50)` }} />
     </div>
   )
 }
@@ -288,9 +286,7 @@ function DefaultView({ section, data, meta }: Props) {
           style={{ marginTop: 24 }}
           initial="hidden" whileInView="visible" viewport={{ once: true }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </motion.div>
 
         {hasChapters && (
@@ -410,9 +406,7 @@ function TimelineView({ section, data, meta }: Props) {
 
         <motion.div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
           <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
-          <div style={{ width: 20, height: '0.5px', background: `${accent}30` }} />
         </motion.div>
       </div>
     </SectionWrapper>

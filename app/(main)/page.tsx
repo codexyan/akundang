@@ -13,10 +13,10 @@ import ClosingCTA       from '@/components/landing/ClosingCTA'
 export const dynamic = 'force-dynamic'
 
 const SECTION_MAP: Record<string, React.FC<{ landing: Awaited<ReturnType<typeof landingSettings.get>> }>> = {
-  hero: ({ landing }) => <HeroSection content={landing.hero} />,
+  hero: ({ landing }) => <HeroSection content={landing.hero} mockup={landing.heroMockup} />,
   trustBar: ({ landing }) => <TrustBar items={landing.trustBar.items} />,
-  templatePreview: () => <TemplatePreview />,
-  featureShowcase: () => <FeatureShowcase />,
+  templatePreview: ({ landing }) => <TemplatePreview showcase={landing.templateShowcase} />,
+  featureShowcase: ({ landing }) => <FeatureShowcase personalisasi={landing.personalisasiMockup} />,
   howItWorks: ({ landing }) => <HowItWorks steps={landing.howItWorks.steps} />,
   testimonials: ({ landing }) => <Testimonials reviews={landing.testimonials.items} />,
   pricing: () => <Pricing />,
