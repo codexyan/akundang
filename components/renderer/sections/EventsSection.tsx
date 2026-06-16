@@ -451,12 +451,12 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               <h3 style={{ fontSize: fsh(20), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: 6 }}>
                 {event.venue_name}
               </h3>
-              <p style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', marginBottom: 20 }} className="capitalize">
+              <p style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', marginBottom: 20 }} className="capitalize">
                 {fmt(event.date)} — {event.time} WIB
               </p>
 
               {event.venue_address && (
-                <p style={{ fontSize: fsb(9.5), color: `${text}40`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 16 }}>
+                <p style={{ fontSize: fsb(9.5), color: `${text}60`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 16 }}>
                   {event.venue_address}
                 </p>
               )}

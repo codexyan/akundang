@@ -52,7 +52,7 @@ function EditorialHeader({ accent, text, headingFont, bodyFont, mb = 28 }: {
       </motion.h2>
       <motion.p
         initial="hidden" whileInView="visible" viewport={{ once: true }}
-        style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
+        style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
         Koleksi momen indah<br />perjalanan kami bersama.
       </motion.p>
@@ -64,7 +64,7 @@ function FooterOrnament({ accent, text, bodyFont, count }: { accent: string; tex
   return (
     <>
       <div className="text-center" style={{ marginTop: 20 }}>
-        <p style={{ fontSize: fsb(8), color: `${text}40`, fontFamily: bodyFont, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <p style={{ fontSize: fsb(8), color: `${text}60`, fontFamily: bodyFont, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           {count} Foto
         </p>
       </div>
@@ -501,7 +501,7 @@ function FilmstripView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
 
         {/* Swipe hint */}
         <p className="text-center" style={{
-          fontSize: fsb(8), color: `${text}40`, fontFamily: bodyFont,
+          fontSize: fsb(8), color: `${text}60`, fontFamily: bodyFont,
           letterSpacing: '0.1em', marginTop: 14,
         }}>
           Geser untuk melihat
@@ -631,7 +631,7 @@ function EmptyPreview({ section, accent, text, headingFont, bodyFont }: {
             </div>
           ))}
         </div>
-        <p style={{ fontSize: fsb(8), color: `${text}40`, fontFamily: bodyFont, marginTop: 16, letterSpacing: '0.1em' }}>
+        <p style={{ fontSize: fsb(8), color: `${text}60`, fontFamily: bodyFont, marginTop: 16, letterSpacing: '0.1em' }}>
           Upload foto di tab Galeri
         </p>
       </div>

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { SectionConfig, NewInvitationData, TemplateMeta, GiftRegistryLink } from '@/lib/types'
-import SectionWrapper, { resolveFont, fsh, fsb, cardBg } from '../SectionWrapper'
+import SectionWrapper, { resolveFont, fsh, fsb, cardBg, contentPanelBg, hasMediaBg } from '../SectionWrapper'
 
 interface Props {
   section: SectionConfig
@@ -67,7 +67,7 @@ function SectionHeader({ ctx }: { ctx: StyleCtx }) {
 
       <motion.p
         style={{
-          fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont,
+          fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont,
           lineHeight: 1.9, fontStyle: 'italic',
         }}
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
@@ -171,7 +171,7 @@ function CarouselCard({ item, ctx, index, bg }: {
 
         {item.description && (
           <p style={{
-            fontSize: fsb(9), color: `${text}55`, fontFamily: bodyFont,
+            fontSize: fsb(9), color: `${text}75`, fontFamily: bodyFont,
             fontStyle: 'italic', lineHeight: 1.7, marginBottom: 8, flex: 1,
           }}>
             {item.description}
@@ -248,7 +248,7 @@ function DefaultVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; c
             <ChevronLeft size={14} color={accent} />
           </motion.button>
 
-          <span style={{ fontSize: fsb(8), color: `${text}45`, letterSpacing: '0.15em', fontFamily: bodyFont }}>
+          <span style={{ fontSize: fsb(8), color: `${text}65`, letterSpacing: '0.15em', fontFamily: bodyFont }}>
             {registry.length} hadiah
           </span>
 
@@ -347,10 +347,11 @@ function GridVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
 
 function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx: StyleCtx; bg: SectionConfig['background'] }) {
   const { accent, text, headingFont, bodyFont } = ctx
+  const isMedia = hasMediaBg(bg)
   return (
     <motion.div
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.2 } } }}
-      style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+      style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: isMedia ? 8 : 0 }}>
       {registry.map((item, i) => (
         <motion.div
           key={i}
@@ -360,8 +361,9 @@ function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
           }}
           style={{
             display: 'flex', gap: 14, alignItems: 'center',
-            padding: '14px 0',
-            borderBottom: i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
+            padding: isMedia ? '14px' : '14px 0',
+            borderBottom: !isMedia && i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
+            ...contentPanelBg(bg),
           }}>
 
           {/* Image — small square */}
@@ -397,7 +399,7 @@ function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
 
             {item.description && (
               <p style={{
-                fontSize: fsb(8.5), color: `${text}40`, fontFamily: bodyFont,
+                fontSize: fsb(8.5), color: `${text}60`, fontFamily: bodyFont,
                 fontStyle: 'italic', lineHeight: 1.6,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
@@ -440,12 +442,13 @@ function ListVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx:
 // VARIANT: minimal — text only, no images
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function MinimalVariant({ registry, ctx }: { registry: GiftRegistryLink[]; ctx: StyleCtx }) {
+function MinimalVariant({ registry, ctx, bg }: { registry: GiftRegistryLink[]; ctx: StyleCtx; bg: SectionConfig['background'] }) {
   const { accent, text, headingFont, bodyFont } = ctx
+  const isMedia = hasMediaBg(bg)
   return (
     <motion.div
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.2 } } }}
-      style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+      style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: isMedia ? 8 : 0 }}>
       {registry.map((item, i) => (
         <motion.div
           key={i}
@@ -455,8 +458,9 @@ function MinimalVariant({ registry, ctx }: { registry: GiftRegistryLink[]; ctx: 
           }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-            padding: '12px 0',
-            borderBottom: i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
+            padding: isMedia ? '12px 14px' : '12px 0',
+            borderBottom: !isMedia && i < registry.length - 1 ? `1px solid ${accent}20` : 'none',
+            ...contentPanelBg(bg),
           }}>
 
           {/* Label + marketplace */}
@@ -539,7 +543,7 @@ export default function GiftRegistrySection({ section, data, meta }: Props) {
         {/* Variant body */}
         {variant === 'grid' && <GridVariant registry={registry} ctx={ctx} bg={section.background} />}
         {variant === 'list' && <ListVariant registry={registry} ctx={ctx} bg={section.background} />}
-        {variant === 'minimal' && <MinimalVariant registry={registry} ctx={ctx} />}
+        {variant === 'minimal' && <MinimalVariant registry={registry} ctx={ctx} bg={section.background} />}
         {(variant === 'default' || !['grid', 'list', 'minimal'].includes(variant)) && (
           <DefaultVariant registry={registry} ctx={ctx} bg={section.background} />
         )}

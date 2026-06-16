@@ -63,10 +63,22 @@ export function fontW(type: 'heading' | 'body'): string {
 export function cardBg(bg: SectionConfig['background']): React.CSSProperties {
   if (bg.type !== 'image' && bg.type !== 'video') return {}
   return {
+    background: 'rgba(0,0,0,0.45)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+  }
+}
+
+export function contentPanelBg(bg: SectionConfig['background']): React.CSSProperties {
+  if (bg.type !== 'image' && bg.type !== 'video') return {}
+  return {
     background: 'rgba(0,0,0,0.3)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: 8,
+    padding: '12px 14px',
+    border: '1px solid rgba(255,255,255,0.06)',
   }
 }
 
@@ -154,11 +166,11 @@ export default function SectionWrapper({ section, children, className = '', over
         />
       )}
 
-      {/* Dark overlay for photo and video backgrounds — enforce minimum 0.45 */}
+      {/* Dark overlay for photo and video backgrounds — enforce minimum 0.55 */}
       {(bg.type === 'image' || bg.type === 'video') && (
         <div
           className="absolute inset-0"
-          style={{ backgroundColor: `rgba(0,0,0,${Math.max(bg.overlay_opacity ?? 0, 0.45)})`, zIndex: 1 }}
+          style={{ backgroundColor: `rgba(0,0,0,${Math.max(bg.overlay_opacity ?? 0, 0.55)})`, zIndex: 1 }}
         />
       )}
 
@@ -169,7 +181,7 @@ export default function SectionWrapper({ section, children, className = '', over
           ...innerFillStyle,
           ...(isSplitLeft  ? { flexDirection: 'row',        gap: 24, alignItems: 'flex-start' } : {}),
           ...(isSplitRight ? { flexDirection: 'row-reverse', gap: 24, alignItems: 'flex-start' } : {}),
-          ...(hasMediaBg(bg) ? { textShadow: '0 1px 4px rgba(0,0,0,0.4)' } : {}),
+          ...(hasMediaBg(bg) ? { textShadow: '0 2px 8px rgba(0,0,0,0.6)' } : {}),
         }}
         initial="hidden"
         whileInView="visible"

@@ -88,7 +88,7 @@ function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {
             <p
               suppressHydrationWarning
               style={{
-                fontSize: fsb(7), color: `${text}55`,
+                fontSize: fsb(7), color: `${text}75`,
                 fontFamily: bodyFont, whiteSpace: 'nowrap', flexShrink: 0,
               }}>
               {timeStr}
@@ -279,7 +279,7 @@ export default function WishesSection({ section, data, meta, invitationId, initi
               />
               <span style={{
                 position: 'absolute', bottom: 4, right: 0,
-                fontSize: fsb(7.5), color: message.length > MAX_MSG * 0.9 ? '#c45' : `${text}50`,
+                fontSize: fsb(7.5), color: message.length > MAX_MSG * 0.9 ? '#c45' : `${text}70`,
               }}>
                 {message.length}/{MAX_MSG}
               </span>
@@ -355,7 +355,7 @@ export default function WishesSection({ section, data, meta, invitationId, initi
 
         {wishes.length === 0 && (
           <motion.p className="text-center"
-            style={{ fontSize: fsb(10), color: `${text}40`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8, marginTop: 20 }}
+            style={{ fontSize: fsb(10), color: `${text}60`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8, marginTop: 20 }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.3 } } }}>
             Belum ada ucapan.
           </motion.p>

@@ -57,12 +57,12 @@ function ParentsBlock({ data, accent, text, bodyFont }: {
   return (
     <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
       {data.groom_parents && (
-        <p style={{ fontSize: fsb(9.5), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 4 }}>
+        <p style={{ fontSize: fsb(9.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 4 }}>
           {data.groom_parents}
         </p>
       )}
       {data.bride_parents && (
-        <p style={{ fontSize: fsb(9.5), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+        <p style={{ fontSize: fsb(9.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8 }}>
           {data.bride_parents}
         </p>
       )}
@@ -73,7 +73,7 @@ function ParentsBlock({ data, accent, text, bodyFont }: {
 function BrandFooter({ text, bodyFont }: { text: string; bodyFont: string }) {
   return (
     <motion.p
-      style={{ fontSize: fsb(7.5), color: `${text}35`, fontFamily: bodyFont, letterSpacing: '0.15em', marginTop: 32 }}
+      style={{ fontSize: fsb(7.5), color: `${text}50`, fontFamily: bodyFont, letterSpacing: '0.15em', marginTop: 32 }}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
       Akundang
     </motion.p>
@@ -103,13 +103,13 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         </motion.p>
 
         <motion.p
-          style={{ fontSize: fsb(10.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 260, margin: '0 auto' }}
+          style={{ fontSize: fsb(10.5), color: `${text}77`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 260, margin: '0 auto' }}
           variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
           {closingText}
         </motion.p>
 
         <motion.p
-          style={{ fontSize: fsb(8.5), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${text}45`, fontFamily: bodyFont, marginBottom: 12 }}
+          style={{ fontSize: fsb(8.5), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${text}65`, fontFamily: bodyFont, marginBottom: 12 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
           Dengan segenap cinta
         </motion.p>
@@ -121,7 +121,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         </div>
 
         <motion.div style={{ marginTop: 36 }} variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
+          <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
             {thankYouText}
           </p>
         </motion.div>
@@ -167,7 +167,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </motion.p>
 
           <motion.p
-            style={{ fontSize: fsb(10.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 260, margin: '0 auto' }}
+            style={{ fontSize: fsb(10.5), color: `${text}77`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 260, margin: '0 auto' }}
             variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
             {closingText}
           </motion.p>
@@ -179,7 +179,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           </div>
 
           <motion.div style={{ marginTop: 36 }} variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-            <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>{thankYouText}</p>
+            <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>{thankYouText}</p>
           </motion.div>
 
           <BrandFooter text={text} bodyFont={bodyFont} />
@@ -311,7 +311,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         </motion.p>
 
         <motion.p
-          style={{ fontSize: fsb(11), color: `${text}55`, fontFamily: bodyFont, lineHeight: 2.1, fontStyle: 'italic', maxWidth: 280 }}
+          style={{ fontSize: fsb(11), color: `${text}77`, fontFamily: bodyFont, lineHeight: 2.1, fontStyle: 'italic', maxWidth: 280 }}
           variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
           {closingText}
         </motion.p>
@@ -319,7 +319,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         {/* Names — large, left-aligned */}
         <motion.div style={{ marginTop: 36 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <p style={{ fontSize: fsb(8), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}45`, fontFamily: bodyFont, marginBottom: 14 }}>
+          <p style={{ fontSize: fsb(8), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}65`, fontFamily: bodyFont, marginBottom: 14 }}>
             Dengan segenap cinta
           </p>
 
@@ -345,12 +345,12 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
           <motion.div style={{ marginTop: 28, paddingLeft: 0 }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             {data.groom_parents && (
-              <p style={{ fontSize: fsb(9.5), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 4 }}>
+              <p style={{ fontSize: fsb(9.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 4 }}>
                 {data.groom_parents}
               </p>
             )}
             {data.bride_parents && (
-              <p style={{ fontSize: fsb(9.5), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+              <p style={{ fontSize: fsb(9.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8 }}>
                 {data.bride_parents}
               </p>
             )}
@@ -359,7 +359,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
 
         {/* Thank you */}
         <motion.div style={{ marginTop: 36 }} variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
+          <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
             {thankYouText}
           </p>
         </motion.div>
@@ -411,13 +411,13 @@ function CardView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
             </motion.p>
 
             <motion.p
-              style={{ fontSize: fsb(10.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 250, margin: '0 auto' }}
+              style={{ fontSize: fsb(10.5), color: `${text}77`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 250, margin: '0 auto' }}
               variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}>
               {closingText}
             </motion.p>
 
             <motion.p
-              style={{ fontSize: fsb(8.5), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${text}45`, fontFamily: bodyFont, marginBottom: 12 }}
+              style={{ fontSize: fsb(8.5), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${text}65`, fontFamily: bodyFont, marginBottom: 12 }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               Dengan segenap cinta
             </motion.p>
@@ -431,7 +431,7 @@ function CardView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
             )}
 
             <motion.div style={{ marginTop: 32 }} variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-              <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
+              <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
                 {thankYouText}
               </p>
             </motion.div>
@@ -506,7 +506,7 @@ function PoeticView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx })
         </div>
 
         <motion.div style={{ marginTop: 32 }} variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
-          <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
+          <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', lineHeight: 1.8 }}>
             {thankYouText}
           </p>
         </motion.div>

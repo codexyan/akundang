@@ -247,7 +247,7 @@ function DefaultView({ section, data, meta }: Props) {
           {!hasChapters && data.story_text && (
             <motion.p
               initial="hidden" whileInView="visible" viewport={{ once: true }}
-              style={{ fontSize: fsb(10.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
+              style={{ fontSize: fsb(10.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {data.story_text}
             </motion.p>
@@ -291,7 +291,7 @@ function DefaultView({ section, data, meta }: Props) {
 
         {hasChapters && (
           <p className="text-center" style={{
-            fontSize: fsb(8), color: `${text}40`, fontFamily: bodyFont,
+            fontSize: fsb(8), color: `${text}60`, fontFamily: bodyFont,
             letterSpacing: '0.1em', marginTop: 12,
           }}>
             Ketuk untuk navigasi
@@ -335,7 +335,7 @@ function TimelineView({ section, data, meta }: Props) {
 
           {data.story_text && (
             <motion.p
-              style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
+              style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {data.story_text}
             </motion.p>
@@ -395,7 +395,7 @@ function TimelineView({ section, data, meta }: Props) {
               {item.description && (
                 <p style={{
                   fontSize: fsb(10.5), lineHeight: 1.85,
-                  color: `${text}55`, fontFamily: bodyFont, fontStyle: 'italic',
+                  color: `${text}75`, fontFamily: bodyFont, fontStyle: 'italic',
                 }}>
                   {item.description}
                 </p>

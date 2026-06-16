@@ -199,7 +199,7 @@ export default function RSVPSection({ section, data, meta, invitationId }: Props
                           {opt.label}
                         </span>
                         <span style={{
-                          fontSize: fsb(8), color: active ? `${text}65` : `${text}55`,
+                          fontSize: fsb(8), color: active ? `${text}65` : `${text}75`,
                           fontFamily: bodyFont, letterSpacing: '0.05em', transition: 'color 0.2s',
                         }}>
                           {opt.sub}

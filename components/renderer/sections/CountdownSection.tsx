@@ -90,7 +90,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           {formattedDate && (
             <motion.p
               className="capitalize"
-              style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
+              style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {formattedDate}
             </motion.p>
@@ -115,7 +115,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                     </motion.span>
                   </AnimatePresence>
                 </div>
-                <span style={{ fontSize: fsb(7.5), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}55`, fontFamily: bodyFont }}>
+                <span style={{ fontSize: fsb(7.5), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}75`, fontFamily: bodyFont }}>
                   {u.label}
                 </span>
               </motion.div>
@@ -231,7 +231,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           {formattedDate && (
             <motion.p
               className="capitalize"
-              style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
+              style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {formattedDate}
             </motion.p>
@@ -271,7 +271,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                       {pad(u.value)}
                     </motion.span>
                   </AnimatePresence>
-                  <span style={{ fontSize: fsb(7.5), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}50`, fontFamily: bodyFont, marginTop: 8 }}>
+                  <span style={{ fontSize: fsb(7.5), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}70`, fontFamily: bodyFont, marginTop: 8 }}>
                     {u.label}
                   </span>
                 </motion.div>
@@ -306,7 +306,7 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
           {formattedDate && (
             <motion.p
               className="capitalize"
-              style={{ fontSize: fsb(10), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic', marginTop: 14 }}
+              style={{ fontSize: fsb(10), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic', marginTop: 14 }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {formattedDate}
             </motion.p>
@@ -329,11 +329,11 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                     {pad(u.value)}
                   </motion.span>
                 </AnimatePresence>
-                <span style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}50`, fontFamily: bodyFont, marginTop: 10 }}>
+                <span style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}70`, fontFamily: bodyFont, marginTop: 10 }}>
                   {u.label}
                 </span>
                 {i < units.length - 1 && (
-                  <div style={{ position: 'absolute', right: -4, top: 4, fontSize: fsh(20), color: `${text}30`, fontFamily: headingFont }}>:</div>
+                  <div style={{ position: 'absolute', right: -4, top: 4, fontSize: fsh(20), color: `${text}50`, fontFamily: headingFont }}>:</div>
                 )}
               </motion.div>
             ))}
@@ -374,7 +374,7 @@ function RingsView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
           {formattedDate && (
             <motion.p
               className="capitalize"
-              style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
+              style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic' }}
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
               {formattedDate}
             </motion.p>
@@ -413,7 +413,7 @@ function RingsView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
                       </AnimatePresence>
                     </div>
                   </div>
-                  <span style={{ fontSize: fsb(7), letterSpacing: '0.16em', textTransform: 'uppercase', color: `${text}50`, fontFamily: bodyFont, marginTop: 6 }}>
+                  <span style={{ fontSize: fsb(7), letterSpacing: '0.16em', textTransform: 'uppercase', color: `${text}70`, fontFamily: bodyFont, marginTop: 6 }}>
                     {u.label}
                   </span>
                 </motion.div>
@@ -461,7 +461,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               </h2>
               {formattedDate && (
                 <p className="capitalize"
-                  style={{ fontSize: fsb(10), color: `${text}45`, fontFamily: bodyFont, fontStyle: 'italic' }}>
+                  style={{ fontSize: fsb(10), color: `${text}65`, fontFamily: bodyFont, fontStyle: 'italic' }}>
                   {formattedDate}
                 </p>
               )}
@@ -485,7 +485,7 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                         </motion.span>
                       </AnimatePresence>
                     </div>
-                    <span style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}50`, fontFamily: bodyFont, marginTop: 8 }}>
+                    <span style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: `${text}70`, fontFamily: bodyFont, marginTop: 8 }}>
                       {u.label}
                     </span>
                   </motion.div>

@@ -168,7 +168,7 @@ function HeroDefault({ section, data, font, accent, text }: {
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(8) } }}
           style={{ marginTop: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
         >
-          <p style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}44` }}>Scroll</p>
+          <p style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: `${text}66` }}>Scroll</p>
           <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
             style={{ width: 1, height: 26, backgroundColor: `${accent}55` }} />
         </motion.div>

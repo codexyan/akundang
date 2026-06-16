@@ -143,13 +143,13 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                 </h3>
 
                 {p.parents && (
-                  <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.7 }}>
+                  <p style={{ fontSize: fsb(8.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.7 }}>
                     {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
                     <span style={{ color: `${text}70` }}>{p.parents}</span>
                   </p>
                 )}
                 {p.bio && (
-                  <p style={{ fontSize: fsb(8.5), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic', marginTop: 8 }}>
+                  <p style={{ fontSize: fsb(8.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7, fontStyle: 'italic', marginTop: 8 }}>
                     {p.bio}
                   </p>
                 )}
@@ -289,13 +289,13 @@ function VerticalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
               </h3>
 
               {p.parents && (
-                <p style={{ fontSize: fsb(9), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+                <p style={{ fontSize: fsb(9), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.8 }}>
                   {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
                   <span style={{ color: `${text}70` }}>{p.parents}</span>
                 </p>
               )}
               {p.bio && (
-                <p style={{ fontSize: fsb(9), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8, fontStyle: 'italic', marginTop: 8, maxWidth: 220 }}>
+                <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8, fontStyle: 'italic', marginTop: 8, maxWidth: 220 }}>
                   {p.bio}
                 </p>
               )}
@@ -360,13 +360,13 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                     {p.name}
                   </h3>
                   {p.parents && (
-                    <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+                    <p style={{ fontSize: fsb(8.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.8 }}>
                       {p.side === 'groom' ? 'Putra' : 'Putri'} dari<br />
                       <span style={{ color: `${text}70` }}>{p.parents}</span>
                     </p>
                   )}
                   {p.bio && (
-                    <p style={{ fontSize: fsb(8), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.8, fontStyle: 'italic', marginTop: 8 }}>
+                    <p style={{ fontSize: fsb(8), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.8, fontStyle: 'italic', marginTop: 8 }}>
                       {p.bio}
                     </p>
                   )}
@@ -443,7 +443,7 @@ function OverlapView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               {groom.name}
             </h3>
             {groom.parents && (
-              <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 4 }}>
+              <p style={{ fontSize: fsb(8.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 4 }}>
                 Putra dari {groom.parents}
               </p>
             )}
@@ -459,7 +459,7 @@ function OverlapView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               {bride.name}
             </h3>
             {bride.parents && (
-              <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 4 }}>
+              <p style={{ fontSize: fsb(8.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 4 }}>
                 Putri dari {bride.parents}
               </p>
             )}

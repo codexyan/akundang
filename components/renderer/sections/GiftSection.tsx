@@ -336,7 +336,7 @@ function GiftHeader({ accent, text, font }: { accent: string; text: string; font
 
       {/* UX copy */}
       <motion.p
-        style={{ fontSize: fsb(10.5), color: `${text}66`, fontFamily: `'${font.body}', serif`, lineHeight: 1.8, maxWidth: 250, margin: '0 auto' }}
+        style={{ fontSize: fsb(10.5), color: `${text}88`, fontFamily: `'${font.body}', serif`, lineHeight: 1.8, maxWidth: 250, margin: '0 auto' }}
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.18 } } }}>
         Bagi yang berhalangan hadir, doa restu Anda sudah lebih dari cukup. Namun jika ingin mengirimkan tanda kasih, bisa melalui rekening di bawah ini.
       </motion.p>

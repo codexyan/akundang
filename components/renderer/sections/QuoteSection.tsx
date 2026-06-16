@@ -413,7 +413,7 @@ function MinimalView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
               fontSize: fsb(7.5),
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: `${text}55`,
+              color: `${text}75`,
               fontFamily: bodyFont,
               marginTop: 10,
             }}

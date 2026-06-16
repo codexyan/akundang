@@ -60,7 +60,7 @@ export default function QRCodeSection({ section, data, meta }: Props) {
         </motion.h2>
 
         <motion.p
-          style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 250, margin: '0 auto' }}
+          style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', maxWidth: 250, margin: '0 auto' }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(3) } }}>
           Tunjukkan QR code ini saat hadir di lokasi acara sebagai tanda bahwa Anda adalah tamu undangan kami.
         </motion.p>
@@ -90,7 +90,7 @@ export default function QRCodeSection({ section, data, meta }: Props) {
         <motion.div
           style={{ marginTop: 24 }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(6) } }}>
-          <p style={{ fontSize: fsb(8.5), color: `${text}55`, fontFamily: bodyFont, lineHeight: 1.8 }}>
+          <p style={{ fontSize: fsb(8.5), color: `${text}75`, fontFamily: bodyFont, lineHeight: 1.8 }}>
             Simpan atau screenshot QR code ini<br />dan tunjukkan kepada panitia di lokasi.
           </p>
         </motion.div>

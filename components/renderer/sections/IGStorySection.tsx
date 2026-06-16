@@ -37,7 +37,7 @@ function Placeholder({ accent, text, bodyFont }: { accent: string; text: string;
       background: `${accent}10`,
     }}>
       <Instagram size={28} style={{ color: `${accent}30` }} />
-      <p style={{ fontSize: fsb(9), color: `${text}45`, fontFamily: bodyFont, letterSpacing: '0.1em', textAlign: 'center', padding: '0 24px' }}>
+      <p style={{ fontSize: fsb(9), color: `${text}65`, fontFamily: bodyFont, letterSpacing: '0.1em', textAlign: 'center', padding: '0 24px' }}>
         Upload template IG Story di dashboard
       </p>
     </div>
@@ -106,7 +106,7 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
             Template IG Story
           </motion.h2>
           <motion.p
-            style={{ fontSize: fsb(10), color: `${text}50`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
+            style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic' }}
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
             Unduh dan bagikan kabar<br />bahagia ini di Instagram Anda.
           </motion.p>
@@ -205,7 +205,7 @@ function PhoneView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) 
         {/* Description */}
         <motion.p
           className="text-center"
-          style={{ fontSize: fsb(10), color: `${text}45`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', marginBottom: 20, maxWidth: 240, margin: '0 auto 20px' }}
+          style={{ fontSize: fsb(10), color: `${text}65`, fontFamily: bodyFont, lineHeight: 1.9, fontStyle: 'italic', marginBottom: 20, maxWidth: 240, margin: '0 auto 20px' }}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
           Unduh dan bagikan kabar bahagia ini di Instagram Story Anda.
         </motion.p>
