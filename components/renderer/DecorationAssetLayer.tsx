@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import type { DecorationAsset, AssetPosition, AssetIdleAnimation, AssetExitAnimation } from '@/lib/types'
+import type { Variants, TargetAndTransition, Transition } from 'framer-motion'
+import type { DecorationAsset, AssetPosition, AssetIdleAnimation, AssetExitAnimation, AssetKeyframeState, AssetKeyframeConfig, AssetKeyframeEasing } from '@/lib/types'
 
 interface LayerProps {
   assets: DecorationAsset[]
@@ -30,7 +31,38 @@ const ANCHOR: Record<AssetPosition, React.CSSProperties> = {
   'edge-bottom':    { bottom: 0, left: '50%', transform: 'translateX(-50%) translateY(30%)' },
 }
 
-function getEntryVariants(anim: string) {
+type MotionTarget = TargetAndTransition
+
+function keyframeToMotion(kf: AssetKeyframeState): MotionTarget {
+  const result: MotionTarget = {}
+  if (kf.opacity !== undefined) result.opacity = kf.opacity
+  if (kf.x !== undefined) result.x = kf.x
+  if (kf.y !== undefined) result.y = kf.y
+  if (kf.scale !== undefined) result.scale = kf.scale
+  if (kf.rotate !== undefined) result.rotate = kf.rotate
+  if (kf.blur !== undefined) result.filter = `blur(${kf.blur}px)`
+  return result
+}
+
+function keyframeEasingToMotion(easing?: AssetKeyframeEasing): number[] | string | undefined {
+  switch (easing) {
+    case 'ease':        return [0.25, 0.46, 0.45, 0.94]
+    case 'ease-in':     return [0.42, 0, 1, 1]
+    case 'ease-out':    return [0, 0, 0.58, 1]
+    case 'ease-in-out': return [0.42, 0, 0.58, 1]
+    case 'linear':      return 'linear'
+    case 'spring':      return undefined
+    default:            return [0.25, 0.46, 0.45, 0.94]
+  }
+}
+
+function getEntryVariants(anim: string, keyframes?: AssetKeyframeConfig): Variants {
+  if (anim === 'custom' && keyframes) {
+    return {
+      hidden: keyframeToMotion(keyframes.from),
+      visible: keyframeToMotion(keyframes.to),
+    }
+  }
   switch (anim) {
     case 'fade-in':    return { hidden: { opacity: 0 },              visible: { opacity: 1 } }
     case 'slide-left': return { hidden: { opacity: 0, x: -60 },      visible: { opacity: 1, x: 0 } }
@@ -43,7 +75,10 @@ function getEntryVariants(anim: string) {
   }
 }
 
-function getExitTarget(anim: AssetExitAnimation): Record<string, unknown> {
+function getExitTarget(anim: AssetExitAnimation, keyframes?: AssetKeyframeConfig): MotionTarget {
+  if (anim === 'custom' && keyframes) {
+    return keyframeToMotion(keyframes.to)
+  }
   switch (anim) {
     case 'fade-out':       return { opacity: 0 }
     case 'slide-out-left': return { opacity: 0, x: -80 }
@@ -127,12 +162,25 @@ function DecorationAssetItem({ asset, doAnimate, exiting }: ItemProps) {
 
   // Exit animation override
   if (exiting && exitAnim !== 'none') {
-    const exitTarget = getExitTarget(exitAnim) as import('framer-motion').TargetAndTransition
+    const exitKf = asset.exit_keyframes
+    const exitTarget = getExitTarget(exitAnim, exitKf)
+    const exitDur = (exitAnim === 'custom' && exitKf?.duration) ? exitKf.duration / 1000 : 0.7
+    const exitEaseVal = exitAnim === 'custom' && exitKf?.easing
+      ? (exitKf.easing === 'spring' ? undefined : keyframeEasingToMotion(exitKf.easing))
+      : [0.4, 0, 0.2, 1]
+    const isSpringExit = exitAnim === 'custom' && exitKf?.easing === 'spring'
+    const exitTransition: Transition = {
+      ...(isSpringExit ? { type: 'spring' as const, damping: 15 } : { duration: exitDur }),
+      delay: exitDelay,
+      ...(exitEaseVal ? { ease: exitEaseVal as [number, number, number, number] } : {}),
+    }
+    const hasCustomInit = exitAnim === 'custom' && exitKf
     return (
       <motion.div
         style={wrapStyle}
+        {...(hasCustomInit ? { initial: keyframeToMotion(exitKf.from) as any } : {})}
         animate={exitTarget}
-        transition={{ duration: 0.7, delay: exitDelay, ease: [0.4, 0, 0.2, 1] }}
+        transition={exitTransition}
       >
         <img src={asset.url} alt="" draggable={false} style={imgStyle} />
       </motion.div>
@@ -149,7 +197,19 @@ function DecorationAssetItem({ asset, doAnimate, exiting }: ItemProps) {
     )
   }
 
-  const entryVariants = getEntryVariants(asset.animation ?? 'fade-in')
+  const entryKf = asset.entry_keyframes
+  const anim = asset.animation ?? 'fade-in'
+  const entryVariants = getEntryVariants(anim, entryKf)
+  const entryDur = (anim === 'custom' && entryKf?.duration) ? entryKf.duration / 1000 : 0.9
+  const entryEaseVal = anim === 'custom' && entryKf?.easing
+    ? (entryKf.easing === 'spring' ? undefined : keyframeEasingToMotion(entryKf.easing))
+    : [0.25, 0.46, 0.45, 0.94]
+  const isSpringEntry = anim === 'custom' && entryKf?.easing === 'spring'
+  const entryTransition: Transition = {
+    ...(isSpringEntry ? { type: 'spring' as const, damping: 15 } : { duration: entryDur }),
+    delay,
+    ...(entryEaseVal ? { ease: entryEaseVal as [number, number, number, number] } : {}),
+  }
 
   return (
     <motion.div
@@ -157,7 +217,7 @@ function DecorationAssetItem({ asset, doAnimate, exiting }: ItemProps) {
       initial="hidden"
       animate={entryDone ? undefined : 'visible'}
       variants={entryVariants}
-      transition={{ duration: 0.9, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={entryTransition}
       onAnimationComplete={() => setEntryDone(true)}
       {...(entryDone ? idleProps : {})}
     >

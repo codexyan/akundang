@@ -120,8 +120,8 @@ export default function InvitationRenderer({
         {phase === 'opening' && (
           <motion.div
             key="opening"
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
             style={contained ? { position: 'absolute', inset: 0 } : undefined}
           >
             <OpeningScene

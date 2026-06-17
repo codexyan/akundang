@@ -27,6 +27,7 @@ const OPENING_STYLES: { id: OpeningType; name: string; icon: string; desc: strin
   { id: 'veil-lift',      name: 'Kerudung',       icon: '👰', desc: 'Lembut terangkat' },
   { id: 'mosaic-reveal',  name: 'Mosaik',         icon: '🔷', desc: 'Pecah terurai' },
   { id: 'ring-zoom',      name: 'Cincin',         icon: '💍', desc: 'Ikonik & bermakna' },
+  { id: 'petal-fall',     name: 'Petal Jatuh',    icon: '🌺', desc: 'Kelopak jatuh romantis' },
 ]
 
 export default function OpeningForm({

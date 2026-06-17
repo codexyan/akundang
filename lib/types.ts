@@ -158,6 +158,7 @@ export type OpeningType =
   | 'veil-lift'
   | 'mosaic-reveal'
   | 'ring-zoom'
+  | 'petal-fall'
 
 export interface BackgroundConfig {
   type: 'image' | 'video' | 'color' | 'gradient'
@@ -226,14 +227,34 @@ export type AssetPosition =
 export type AssetAnimation =
   | 'none' | 'fade-in' | 'slide-left' | 'slide-right'
   | 'slide-up' | 'slide-down' | 'zoom-in' | 'rotate-in'
+  | 'custom'
 
 export type AssetExitAnimation =
   | 'none' | 'fade-out' | 'slide-out-left' | 'slide-out-right'
   | 'slide-out-up' | 'slide-out-down' | 'zoom-out' | 'rotate-out'
   | 'shrink' | 'blur-out'
+  | 'custom'
 
 export type AssetIdleAnimation =
   | 'none' | 'float' | 'pulse' | 'shimmer' | 'sway' | 'spin-slow' | 'heartbeat' | 'drift-right'
+
+export type AssetKeyframeEasing = 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring' | 'linear'
+
+export interface AssetKeyframeState {
+  opacity?: number    // 0–1
+  x?: number          // px offset
+  y?: number          // px offset
+  scale?: number      // multiplier
+  rotate?: number     // degrees
+  blur?: number       // px
+}
+
+export interface AssetKeyframeConfig {
+  from: AssetKeyframeState
+  to: AssetKeyframeState
+  duration?: number              // ms, default 900
+  easing?: AssetKeyframeEasing   // default 'ease'
+}
 
 export interface DecorationAsset {
   id: string
@@ -250,8 +271,10 @@ export interface DecorationAsset {
   opacity?: number         // 0-100
   animation?: AssetAnimation     // animasi masuk
   animation_delay?: number       // ms, delay animasi masuk
+  entry_keyframes?: AssetKeyframeConfig  // keyframe custom untuk animasi masuk (saat animation = 'custom')
   exit_animation?: AssetExitAnimation  // animasi keluar saat transisi ke loading
   exit_delay?: number            // ms, delay animasi keluar
+  exit_keyframes?: AssetKeyframeConfig   // keyframe custom untuk animasi keluar (saat exit_animation = 'custom')
   idle_animation?: AssetIdleAnimation  // animasi on-the-spot setelah masuk
   idle_speed?: 'slow' | 'normal' | 'fast'  // kecepatan idle, default 'normal'
   z_layer?: number         // z-order/layer, default 0
@@ -295,6 +318,20 @@ export interface OpeningConfig {
   decoration_assets?: DecorationAsset[]
   // Aktifkan/nonaktifkan halaman cover sebelum undangan
   show_opening?: boolean           // default: true
+  // ─── Petal Fall specific ───
+  petal_count?: number             // jumlah kelopak, default 22
+  petal_speed?: 'slow' | 'normal' | 'fast'  // kecepatan jatuh, default 'normal'
+  petal_size?: 'sm' | 'md' | 'lg' // ukuran kelopak, default 'md'
+  petal_opacity?: number           // 0–100, opacity puncak kelopak, default 30
+  petal_sway?: number              // 0–100, intensitas ayunan horizontal, default 50
+  petal_color?: string             // warna kelopak, default: accent color template
+  petal_shape?: 'petal' | 'sakura' | 'leaf' | 'snowflake'  // bentuk partikel, default 'petal'
+  show_button_glow?: boolean       // pulse glow pada tombol, default true
+  show_scroll_hint?: boolean       // chevron bouncing di bawah tombol, default true
+  ken_burns_enabled?: boolean      // animasi Ken Burns pada background, default true
+  ken_burns_speed?: number         // detik durasi siklus, default 20
+  exit_blur?: number               // px blur saat exit, default 12
+  scrim_opacity?: number           // 0–100, opacity overlay gelap, default 33
 }
 
 export type LoadingVariant =

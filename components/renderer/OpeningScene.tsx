@@ -14,6 +14,7 @@ import LanternRiseOpening from './openings/LanternRiseOpening'
 import VeilLiftOpening from './openings/VeilLiftOpening'
 import MosaicRevealOpening from './openings/MosaicRevealOpening'
 import RingZoomOpening from './openings/RingZoomOpening'
+import PetalFallOpening from './openings/PetalFallOpening'
 
 export type PositionMode = 'fixed' | 'absolute'
 
@@ -45,6 +46,7 @@ export default function OpeningScene({ config, data, meta, onOpen, positionMode 
           case 'veil-lift':     return <VeilLiftOpening     key="veil-lift"     {...shared} />
           case 'mosaic-reveal': return <MosaicRevealOpening key="mosaic-reveal" {...shared} />
           case 'ring-zoom':     return <RingZoomOpening     key="ring-zoom"     {...shared} />
+          case 'petal-fall':    return <PetalFallOpening    key="petal-fall"    {...shared} />
           case 'fade-reveal':
           default:              return <FadeRevealOpening   key="fade-reveal"   {...shared} />
         }

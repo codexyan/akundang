@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
 import {
   FlaskConical, Save, RefreshCw, Maximize2, Move, Music, Volume2,
-  ChevronUp, ChevronDown, Eye, EyeOff, Palette, Type,
+  ChevronUp, ChevronDown, Eye, EyeOff, Palette, Type, Layers,
   LayoutTemplate, Code2, Sparkles, Loader2, Plus, Trash2, Rocket, X, GripVertical, Play, Check, Lock, Unlock,
   Paintbrush, ImageIcon, Undo2, Redo2, FileCheck, FileClock, PenLine, ArrowLeft, Upload,
 } from 'lucide-react'
@@ -124,7 +124,7 @@ function makeGiftAccount(name: string, b: GiftLabBrand): GiftAccount {
 
 // ─── Constants ─────────────────────────────────────────────────
 const SECTION_TYPES = ['hero', 'profiles', 'countdown', 'events', 'story', 'gallery', 'rsvp', 'wishes', 'closing', 'gift', 'livestream', 'quote', 'video', 'gift-registry', 'ig-story', 'qrcode'] as const
-const OPENING_TYPES = ['fade-reveal', 'envelope', 'curtain', 'gate-open', 'flower-bloom', 'scroll-reveal', 'diamond-split', 'book-open', 'lantern-rise', 'veil-lift', 'mosaic-reveal', 'ring-zoom'] as const
+const OPENING_TYPES = ['fade-reveal', 'envelope', 'curtain', 'gate-open', 'flower-bloom', 'scroll-reveal', 'diamond-split', 'book-open', 'lantern-rise', 'veil-lift', 'mosaic-reveal', 'ring-zoom', 'petal-fall'] as const
 const TRANSITION_TYPES = ['fade', 'slide-up', 'slide-left', 'slide-right', 'zoom-in'] as const
 
 const OPENING_META: Record<string, { icon: string; label: string }> = {
@@ -140,6 +140,7 @@ const OPENING_META: Record<string, { icon: string; label: string }> = {
   'veil-lift':     { icon: '👰', label: 'Kerudung' },
   'mosaic-reveal': { icon: '🔷', label: 'Mosaik' },
   'ring-zoom':     { icon: '💍', label: 'Cincin' },
+  'petal-fall':    { icon: '🌺', label: 'Petal Jatuh' },
 }
 
 // ─── Color Palettes ────────────────────────────────────────────
@@ -782,7 +783,7 @@ const BODY_FONTS = [
   'Libre Caslon Text', 'Gentium Book Plus', 'EB Garamond',
 ]
 
-type ConfigTab = 'identity' | 'colors' | 'style' | 'opening' | 'loading' | 'sections' | 'music'
+type ConfigTab = 'identity' | 'colors' | 'style' | 'opening' | 'decor' | 'loading' | 'sections' | 'music'
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (Cover)', profiles: 'Profil Pasangan', countdown: 'Hitung Mundur',
@@ -988,8 +989,9 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
   }, [editRecord?.id])
 
   useEffect(() => {
-    if (activeTab !== 'opening') { setDecorEditMode(false); setSelectedAssetId(null) }
-    if (activeTab === 'opening' || activeTab === 'identity' || activeTab === 'colors' || activeTab === 'style') setPreviewMode('opening')
+    if (activeTab !== 'opening' && activeTab !== 'decor') { setDecorEditMode(false); setSelectedAssetId(null) }
+    if (activeTab === 'decor') { setPreviewMode('opening'); setDecorEditMode(true) }
+    else if (activeTab === 'opening' || activeTab === 'identity' || activeTab === 'colors' || activeTab === 'style') setPreviewMode('opening')
     else if (activeTab === 'loading') setPreviewMode('loading')
     else if (activeTab === 'sections' || activeTab === 'music') setPreviewMode('invitation')
     if (activeTab !== 'music') {
@@ -1778,6 +1780,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
             ['colors',   Palette,        'Warna'],
             ['style',    Paintbrush,     'Gaya'],
             ['opening',  Sparkles,       'Opening'],
+            ['decor',    Layers,         'Dekorasi'],
             ['loading',  Loader2,        'Loading'],
             ['sections', Type,           'Sections'],
             ['music',    Play,           'Musik'],
@@ -3481,138 +3484,348 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                 </div>
               </div>
 
-              {/* ── Aset Dekorasi — Section Khusus ── */}
-              <div className="mt-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-b from-indigo-50/80 to-white overflow-hidden">
-                {/* Header */}
-                <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
+              {/* ── Petal Fall Attributes (hanya tampil saat type = petal-fall) ── */}
+              {cfg.opening.type === 'petal-fall' && (
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                    Pengaturan Petal Fall
+                  </p>
+                  <p className="text-[9px] text-gray-400 mb-3">
+                    Sesuaikan efek kelopak jatuh, glow tombol, dan Ken Burns
+                  </p>
+                  <div className="space-y-3 bg-pink-50/50 border border-pink-200/40 rounded-xl p-3">
+
+                    {/* Petal Count */}
                     <div>
-                      <p className="text-xs font-bold text-white tracking-wide">Aset Dekorasi</p>
-                      <p className="text-[9px] text-indigo-200">Ornamen, bunga, kipas, frame. Layer visual cover page</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {/* Moodboard toggle */}
-                    <button
-                      onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('opening') }}
-                      className={`flex items-center gap-1 text-[9px] font-bold px-2.5 py-1.5 rounded-lg transition-all ${
-                        decorEditMode
-                          ? 'bg-white text-indigo-700 shadow-sm'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      }`}
-                    >
-                      <Move className="w-3 h-3" />
-                      {decorEditMode ? 'Selesai' : 'Geser di Mockup'}
-                    </button>
-                    {/* Upload */}
-                    <label className="flex items-center gap-1 text-[9px] font-bold text-white bg-white/20 hover:bg-white/30 cursor-pointer rounded-lg px-2.5 py-1.5 transition-colors">
-                      <Plus className="w-3 h-3" /> Upload
-                      <input type="file" accept="image/*" className="hidden"
-                        onChange={async e => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          const fd = new FormData()
-                          fd.append('file', file)
-                          fd.append('folder', 'decorations')
-                          const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-                          const data = await res.json()
-                          if (!res.ok) { alert(data.error); return }
-                          const newAsset: DecorationAsset = {
-                            id: 'deco-' + Date.now().toString(36),
-                            url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
-                            position: 'top-right', width: 80, scale: 1, opacity: 100,
-                            animation: 'fade-in', animation_delay: 200,
-                            exit_animation: 'none', exit_delay: 0,
-                            idle_animation: 'none', z_layer: (cfg.opening.decoration_assets?.length ?? 0),
-                          }
-                          updateOpening({ decoration_assets: [...(cfg.opening.decoration_assets ?? []), newAsset] })
-                          setSelectedAssetId(newAsset.id)
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Moodboard hint */}
-                {decorEditMode && (
-                  <div className="mx-4 mt-3 px-3 py-2 bg-indigo-100 border border-indigo-200 rounded-lg flex items-center gap-2">
-                    <Move className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <p className="text-[9px] text-indigo-700 leading-relaxed">
-                      <strong>Moodboard aktif</strong> · drag aset di mockup untuk mengatur posisi. Klik aset untuk pilih, lalu atur detail di panel bawah.
-                    </p>
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="px-4 py-3 space-y-3">
-                  {(!cfg.opening.decoration_assets || cfg.opening.decoration_assets.length === 0) ? (
-                    <div className="border-2 border-dashed border-indigo-200 rounded-xl py-8 text-center bg-white/50">
-                      <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-indigo-100 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-indigo-400" />
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Jumlah Kelopak</span>
+                        <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.petal_count ?? 22}</span>
                       </div>
-                      <p className="text-[10px] font-semibold text-gray-500">Belum ada aset dekorasi</p>
-                      <p className="text-[9px] text-gray-400 mt-1">Upload kipas, ornamen, batik, bunga, frame, dll.</p>
+                      <input type="range" min={5} max={50} step={1}
+                        value={cfg.opening.petal_count ?? 22}
+                        onChange={e => updateOpening({ petal_count: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-pink-500"
+                      />
                     </div>
-                  ) : (
-                    <>
-                      {/* Asset count + grid thumbnails */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {cfg.opening.decoration_assets.map(asset => (
-                          <button
-                            key={asset.id}
-                            onClick={() => { setSelectedAssetId(asset.id === selectedAssetId ? null : asset.id) }}
-                            className={`relative w-12 h-12 rounded-lg border-2 overflow-hidden transition-all shrink-0 ${
-                              selectedAssetId === asset.id
-                                ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-md scale-105'
-                                : 'border-gray-200 hover:border-indigo-300 bg-gray-50'
+
+                    {/* Petal Speed */}
+                    <div>
+                      <span className="text-[10px] font-semibold text-gray-600 block mb-1">Kecepatan Jatuh</span>
+                      <div className="flex gap-1.5">
+                        {(['slow', 'normal', 'fast'] as const).map(sp => (
+                          <button key={sp} type="button"
+                            onClick={() => updateOpening({ petal_speed: sp })}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                              (cfg.opening.petal_speed ?? 'normal') === sp
+                                ? 'bg-pink-500 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
                             }`}
-                            title={asset.label || 'Aset'}
                           >
-                            <img src={asset.url} alt="" className="w-full h-full object-contain p-0.5" />
-                            <span className="absolute bottom-0 right-0 bg-gray-900/70 text-white text-[6px] font-bold px-1 rounded-tl">
-                              L{asset.z_layer ?? 0}
-                            </span>
+                            {sp === 'slow' ? 'Lambat' : sp === 'normal' ? 'Normal' : 'Cepat'}
                           </button>
                         ))}
                       </div>
-
-                      {/* Selected asset settings */}
-                      {selectedAssetId && (
-                        <DecorationLayerList
-                          assets={cfg.opening.decoration_assets}
-                          onUpdate={assets => updateOpening({ decoration_assets: assets })}
-                          onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                          onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                          focusedId={selectedAssetId}
-                          onFocusChange={setSelectedAssetId}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  {/* Preview flow buttons */}
-                  {cfg.opening.decoration_assets && cfg.opening.decoration_assets.length > 0 && (
-                    <div className="flex gap-2 pt-2 border-t border-indigo-100">
-                      <button
-                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                        className="flex-1 py-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
-                      >
-                        ▶ Preview Masuk
-                      </button>
-                      <button
-                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                        className="flex-1 py-2 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
-                      >
-                        ▶▶ Full Flow
-                      </button>
                     </div>
-                  )}
+
+                    {/* Petal Size */}
+                    <div>
+                      <span className="text-[10px] font-semibold text-gray-600 block mb-1">Ukuran Kelopak</span>
+                      <div className="flex gap-1.5">
+                        {(['sm', 'md', 'lg'] as const).map(sz => (
+                          <button key={sz} type="button"
+                            onClick={() => updateOpening({ petal_size: sz })}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                              (cfg.opening.petal_size ?? 'md') === sz
+                                ? 'bg-pink-500 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {sz === 'sm' ? 'Kecil' : sz === 'md' ? 'Sedang' : 'Besar'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Petal Shape */}
+                    <div>
+                      <span className="text-[10px] font-semibold text-gray-600 block mb-1">Bentuk Partikel</span>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {([
+                          { id: 'petal', label: 'Kelopak', icon: '🌷' },
+                          { id: 'sakura', label: 'Sakura', icon: '🌸' },
+                          { id: 'leaf', label: 'Daun', icon: '🍃' },
+                          { id: 'snowflake', label: 'Salju', icon: '❄️' },
+                        ] as const).map(sh => (
+                          <button key={sh.id} type="button"
+                            onClick={() => updateOpening({ petal_shape: sh.id })}
+                            className={`py-2 rounded-lg text-center transition-all ${
+                              (cfg.opening.petal_shape ?? 'petal') === sh.id
+                                ? 'bg-pink-500 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="text-sm block">{sh.icon}</span>
+                            <span className="text-[8px] font-bold">{sh.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Petal Opacity */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Opacity Kelopak</span>
+                        <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.petal_opacity ?? 30}%</span>
+                      </div>
+                      <input type="range" min={5} max={80} step={1}
+                        value={cfg.opening.petal_opacity ?? 30}
+                        onChange={e => updateOpening({ petal_opacity: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-pink-500"
+                      />
+                    </div>
+
+                    {/* Petal Sway */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Intensitas Ayunan</span>
+                        <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.petal_sway ?? 50}%</span>
+                      </div>
+                      <input type="range" min={0} max={100} step={5}
+                        value={cfg.opening.petal_sway ?? 50}
+                        onChange={e => updateOpening({ petal_sway: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-pink-500"
+                      />
+                    </div>
+
+                    {/* Petal Color */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Warna Kelopak</span>
+                        <span className="text-[10px] text-gray-400">Kosongkan = warna aksen</span>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <input type="color"
+                          value={cfg.opening.petal_color ?? cfg.meta.color_scheme.accent}
+                          onChange={e => updateOpening({ petal_color: e.target.value })}
+                          className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer"
+                        />
+                        <input type="text"
+                          value={cfg.opening.petal_color ?? ''}
+                          onChange={e => updateOpening({ petal_color: e.target.value || undefined })}
+                          placeholder="auto (accent)"
+                          className="flex-1 px-2 py-1.5 text-[10px] bg-white border border-gray-200 rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Scrim Opacity */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Kegelapan Overlay</span>
+                        <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.scrim_opacity ?? 33}%</span>
+                      </div>
+                      <input type="range" min={0} max={80} step={1}
+                        value={cfg.opening.scrim_opacity ?? 33}
+                        onChange={e => updateOpening({ scrim_opacity: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-gray-500"
+                      />
+                    </div>
+
+                    {/* Toggles row */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {/* Button Glow */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <button type="button"
+                          onClick={() => updateOpening({ show_button_glow: cfg.opening.show_button_glow === false ? true : false })}
+                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                            cfg.opening.show_button_glow !== false ? 'bg-pink-500' : 'bg-gray-200'
+                          }`}
+                        >
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                            cfg.opening.show_button_glow !== false ? 'translate-x-[18px]' : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                        <span className="text-[10px] font-semibold text-gray-600">Glow Tombol</span>
+                      </label>
+
+                      {/* Scroll Hint */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <button type="button"
+                          onClick={() => updateOpening({ show_scroll_hint: cfg.opening.show_scroll_hint === false ? true : false })}
+                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                            cfg.opening.show_scroll_hint !== false ? 'bg-pink-500' : 'bg-gray-200'
+                          }`}
+                        >
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                            cfg.opening.show_scroll_hint !== false ? 'translate-x-[18px]' : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                        <span className="text-[10px] font-semibold text-gray-600">Scroll Hint</span>
+                      </label>
+
+                      {/* Ken Burns */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <button type="button"
+                          onClick={() => updateOpening({ ken_burns_enabled: cfg.opening.ken_burns_enabled === false ? true : false })}
+                          className={`w-9 h-5 rounded-full transition-colors relative ${
+                            cfg.opening.ken_burns_enabled !== false ? 'bg-pink-500' : 'bg-gray-200'
+                          }`}
+                        >
+                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                            cfg.opening.ken_burns_enabled !== false ? 'translate-x-[18px]' : 'translate-x-0.5'
+                          }`} />
+                        </button>
+                        <span className="text-[10px] font-semibold text-gray-600">Ken Burns</span>
+                      </label>
+                    </div>
+
+                    {/* Ken Burns Speed (only if enabled) */}
+                    {cfg.opening.ken_burns_enabled !== false && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-semibold text-gray-600">Ken Burns Durasi</span>
+                          <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.ken_burns_speed ?? 20}s</span>
+                        </div>
+                        <input type="range" min={8} max={40} step={2}
+                          value={cfg.opening.ken_burns_speed ?? 20}
+                          onChange={e => updateOpening({ ken_burns_speed: Number(e.target.value) })}
+                          className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-pink-500"
+                        />
+                      </div>
+                    )}
+
+                    {/* Exit Blur */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-semibold text-gray-600">Exit Blur</span>
+                        <span className="text-[10px] text-gray-400 tabular-nums">{cfg.opening.exit_blur ?? 12}px</span>
+                      </div>
+                      <input type="range" min={0} max={30} step={1}
+                        value={cfg.opening.exit_blur ?? 12}
+                        onChange={e => updateOpening({ exit_blur: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none accent-gray-500"
+                      />
+                    </div>
+
+                  </div>
                 </div>
+              )}
+
+            </div>
+          )}
+
+          {/* ── Dekorasi ── */}
+          {activeTab === 'decor' && (
+            <div className="space-y-4">
+
+              {/* Upload + Moodboard controls */}
+              <div className="flex items-center gap-2">
+                <label className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border-2 border-dashed border-indigo-300 cursor-pointer rounded-xl py-3 hover:bg-indigo-100 transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> Upload Aset Dekorasi
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={async e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const fd = new FormData()
+                      fd.append('file', file)
+                      fd.append('folder', 'decorations')
+                      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+                      const data = await res.json()
+                      if (!res.ok) { alert(data.error); return }
+                      const newAsset: DecorationAsset = {
+                        id: 'deco-' + Date.now().toString(36),
+                        url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
+                        position: 'top-left', width: 80, scale: 1, opacity: 100,
+                        offset_x: 155, offset_y: 380,
+                        animation: 'fade-in', animation_delay: 200,
+                        exit_animation: 'none', exit_delay: 0,
+                        idle_animation: 'none', z_layer: (cfg.opening.decoration_assets?.length ?? 0),
+                      }
+                      updateOpening({ decoration_assets: [...(cfg.opening.decoration_assets ?? []), newAsset] })
+                      setSelectedAssetId(newAsset.id)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                <button
+                  onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('opening') }}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold px-4 py-3 rounded-xl transition-all ${
+                    decorEditMode
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Move className="w-3.5 h-3.5" />
+                  {decorEditMode ? 'Moodboard ON' : 'Moodboard'}
+                </button>
               </div>
+
+              {decorEditMode && (
+                <div className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center gap-2">
+                  <Move className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <p className="text-[9px] text-indigo-700 leading-relaxed">
+                    Drag aset langsung di mockup. Klik untuk memilih, lalu atur di panel bawah.
+                  </p>
+                </div>
+              )}
+
+              {/* Asset grid */}
+              {(!cfg.opening.decoration_assets || cfg.opening.decoration_assets.length === 0) ? (
+                <div className="border-2 border-dashed border-gray-200 rounded-xl py-10 text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <Layers className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-500">Belum ada aset dekorasi</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Upload ornamen, bunga, kipas, frame, dll.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {cfg.opening.decoration_assets.map(asset => (
+                      <button
+                        key={asset.id}
+                        onClick={() => setSelectedAssetId(asset.id === selectedAssetId ? null : asset.id)}
+                        className={`relative w-14 h-14 rounded-xl border-2 overflow-hidden transition-all shrink-0 ${
+                          selectedAssetId === asset.id
+                            ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-lg scale-110'
+                            : 'border-gray-200 hover:border-indigo-300 bg-gray-50'
+                        }`}
+                        title={asset.label || 'Aset'}
+                      >
+                        <img src={asset.url} alt="" className="w-full h-full object-contain p-1" />
+                        <span className="absolute bottom-0 right-0 bg-gray-900/70 text-white text-[6px] font-bold px-1 rounded-tl-lg">
+                          L{asset.z_layer ?? 0}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Selected asset panel */}
+                  {selectedAssetId && (
+                    <DecorationLayerList
+                      assets={cfg.opening.decoration_assets}
+                      onUpdate={assets => updateOpening({ decoration_assets: assets })}
+                      onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                      onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                      focusedId={selectedAssetId}
+                      onFocusChange={setSelectedAssetId}
+                    />
+                  )}
+
+                  {/* Global preview */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                      className="flex-1 py-2.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
+                    >
+                      ▶ Preview Masuk
+                    </button>
+                    <button
+                      onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                      className="flex-1 py-2.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
+                    >
+                      ▶▶ Full Flow
+                    </button>
+                  </div>
+                </>
+              )}
 
             </div>
           )}
@@ -5116,17 +5329,16 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                 {/* ── Moodboard overlay — drag decoration assets ── */}
                 {decorEditMode && previewMode === 'opening' && !previewPlaying && (
-                  <DecorationMoodboard
-                    assets={cfg.opening.decoration_assets ?? []}
-                    onUpdate={assets => updateOpening({ decoration_assets: assets })}
-                    selectedId={selectedAssetId}
-                    onSelect={setSelectedAssetId}
-                    containerWidth={340}
-                    containerHeight={736}
-                    bgColor={cfg.meta.color_scheme.primary}
-                    bgImage={cfg.opening.cover_photo_url || cfg.opening.background_image}
-                    bgOpacity={cfg.opening.cover_photo_opacity}
-                  />
+                  <div style={{ width: 390, zoom: 340 / 390, height: 845, position: 'absolute', inset: 0, zIndex: 30 }}>
+                    <DecorationMoodboard
+                      assets={cfg.opening.decoration_assets ?? []}
+                      onUpdate={assets => updateOpening({ decoration_assets: assets })}
+                      selectedId={selectedAssetId}
+                      onSelect={setSelectedAssetId}
+                      containerWidth={390}
+                      containerHeight={845}
+                    />
+                  </div>
                 )}
 
                 {/* ── Invitation preview — scroll-snap, satu section = satu layar ── */}
@@ -5501,22 +5713,25 @@ const IDLE_LABELS: Record<string, string> = {
 const ENTRY_LABELS: Record<string, string> = {
   none: 'Langsung', 'fade-in': 'Fade In', 'slide-left': 'Geser Kiri', 'slide-right': 'Geser Kanan',
   'slide-up': 'Naik', 'slide-down': 'Turun', 'zoom-in': 'Zoom In', 'rotate-in': 'Putar Masuk',
+  custom: 'Custom Keyframe',
 }
 const EXIT_LABELS: Record<string, string> = {
   none: 'Tidak Ada', 'fade-out': 'Fade Out', 'slide-out-left': 'Keluar Kiri', 'slide-out-right': 'Keluar Kanan',
   'slide-out-up': 'Keluar Atas', 'slide-out-down': 'Keluar Bawah', 'zoom-out': 'Zoom Out', 'rotate-out': 'Putar Keluar',
-  shrink: 'Mengecil', 'blur-out': 'Blur Keluar',
+  shrink: 'Mengecil', 'blur-out': 'Blur Keluar', custom: 'Custom Keyframe',
+}
+const EASING_LABELS: Record<string, string> = {
+  ease: 'Ease', 'ease-in': 'Ease In', 'ease-out': 'Ease Out',
+  'ease-in-out': 'Ease In-Out', spring: 'Spring', linear: 'Linear',
 }
 
-function updateAsset(
+function updateAssetInList(
   assets: import('@/lib/types').DecorationAsset[],
   id: string,
   patch: Partial<import('@/lib/types').DecorationAsset>
 ) {
   return assets.map(a => a.id === id ? { ...a, ...patch } : a)
 }
-
-type SettingsTab = 'transform' | 'animation'
 
 function DecorationLayerList({
   assets, onUpdate, onPreview, onPreviewExit, focusedId, onFocusChange,
@@ -5528,168 +5743,183 @@ function DecorationLayerList({
   focusedId?: string | null
   onFocusChange?: (id: string | null) => void
 }) {
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>('transform')
+  const [showKfEntry, setShowKfEntry] = useState(false)
+  const [showKfExit, setShowKfExit] = useState(false)
+
   const up = (id: string, patch: Partial<import('@/lib/types').DecorationAsset>) =>
-    onUpdate(updateAsset(assets, id, patch))
+    onUpdate(updateAssetInList(assets, id, patch))
 
   const asset = focusedId ? assets.find(a => a.id === focusedId) : null
   if (!asset) return null
 
-  // Layer order helpers
   const maxZ = Math.max(0, ...assets.map(a => a.z_layer ?? 0))
   const minZ = Math.min(0, ...assets.map(a => a.z_layer ?? 0))
 
+  const triggerPreview = () => { onPreview() }
+  const triggerExitPreview = () => { onPreviewExit?.() }
+
   return (
-    <div className="rounded-xl border border-indigo-200 bg-white overflow-hidden">
-      {/* Asset header */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border-b border-indigo-100">
-        <img src={asset.url} alt="" className="w-8 h-8 object-contain rounded-lg border border-indigo-200 bg-white p-0.5 shrink-0" />
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+
+      {/* ── Header ── */}
+      <div className="flex items-center gap-2.5 px-3 py-2.5 bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-gray-100">
+        <img src={asset.url} alt="" className="w-9 h-9 object-contain rounded-lg border border-indigo-200 bg-white p-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
           <input
             type="text" value={asset.label ?? ''} placeholder="Nama aset..."
             onChange={e => up(asset.id, { label: e.target.value })}
-            className="w-full text-xs font-semibold text-gray-800 bg-transparent focus:outline-none placeholder:text-gray-400"
+            className="w-full text-xs font-bold text-gray-800 bg-transparent focus:outline-none placeholder:text-gray-400"
           />
           <div className="flex items-center gap-2 text-[8px] text-gray-400 font-mono mt-0.5">
-            <span>x:{asset.offset_x ?? 0} y:{asset.offset_y ?? 0}</span>
             <span>{Math.round((asset.scale ?? 1) * 100)}%</span>
             <span>{asset.rotation ?? 0}°</span>
             <span className="text-indigo-500 font-bold">L{asset.z_layer ?? 0}</span>
           </div>
         </div>
-        <button onClick={() => onFocusChange?.(null)} className="text-gray-400 hover:text-gray-600 p-1">
+        <button onClick={() => onFocusChange?.(null)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Layer ordering — icon bar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-gray-100">
-        <LayerBtn label="Paling Depan" onClick={() => up(asset.id, { z_layer: maxZ + 1 })} icon="⤒" />
-        <LayerBtn label="Maju" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) + 1 })} icon="↑" />
-        <LayerBtn label="Mundur" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) - 1 })} icon="↓" />
-        <LayerBtn label="Paling Belakang" onClick={() => up(asset.id, { z_layer: minZ - 1 })} icon="⤓" />
-        <div className="w-px h-4 bg-gray-200 mx-1" />
-        <LayerBtn label="Flip H" onClick={() => up(asset.id, { flip_h: !asset.flip_h })} icon="↔" active={asset.flip_h} />
-        <LayerBtn label="Flip V" onClick={() => up(asset.id, { flip_v: !asset.flip_v })} icon="↕" active={asset.flip_v} />
+      {/* ── Quick Actions ── */}
+      <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50/80 border-b border-gray-100">
+        <QBtn label="Depan" onClick={() => up(asset.id, { z_layer: maxZ + 1 })} icon="⤒" />
+        <QBtn label="Maju" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) + 1 })} icon="↑" />
+        <QBtn label="Mundur" onClick={() => up(asset.id, { z_layer: (asset.z_layer ?? 0) - 1 })} icon="↓" />
+        <QBtn label="Belakang" onClick={() => up(asset.id, { z_layer: minZ - 1 })} icon="⤓" />
+        <div className="w-px h-4 bg-gray-200 mx-0.5" />
+        <QBtn label="Flip H" onClick={() => up(asset.id, { flip_h: !asset.flip_h })} icon="↔" active={asset.flip_h} />
+        <QBtn label="Flip V" onClick={() => up(asset.id, { flip_v: !asset.flip_v })} icon="↕" active={asset.flip_v} />
         <div className="flex-1" />
-        <button onClick={e => { e.stopPropagation(); onUpdate(assets.filter(a => a.id !== asset.id)); onFocusChange?.(null) }}
+        <button onClick={() => { onUpdate(assets.filter(a => a.id !== asset.id)); onFocusChange?.(null) }}
           className="p-1 text-gray-300 hover:text-red-500 rounded transition-colors" title="Hapus">
           <Trash2 className="w-3 h-3" />
         </button>
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex border-b border-gray-100">
-        <TabBtn label="Transform" active={settingsTab === 'transform'} onClick={() => setSettingsTab('transform')} />
-        <TabBtn label="Animasi" active={settingsTab === 'animation'} onClick={() => setSettingsTab('animation')} />
-      </div>
+      <div className="px-3 py-3 space-y-4">
 
-      {/* Tab content */}
-      <div className="px-3 py-3 space-y-3">
-        {settingsTab === 'transform' && (
-          <>
-            {/* Scale + Opacity — sliders */}
-            <SliderRow label="Ukuran" value={Math.round((asset.scale ?? 1) * 100)} min={10} max={300} step={5} unit="%"
-              onChange={v => up(asset.id, { scale: v / 100 })} />
-            <SliderRow label="Opacity" value={asset.opacity ?? 100} min={5} max={100} step={5} unit="%"
-              onChange={v => up(asset.id, { opacity: v })} />
-            <SliderRow label="Rotasi" value={asset.rotation ?? 0} min={-180} max={180} step={5} unit="°"
-              onChange={v => up(asset.id, { rotation: v })} />
+        {/* ── TRANSFORM ── */}
+        <div className="space-y-2">
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Transform</p>
+          <DSlider label="Ukuran" value={Math.round((asset.scale ?? 1) * 100)} min={10} max={300} step={5} unit="%"
+            onChange={v => up(asset.id, { scale: v / 100 })} />
+          <DSlider label="Opacity" value={asset.opacity ?? 100} min={5} max={100} step={5} unit="%"
+            onChange={v => up(asset.id, { opacity: v })} />
+          <DSlider label="Rotasi" value={asset.rotation ?? 0} min={-180} max={180} step={5} unit="°"
+            onChange={v => up(asset.id, { rotation: v })} />
+        </div>
 
-            {/* Position — fine tune with number inputs */}
-            <div className="grid grid-cols-2 gap-2">
-              <NumRow label="Posisi X" value={asset.offset_x ?? 0} step={4} onChange={v => up(asset.id, { offset_x: v })} />
-              <NumRow label="Posisi Y" value={asset.offset_y ?? 0} step={4} onChange={v => up(asset.id, { offset_y: v })} />
+        <div className="h-px bg-gray-100" />
+
+        {/* ── ANIMASI MASUK ── */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-widest flex-1">Masuk</p>
+            <button onClick={triggerPreview}
+              className="text-[8px] font-bold text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full transition-colors">
+              ▶ Preview
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            <select value={asset.animation ?? 'fade-in'}
+              onChange={e => { up(asset.id, { animation: e.target.value as import('@/lib/types').AssetAnimation }); setTimeout(triggerPreview, 100) }}
+              className="col-span-2 text-[11px] border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400 bg-white">
+              {Object.entries(ENTRY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            <div className="flex items-center gap-0.5">
+              <input type="number" min={0} max={4000} step={100}
+                value={asset.animation_delay ?? 0}
+                onChange={e => up(asset.id, { animation_delay: Number(e.target.value) })}
+                className="flex-1 w-full text-[11px] border border-gray-200 rounded-lg px-1.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400 bg-white text-center font-mono"
+              />
+              <span className="text-[7px] text-gray-400 shrink-0">ms</span>
             </div>
+          </div>
+          {asset.animation === 'custom' && (
+            <KfPanel
+              color="emerald"
+              keyframes={asset.entry_keyframes ?? { from: { opacity: 0 }, to: { opacity: 1 } }}
+              onChange={kf => { up(asset.id, { entry_keyframes: kf }); setTimeout(triggerPreview, 100) }}
+              presets={ENTRY_PRESETS}
+              expanded={showKfEntry}
+              onToggle={() => setShowKfEntry(!showKfEntry)}
+            />
+          )}
+        </div>
 
-            <p className="text-[8px] text-gray-400 text-center pt-1">Drag langsung di mockup untuk menggeser posisi</p>
-          </>
-        )}
+        {/* ── ANIMASI LOOP ── */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <p className="text-[9px] font-bold text-indigo-700 uppercase tracking-widest">Loop</p>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <select value={asset.idle_animation ?? 'none'}
+              onChange={e => up(asset.id, { idle_animation: e.target.value as import('@/lib/types').AssetIdleAnimation })}
+              className="text-[11px] border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white">
+              {Object.entries(IDLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            {(asset.idle_animation ?? 'none') !== 'none' && (
+              <select value={asset.idle_speed ?? 'normal'}
+                onChange={e => up(asset.id, { idle_speed: e.target.value as 'slow' | 'normal' | 'fast' })}
+                className="text-[11px] border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white">
+                <option value="slow">Lambat</option>
+                <option value="normal">Normal</option>
+                <option value="fast">Cepat</option>
+              </select>
+            )}
+          </div>
+        </div>
 
-        {settingsTab === 'animation' && (
-          <>
-            {/* Efek masuk */}
-            <div>
-              <p className="text-[9px] font-bold text-emerald-600 mb-1">Efek Masuk</p>
-              <div className="grid grid-cols-2 gap-2">
-                <select value={asset.animation ?? 'fade-in'}
-                  onChange={e => up(asset.id, { animation: e.target.value as import('@/lib/types').AssetAnimation })}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50">
-                  {Object.entries(ENTRY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-                <div className="flex items-center gap-1">
-                  <input type="number" min={0} max={4000} step={100}
-                    value={asset.animation_delay ?? 0}
-                    onChange={e => up(asset.id, { animation_delay: Number(e.target.value) })}
-                    className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                  />
-                  <span className="text-[8px] text-gray-400 shrink-0">ms</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Efek keluar */}
-            <div>
-              <p className="text-[9px] font-bold text-rose-500 mb-1">Efek Keluar</p>
-              <div className="grid grid-cols-2 gap-2">
-                <select value={asset.exit_animation ?? 'none'}
-                  onChange={e => up(asset.id, { exit_animation: e.target.value as import('@/lib/types').AssetExitAnimation })}
-                  className="text-xs border border-rose-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-rose-400 bg-rose-50">
-                  {Object.entries(EXIT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-                <div className="flex items-center gap-1">
-                  <input type="number" min={0} max={4000} step={100}
-                    value={asset.exit_delay ?? 0}
-                    onChange={e => up(asset.id, { exit_delay: Number(e.target.value) })}
-                    className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50"
-                  />
-                  <span className="text-[8px] text-gray-400 shrink-0">ms</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Animasi berkelanjutan */}
-            <div>
-              <p className="text-[9px] font-bold text-indigo-500 mb-1">Animasi Loop</p>
-              <div className="grid grid-cols-2 gap-2">
-                <select value={asset.idle_animation ?? 'none'}
-                  onChange={e => up(asset.id, { idle_animation: e.target.value as import('@/lib/types').AssetIdleAnimation })}
-                  className="text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
-                  {Object.entries(IDLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-                {(asset.idle_animation ?? 'none') !== 'none' && (
-                  <select value={asset.idle_speed ?? 'normal'}
-                    onChange={e => up(asset.id, { idle_speed: e.target.value as 'slow' | 'normal' | 'fast' })}
-                    className="text-xs border border-indigo-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-indigo-50">
-                    <option value="slow">Lambat</option>
-                    <option value="normal">Normal</option>
-                    <option value="fast">Cepat</option>
-                  </select>
-                )}
-              </div>
-            </div>
-
-            {/* Preview buttons */}
-            <div className="flex gap-2 pt-1">
-              <button onClick={e => { e.stopPropagation(); onPreview() }}
-                className="flex-1 py-1.5 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors">
-                ▶ Preview Masuk
+        {/* ── ANIMASI KELUAR ── */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <p className="text-[9px] font-bold text-rose-700 uppercase tracking-widest flex-1">Keluar</p>
+            {onPreviewExit && (
+              <button onClick={triggerExitPreview}
+                className="text-[8px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-full transition-colors">
+                ◀ Preview
               </button>
-              {onPreviewExit && (
-                <button onClick={e => { e.stopPropagation(); onPreviewExit() }}
-                  className="flex-1 py-1.5 text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors">
-                  ◀ Preview Keluar
-                </button>
-              )}
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            <select value={asset.exit_animation ?? 'none'}
+              onChange={e => { up(asset.id, { exit_animation: e.target.value as import('@/lib/types').AssetExitAnimation }); if (e.target.value !== 'none') setTimeout(triggerExitPreview, 100) }}
+              className="col-span-2 text-[11px] border border-rose-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-rose-400 bg-white">
+              {Object.entries(EXIT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+            <div className="flex items-center gap-0.5">
+              <input type="number" min={0} max={4000} step={100}
+                value={asset.exit_delay ?? 0}
+                onChange={e => up(asset.id, { exit_delay: Number(e.target.value) })}
+                className="flex-1 w-full text-[11px] border border-gray-200 rounded-lg px-1.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-rose-400 bg-white text-center font-mono"
+              />
+              <span className="text-[7px] text-gray-400 shrink-0">ms</span>
             </div>
-          </>
-        )}
+          </div>
+          {asset.exit_animation === 'custom' && (
+            <KfPanel
+              color="rose"
+              keyframes={asset.exit_keyframes ?? { from: { opacity: 1 }, to: { opacity: 0 } }}
+              onChange={kf => { up(asset.id, { exit_keyframes: kf }); setTimeout(triggerExitPreview, 100) }}
+              presets={EXIT_PRESETS}
+              expanded={showKfExit}
+              onToggle={() => setShowKfExit(!showKfExit)}
+            />
+          )}
+        </div>
+
       </div>
     </div>
   )
 }
 
-function LayerBtn({ label, onClick, icon, active }: { label: string; onClick: () => void; icon: string; active?: boolean }) {
+// ─── Decoration sub-components ────────────────────────────────
+
+function QBtn({ label, onClick, icon, active }: { label: string; onClick: () => void; icon: string; active?: boolean }) {
   return (
     <button onClick={onClick} title={label}
       className={`w-6 h-6 text-xs font-bold rounded-md border transition-colors flex items-center justify-center ${
@@ -5700,46 +5930,195 @@ function LayerBtn({ label, onClick, icon, active }: { label: string; onClick: ()
   )
 }
 
-function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button onClick={onClick}
-      className={`flex-1 py-2 text-[10px] font-semibold transition-colors ${
-        active ? 'text-indigo-700 border-b-2 border-indigo-600 bg-white' : 'text-gray-400 hover:text-gray-600 bg-gray-50'
-      }`}>
-      {label}
-    </button>
-  )
-}
-
-function SliderRow({ label, value, min, max, step, unit, onChange }: {
+function DSlider({ label, value, min, max, step, unit, onChange }: {
   label: string; value: number; min: number; max: number; step: number; unit: string; onChange: (v: number) => void
 }) {
   return (
-    <div>
-      <p className="text-[9px] font-semibold text-gray-500 mb-1">{label}</p>
-      <div className="flex items-center gap-2">
-        <input type="range" min={min} max={max} step={step} value={value}
-          onChange={e => onChange(Number(e.target.value))}
-          className="flex-1 accent-indigo-600 h-1.5" />
-        <div className="flex items-center gap-0.5">
-          <input type="number" min={min} max={max} step={step} value={value}
-            onChange={e => { const v = Number(e.target.value); if (v >= min && v <= max) onChange(v) }}
-            className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
-          <span className="text-[8px] text-gray-400">{unit}</span>
-        </div>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="text-[9px] font-semibold text-gray-500 w-[42px] shrink-0">{label}</span>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="flex-1 accent-indigo-600 h-1.5" />
+      <input type="number" min={min} max={max} step={step} value={value}
+        onChange={e => { const v = Number(e.target.value); if (v >= min && v <= max) onChange(v) }}
+        className="w-12 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
+      <span className="text-[8px] text-gray-400 w-[10px]">{unit}</span>
     </div>
   )
 }
 
-function NumRow({ label, value, step, onChange }: { label: string; value: number; step: number; onChange: (v: number) => void }) {
+// ─── Keyframe Presets & Panel ──────────────────────────────────
+
+type KfConfig = import('@/lib/types').AssetKeyframeConfig
+
+const ENTRY_PRESETS: { label: string; icon: string; kf: KfConfig }[] = [
+  { label: 'Fade Naik', icon: '↑', kf: { from: { opacity: 0, y: 40 }, to: { opacity: 1, y: 0 }, duration: 800, easing: 'ease-out' } },
+  { label: 'Fade Turun', icon: '↓', kf: { from: { opacity: 0, y: -40 }, to: { opacity: 1, y: 0 }, duration: 800, easing: 'ease-out' } },
+  { label: 'Fade Kiri', icon: '←', kf: { from: { opacity: 0, x: -60 }, to: { opacity: 1, x: 0 }, duration: 800, easing: 'ease-out' } },
+  { label: 'Fade Kanan', icon: '→', kf: { from: { opacity: 0, x: 60 }, to: { opacity: 1, x: 0 }, duration: 800, easing: 'ease-out' } },
+  { label: 'Zoom Blur', icon: '◎', kf: { from: { opacity: 0, scale: 0.3, blur: 10 }, to: { opacity: 1, scale: 1, blur: 0 }, duration: 1000, easing: 'ease' } },
+  { label: 'Putar Masuk', icon: '↻', kf: { from: { opacity: 0, rotate: -90, scale: 0.5 }, to: { opacity: 1, rotate: 0, scale: 1 }, duration: 900, easing: 'spring' } },
+  { label: 'Pop Elastis', icon: '◉', kf: { from: { opacity: 0, scale: 0 }, to: { opacity: 1, scale: 1 }, duration: 600, easing: 'spring' } },
+  { label: 'Muncul Halus', icon: '○', kf: { from: { opacity: 0 }, to: { opacity: 1 }, duration: 1200, easing: 'ease-in-out' } },
+]
+
+const EXIT_PRESETS: { label: string; icon: string; kf: KfConfig }[] = [
+  { label: 'Fade Naik', icon: '↑', kf: { from: { opacity: 1, y: 0 }, to: { opacity: 0, y: -50 }, duration: 600, easing: 'ease-in' } },
+  { label: 'Fade Turun', icon: '↓', kf: { from: { opacity: 1, y: 0 }, to: { opacity: 0, y: 50 }, duration: 600, easing: 'ease-in' } },
+  { label: 'Zoom Blur', icon: '◎', kf: { from: { opacity: 1, scale: 1, blur: 0 }, to: { opacity: 0, scale: 1.5, blur: 12 }, duration: 700, easing: 'ease-in' } },
+  { label: 'Putar Keluar', icon: '↺', kf: { from: { opacity: 1, rotate: 0, scale: 1 }, to: { opacity: 0, rotate: 90, scale: 0.3 }, duration: 700, easing: 'ease-in' } },
+  { label: 'Mengecil', icon: '·', kf: { from: { opacity: 1, scale: 1 }, to: { opacity: 0, scale: 0 }, duration: 500, easing: 'ease-in' } },
+  { label: 'Blur Hilang', icon: '◌', kf: { from: { opacity: 1, blur: 0 }, to: { opacity: 0, blur: 20 }, duration: 800, easing: 'ease' } },
+]
+
+function KfPanel({ color, keyframes, onChange, presets, expanded, onToggle }: {
+  color: 'emerald' | 'rose'
+  keyframes: KfConfig
+  onChange: (kf: KfConfig) => void
+  presets: typeof ENTRY_PRESETS
+  expanded: boolean
+  onToggle: () => void
+}) {
+  const accent = color === 'emerald' ? 'emerald' : 'rose'
+  const bg = color === 'emerald' ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'
+  const activeBtn = color === 'emerald' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-rose-500 text-white shadow-sm'
+
+  const updateState = (side: 'from' | 'to', patch: Partial<import('@/lib/types').AssetKeyframeState>) =>
+    onChange({ ...keyframes, [side]: { ...keyframes[side], ...patch } })
+  const clearProp = (side: 'from' | 'to', prop: keyof import('@/lib/types').AssetKeyframeState) => {
+    const copy = { ...keyframes[side] }
+    delete copy[prop]
+    onChange({ ...keyframes, [side]: copy })
+  }
+
+  return (
+    <div className={`${bg} border rounded-xl p-2.5 space-y-2`}>
+      {/* Preset grid */}
+      <div className="grid grid-cols-4 gap-1">
+        {presets.map(p => {
+          const isActive = JSON.stringify(keyframes.from) === JSON.stringify(p.kf.from) &&
+            JSON.stringify(keyframes.to) === JSON.stringify(p.kf.to)
+          return (
+            <button key={p.label} type="button"
+              onClick={() => onChange(p.kf)}
+              className={`py-1.5 px-1 rounded-lg text-center transition-all ${
+                isActive ? activeBtn : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-sm block leading-none">{p.icon}</span>
+              <span className="text-[7px] font-bold block mt-0.5 leading-tight">{p.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Duration & Easing */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <p className="text-[8px] font-semibold text-gray-500 mb-0.5">Durasi</p>
+          <div className="flex items-center gap-1">
+            <input type="range" min={100} max={3000} step={50}
+              value={keyframes.duration ?? 900}
+              onChange={e => onChange({ ...keyframes, duration: Number(e.target.value) })}
+              className={`flex-1 h-1.5 accent-${accent}-500`}
+            />
+            <span className="text-[9px] text-gray-500 font-mono w-[30px] text-right">{keyframes.duration ?? 900}</span>
+            <span className="text-[7px] text-gray-400">ms</span>
+          </div>
+        </div>
+        <div>
+          <p className="text-[8px] font-semibold text-gray-500 mb-0.5">Easing</p>
+          <select value={keyframes.easing ?? 'ease'}
+            onChange={e => onChange({ ...keyframes, easing: e.target.value as import('@/lib/types').AssetKeyframeEasing })}
+            className="w-full text-[10px] border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white">
+            {Object.entries(EASING_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Summary / expand toggle */}
+      <button onClick={onToggle}
+        className="w-full flex items-center justify-between px-2 py-1.5 bg-white/60 rounded-lg text-[8px] text-gray-400 font-mono hover:bg-white/80 transition-colors">
+        <span>
+          <span className="text-gray-500 font-bold">From:</span>{' '}
+          <KfBrief state={keyframes.from} />
+          <span className="text-gray-300 mx-1">→</span>
+          <span className="text-gray-500 font-bold">To:</span>{' '}
+          <KfBrief state={keyframes.to} />
+        </span>
+        <span className="text-[9px] ml-2">{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Manual detail editor */}
+      {expanded && (
+        <div className="space-y-2 pt-1 border-t border-gray-200/60">
+          <KfFields label="DARI (From)" state={keyframes.from} color={color}
+            onUpdate={p => updateState('from', p)} onClear={p => clearProp('from', p)} />
+          <div className="flex items-center gap-1 px-2">
+            <div className="flex-1 h-px bg-gray-300/50" />
+            <span className="text-[10px] text-gray-400">▼</span>
+            <div className="flex-1 h-px bg-gray-300/50" />
+          </div>
+          <KfFields label="KE (To)" state={keyframes.to} color={color}
+            onUpdate={p => updateState('to', p)} onClear={p => clearProp('to', p)} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function KfBrief({ state }: { state: import('@/lib/types').AssetKeyframeState }) {
+  const p: string[] = []
+  if (state.opacity !== undefined) p.push(`op:${state.opacity}`)
+  if (state.x !== undefined) p.push(`x:${state.x}`)
+  if (state.y !== undefined) p.push(`y:${state.y}`)
+  if (state.scale !== undefined) p.push(`s:${state.scale}`)
+  if (state.rotate !== undefined) p.push(`r:${state.rotate}°`)
+  if (state.blur !== undefined) p.push(`b:${state.blur}`)
+  return <span className="truncate">{p.length ? p.join(' ') : '–'}</span>
+}
+
+const KF_FIELDS: { key: keyof import('@/lib/types').AssetKeyframeState; label: string; min: number; max: number; step: number; unit: string }[] = [
+  { key: 'opacity', label: 'Opacity', min: 0, max: 1, step: 0.05, unit: '' },
+  { key: 'x', label: 'X', min: -300, max: 300, step: 5, unit: 'px' },
+  { key: 'y', label: 'Y', min: -300, max: 300, step: 5, unit: 'px' },
+  { key: 'scale', label: 'Scale', min: 0, max: 3, step: 0.1, unit: 'x' },
+  { key: 'rotate', label: 'Rotate', min: -360, max: 360, step: 15, unit: '°' },
+  { key: 'blur', label: 'Blur', min: 0, max: 30, step: 1, unit: 'px' },
+]
+
+function KfFields({ label, state, color, onUpdate, onClear }: {
+  label: string; state: import('@/lib/types').AssetKeyframeState; color: 'emerald' | 'rose'
+  onUpdate: (p: Partial<import('@/lib/types').AssetKeyframeState>) => void
+  onClear: (p: keyof import('@/lib/types').AssetKeyframeState) => void
+}) {
+  const titleColor = color === 'emerald' ? 'text-emerald-700' : 'text-rose-700'
   return (
     <div>
-      <p className="text-[9px] font-semibold text-gray-500 mb-1">{label}</p>
-      <input type="number" step={step} value={value}
-        onChange={e => onChange(Number(e.target.value))}
-        className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-gray-50 font-mono"
-      />
+      <p className={`text-[8px] font-bold ${titleColor} uppercase tracking-wider mb-1`}>{label}</p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+        {KF_FIELDS.map(f => {
+          const val = state[f.key]
+          const hasValue = val !== undefined
+          return (
+            <div key={f.key} className="flex items-center gap-1">
+              <span className={`text-[8px] w-[36px] shrink-0 ${hasValue ? 'font-bold text-gray-600' : 'text-gray-300'}`}>{f.label}</span>
+              {hasValue ? (
+                <>
+                  <input type="range" min={f.min} max={f.max} step={f.step}
+                    value={val} onChange={e => onUpdate({ [f.key]: Number(e.target.value) })}
+                    className="flex-1 h-1 accent-indigo-500" />
+                  <span className="text-[8px] text-gray-500 font-mono w-[28px] text-right">{val}{f.unit}</span>
+                  <button onClick={() => onClear(f.key)} className="text-[9px] text-gray-300 hover:text-red-400 leading-none">×</button>
+                </>
+              ) : (
+                <button onClick={() => onUpdate({ [f.key]: f.key === 'opacity' ? 1 : 0 })}
+                  className="text-[8px] text-indigo-400 hover:text-indigo-600 font-semibold">+ Tambah</button>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
