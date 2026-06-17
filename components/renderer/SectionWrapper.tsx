@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import type { SectionConfig, TemplateMeta, FontConfig } from '@/lib/types'
 import { getTransitionVariants } from './transitions/useTransition'
 import { usePreviewContext } from './PreviewContext'
+import DecorationAssetLayer from './DecorationAssetLayer'
 
 interface Props {
   section: SectionConfig
@@ -190,6 +191,13 @@ export default function SectionWrapper({ section, children, className = '', over
       >
         {children}
       </motion.div>
+
+      {/* Decoration assets — z-5 sits between overlay (z-1) and content (z-10) */}
+      {section.decoration_assets && section.decoration_assets.length > 0 && (
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 5 }}>
+          <DecorationAssetLayer assets={section.decoration_assets} />
+        </div>
+      )}
 
       {/* Section-scoped overlay — absolute, clipped by section's overflow:hidden */}
       {overlay}

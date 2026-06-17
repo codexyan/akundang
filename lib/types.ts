@@ -178,6 +178,7 @@ export interface SectionConfig {
   enabled: boolean
   background: BackgroundConfig
   decoration_images: string[]
+  decoration_assets?: DecorationAsset[]
   transition_in: TransitionType
   transition_out: TransitionType
   user_fields: string[]

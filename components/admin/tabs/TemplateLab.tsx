@@ -913,6 +913,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
   const [coverPreviewMode, setCoverPreviewMode]    = useState<'static' | 'entry' | 'exit' | 'full-flow'>('static')
   const [decorEditMode, setDecorEditMode]          = useState(false)
   const [selectedAssetId, setSelectedAssetId]      = useState<string | null>(null)
+  const [decorScope, setDecorScope]                = useState<'opening' | string>('opening')
   const [sectionReplay, setSectionReplay]           = useState<{ id: string; key: number } | null>(null)
   const [showRelease, setShowRelease]               = useState(false)
   const [releaseSuccess, setReleaseSuccess]         = useState<string | null>(null)
@@ -990,7 +991,10 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
   useEffect(() => {
     if (activeTab !== 'opening' && activeTab !== 'decor') { setDecorEditMode(false); setSelectedAssetId(null) }
-    if (activeTab === 'decor') { setPreviewMode('opening'); setDecorEditMode(true) }
+    if (activeTab === 'decor') {
+      if (decorScope === 'opening') { setPreviewMode('opening'); setDecorEditMode(true) }
+      else { setPreviewMode('invitation'); setDecorEditMode(false) }
+    }
     else if (activeTab === 'opening' || activeTab === 'identity' || activeTab === 'colors' || activeTab === 'style') setPreviewMode('opening')
     else if (activeTab === 'loading') setPreviewMode('loading')
     else if (activeTab === 'sections' || activeTab === 'music') setPreviewMode('invitation')
@@ -998,7 +1002,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
       musicAudioRef.current?.pause()
       setMusicPreviewId(null)
     }
-  }, [activeTab])
+  }, [activeTab, decorScope])
 
   const toggleMusicPreview = useCallback((songId: string, songUrl: string) => {
     if (musicPreviewId === songId) {
@@ -3712,52 +3716,100 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
           )}
 
           {/* ── Dekorasi ── */}
-          {activeTab === 'decor' && (
+          {activeTab === 'decor' && (() => {
+            const isOpening = decorScope === 'opening'
+            const scopeSection = !isOpening ? cfg.sections.find(s => s.id === decorScope) : null
+            const scopeAssets: DecorationAsset[] = isOpening
+              ? (cfg.opening.decoration_assets ?? [])
+              : (scopeSection?.decoration_assets ?? [])
+            const scopeLabel = isOpening ? 'Opening' : (scopeSection ? (SECTION_LABELS[scopeSection.type] || scopeSection.type) : '—')
+
+            const updateScopeAssets = (newAssets: DecorationAsset[]) => {
+              if (isOpening) updateOpening({ decoration_assets: newAssets })
+              else if (scopeSection) updateSection(scopeSection.id, { decoration_assets: newAssets })
+            }
+
+            const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const fd = new FormData()
+              fd.append('file', file)
+              fd.append('folder', 'decorations')
+              const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+              const data = await res.json()
+              if (!res.ok) { alert(data.error); return }
+              const newAsset: DecorationAsset = {
+                id: 'deco-' + Date.now().toString(36),
+                url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
+                position: 'top-left', width: 80, scale: 1, opacity: 100,
+                offset_x: 155, offset_y: 380,
+                animation: 'fade-in', animation_delay: 200,
+                exit_animation: 'none', exit_delay: 0,
+                idle_animation: 'none', z_layer: scopeAssets.length,
+              }
+              updateScopeAssets([...scopeAssets, newAsset])
+              setSelectedAssetId(newAsset.id)
+              e.target.value = ''
+            }
+
+            return (
             <div className="space-y-4">
+
+              {/* Scope selector */}
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Dekorasi untuk</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => { setDecorScope('opening'); setSelectedAssetId(null); setPreviewMode('opening'); setDecorEditMode(true) }}
+                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                      isOpening ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Opening
+                  </button>
+                  {sections.filter(s => s.enabled).map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setDecorScope(s.id); setSelectedAssetId(null); setDecorEditMode(false)
+                        setPreviewMode('invitation')
+                        setSectionReplay({ id: s.id, key: Date.now() })
+                      }}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                        decorScope === s.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {SECTION_LABELS[s.type] || s.type}
+                      {(s.decoration_assets?.length ?? 0) > 0 && (
+                        <span className="ml-1 text-[8px] opacity-70">({s.decoration_assets!.length})</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Upload + Moodboard controls */}
               <div className="flex items-center gap-2">
                 <label className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border-2 border-dashed border-indigo-300 cursor-pointer rounded-xl py-3 hover:bg-indigo-100 transition-colors">
-                  <Plus className="w-3.5 h-3.5" /> Upload Aset Dekorasi
-                  <input type="file" accept="image/*" className="hidden"
-                    onChange={async e => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      const fd = new FormData()
-                      fd.append('file', file)
-                      fd.append('folder', 'decorations')
-                      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-                      const data = await res.json()
-                      if (!res.ok) { alert(data.error); return }
-                      const newAsset: DecorationAsset = {
-                        id: 'deco-' + Date.now().toString(36),
-                        url: data.url, label: file.name.replace(/\.[^.]+$/, ''),
-                        position: 'top-left', width: 80, scale: 1, opacity: 100,
-                        offset_x: 155, offset_y: 380,
-                        animation: 'fade-in', animation_delay: 200,
-                        exit_animation: 'none', exit_delay: 0,
-                        idle_animation: 'none', z_layer: (cfg.opening.decoration_assets?.length ?? 0),
-                      }
-                      updateOpening({ decoration_assets: [...(cfg.opening.decoration_assets ?? []), newAsset] })
-                      setSelectedAssetId(newAsset.id)
-                      e.target.value = ''
-                    }}
-                  />
+                  <Plus className="w-3.5 h-3.5" /> Upload ke {scopeLabel}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                 </label>
-                <button
-                  onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('opening') }}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold px-4 py-3 rounded-xl transition-all ${
-                    decorEditMode
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <Move className="w-3.5 h-3.5" />
-                  {decorEditMode ? 'Moodboard ON' : 'Moodboard'}
-                </button>
+                {isOpening && (
+                  <button
+                    onClick={() => { setDecorEditMode(!decorEditMode); setPreviewMode('opening') }}
+                    className={`flex items-center gap-1.5 text-[10px] font-bold px-4 py-3 rounded-xl transition-all ${
+                      decorEditMode
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Move className="w-3.5 h-3.5" />
+                    {decorEditMode ? 'Moodboard ON' : 'Moodboard'}
+                  </button>
+                )}
               </div>
 
-              {decorEditMode && (
+              {isOpening && decorEditMode && (
                 <div className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center gap-2">
                   <Move className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                   <p className="text-[9px] text-indigo-700 leading-relaxed">
@@ -3767,18 +3819,18 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               )}
 
               {/* Asset grid */}
-              {(!cfg.opening.decoration_assets || cfg.opening.decoration_assets.length === 0) ? (
+              {scopeAssets.length === 0 ? (
                 <div className="border-2 border-dashed border-gray-200 rounded-xl py-10 text-center">
                   <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-indigo-50 flex items-center justify-center">
                     <Layers className="w-6 h-6 text-indigo-400" />
                   </div>
                   <p className="text-xs font-semibold text-gray-500">Belum ada aset dekorasi</p>
-                  <p className="text-[10px] text-gray-400 mt-1">Upload ornamen, bunga, kipas, frame, dll.</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Upload ornamen, bunga, kipas, frame untuk {scopeLabel}</p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {cfg.opening.decoration_assets.map(asset => (
+                    {scopeAssets.map(asset => (
                       <button
                         key={asset.id}
                         onClick={() => setSelectedAssetId(asset.id === selectedAssetId ? null : asset.id)}
@@ -3797,38 +3849,53 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                     ))}
                   </div>
 
-                  {/* Selected asset panel */}
                   {selectedAssetId && (
                     <DecorationLayerList
-                      assets={cfg.opening.decoration_assets}
-                      onUpdate={assets => updateOpening({ decoration_assets: assets })}
-                      onPreview={() => { setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                      onPreviewExit={() => { setCoverPreviewMode('exit'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                      assets={scopeAssets}
+                      onUpdate={updateScopeAssets}
+                      onPreview={() => {
+                        if (isOpening) { setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }
+                        else if (scopeSection) { setPreviewMode('invitation'); setSectionReplay({ id: scopeSection.id, key: Date.now() }) }
+                      }}
+                      onPreviewExit={() => {
+                        if (isOpening) { setCoverPreviewMode('exit'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }
+                      }}
                       focusedId={selectedAssetId}
                       onFocusChange={setSelectedAssetId}
                     />
                   )}
 
                   {/* Global preview */}
-                  <div className="flex gap-2">
+                  {isOpening && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                        className="flex-1 py-2.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
+                      >
+                        ▶ Preview Masuk
+                      </button>
+                      <button
+                        onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
+                        className="flex-1 py-2.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
+                      >
+                        ▶▶ Full Flow
+                      </button>
+                    </div>
+                  )}
+                  {!isOpening && scopeSection && (
                     <button
-                      onClick={() => { setDecorEditMode(false); setCoverPreviewMode('entry'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                      className="flex-1 py-2.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors"
+                      onClick={() => { setPreviewMode('invitation'); setSectionReplay({ id: scopeSection.id, key: Date.now() }) }}
+                      className="w-full py-2.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
                     >
-                      ▶ Preview Masuk
+                      ▶ Preview {scopeLabel}
                     </button>
-                    <button
-                      onClick={() => { setDecorEditMode(false); setCoverPreviewMode('full-flow'); setPreviewMode('opening'); setDecorPreviewKey(k => k + 1) }}
-                      className="flex-1 py-2.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors"
-                    >
-                      ▶▶ Full Flow
-                    </button>
-                  </div>
+                  )}
                 </>
               )}
 
             </div>
-          )}
+            )
+          })()}
 
           {/* ── Loading ── */}
           {activeTab === 'loading' && (
