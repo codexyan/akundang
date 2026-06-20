@@ -44,6 +44,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
   const nameFontSize = opening.couple_name_font_size ?? 32
   const nameSpacing  = opening.couple_name_letter_spacing ?? 0.08
   const nameTransform = opening.couple_name_text_transform ?? (opening.couple_name_uppercase !== false ? 'uppercase' : 'none')
+  const nameGap      = data.opening_name_gap ?? opening.couple_name_gap ?? 3
   const btnSize      = opening.button_size ?? 'lg'
   const padX         = opening.content_padding_x ?? 28
   const padBottom    = opening.content_padding_bottom ?? 48
@@ -227,14 +228,14 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                   fontSize: nameFontSize, fontWeight: 900, lineHeight: 1.1,
                   color: text,
                   fontFamily: `'${meta.font.heading}', serif`,
-                  margin: 0, letterSpacing: `${nameSpacing}em`,
+                  margin: 0, marginBottom: nameGap, letterSpacing: `${nameSpacing}em`,
                   textTransform: nameTransform,
                   textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
                 }}>
-                  {data.groom_name}
+                  {data.opening_groom_name || data.groom_name}
                 </h1>
                 <p style={{
-                  fontSize: 18, color: accent, margin: '3px 0',
+                  fontSize: 18, color: accent, margin: `0 0 ${nameGap}px 0`,
                   fontFamily: `'${meta.font.heading}', serif`,
                   fontWeight: 300, letterSpacing: '0.1em',
                   textShadow: `0 2px 12px ${primary}aa`,
@@ -249,7 +250,7 @@ export default function CoverPagePreview({ template, data, previewGuestName, con
                   textTransform: nameTransform,
                   textShadow: `0 2px 16px ${primary}cc, 0 4px 32px ${primary}66`,
                 }}>
-                  {data.bride_name}
+                  {data.opening_bride_name || data.bride_name}
                 </h1>
               </div>
 

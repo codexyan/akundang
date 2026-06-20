@@ -9,23 +9,21 @@ interface OpeningFormProps {
   openingType: OpeningType
   openingGreeting: string
   openingSubtitle: string
+  openingGroomName: string
+  openingBrideName: string
+  groomName: string
+  brideName: string
+  nameGap: number
   onOpeningTypeChange: (value: OpeningType) => void
   onOpeningGreetingChange: (value: string) => void
   onOpeningSubtitleChange: (value: string) => void
+  onOpeningGroomNameChange: (value: string) => void
+  onOpeningBrideNameChange: (value: string) => void
+  onNameGapChange: (value: number) => void
 }
 
 const OPENING_STYLES: { id: OpeningType; name: string; icon: string; desc: string }[] = [
   { id: 'fade-reveal',    name: 'Fade Reveal',    icon: '✨', desc: 'Muncul perlahan, elegan' },
-  { id: 'envelope',       name: 'Amplop',         icon: '💌', desc: 'Klasik & formal' },
-  { id: 'curtain',        name: 'Tirai',          icon: '🎭', desc: 'Elegan & mewah' },
-  { id: 'gate-open',      name: 'Gerbang',        icon: '🚪', desc: 'Megah terbuka' },
-  { id: 'flower-bloom',   name: 'Bunga Mekar',    icon: '🌸', desc: 'Romantis & feminin' },
-  { id: 'scroll-reveal',  name: 'Gulungan',       icon: '📜', desc: 'Tradisional & unik' },
-  { id: 'diamond-split',  name: 'Berlian',        icon: '💎', desc: 'Geometris & modern' },
-  { id: 'book-open',      name: 'Buku',           icon: '📖', desc: 'Perspektif 3D' },
-  { id: 'lantern-rise',   name: 'Lentera',        icon: '🏮', desc: 'Hangat & sakral' },
-  { id: 'veil-lift',      name: 'Kerudung',       icon: '👰', desc: 'Lembut terangkat' },
-  { id: 'mosaic-reveal',  name: 'Mosaik',         icon: '🔷', desc: 'Pecah terurai' },
   { id: 'ring-zoom',      name: 'Cincin',         icon: '💍', desc: 'Ikonik & bermakna' },
   { id: 'petal-fall',     name: 'Petal Jatuh',    icon: '🌺', desc: 'Kelopak jatuh romantis' },
 ]
@@ -34,9 +32,17 @@ export default function OpeningForm({
   openingType,
   openingGreeting,
   openingSubtitle,
+  openingGroomName,
+  openingBrideName,
+  groomName,
+  brideName,
+  nameGap,
   onOpeningTypeChange,
   onOpeningGreetingChange,
   onOpeningSubtitleChange,
+  onOpeningGroomNameChange,
+  onOpeningBrideNameChange,
+  onNameGapChange,
 }: OpeningFormProps) {
   return (
     <SectionCard
@@ -150,6 +156,58 @@ export default function OpeningForm({
         </div>
       </div>
 
+      {/* Nama Mempelai di Opening */}
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-stone-700">Nama di Opening</p>
+        <p className="text-xs text-stone-400">
+          Bisa berbeda dari nama di section lain (misal: panggilan, singkatan)
+        </p>
+        <FormField
+          label="Nama Mempelai Pria"
+          hint={`Kosongkan untuk pakai "${groomName || 'nama utama'}"`}
+        >
+          <input
+            type="text"
+            className={inputClass}
+            value={openingGroomName}
+            onChange={(e) => onOpeningGroomNameChange(e.target.value)}
+            placeholder={groomName || 'Nama mempelai pria...'}
+          />
+        </FormField>
+        <FormField
+          label="Nama Mempelai Wanita"
+          hint={`Kosongkan untuk pakai "${brideName || 'nama utama'}"`}
+        >
+          <input
+            type="text"
+            className={inputClass}
+            value={openingBrideName}
+            onChange={(e) => onOpeningBrideNameChange(e.target.value)}
+            placeholder={brideName || 'Nama mempelai wanita...'}
+          />
+        </FormField>
+      </div>
+
+      {/* Jarak Nama */}
+      <FormField
+        label={`Jarak Nama & Konektor (${nameGap}px)`}
+        hint="Atur jarak antara nama pria, simbol &, dan nama wanita"
+      >
+        <input
+          type="range"
+          min={0}
+          max={24}
+          step={1}
+          value={nameGap}
+          onChange={(e) => onNameGapChange(Number(e.target.value))}
+          className="w-full accent-forest-500"
+        />
+        <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+          <span>Rapat</span>
+          <span>Renggang</span>
+        </div>
+      </FormField>
+
       {/* Preview */}
       <div className="p-6 rounded-xl bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200">
         <div className="text-center space-y-3">
@@ -166,6 +224,17 @@ export default function OpeningForm({
           <p className="text-xs text-stone-600 leading-relaxed max-w-xs mx-auto">
             {openingSubtitle || 'Kalimat pembuka...'}
           </p>
+          <div className="mt-3 space-y-0" style={{ lineHeight: 1.2 }}>
+            <p className="text-lg font-bold text-stone-800 uppercase tracking-wider" style={{ marginBottom: nameGap }}>
+              {openingGroomName || groomName || 'Nama Pria'}
+            </p>
+            <p className="text-sm text-gold-500" style={{ marginBottom: nameGap }}>
+              &amp;
+            </p>
+            <p className="text-lg font-bold text-stone-800 uppercase tracking-wider">
+              {openingBrideName || brideName || 'Nama Wanita'}
+            </p>
+          </div>
         </div>
       </div>
     </SectionCard>

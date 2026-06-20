@@ -124,21 +124,11 @@ function makeGiftAccount(name: string, b: GiftLabBrand): GiftAccount {
 
 // ─── Constants ─────────────────────────────────────────────────
 const SECTION_TYPES = ['hero', 'profiles', 'countdown', 'events', 'story', 'gallery', 'rsvp', 'wishes', 'closing', 'gift', 'livestream', 'quote', 'video', 'gift-registry', 'ig-story', 'qrcode'] as const
-const OPENING_TYPES = ['fade-reveal', 'envelope', 'curtain', 'gate-open', 'flower-bloom', 'scroll-reveal', 'diamond-split', 'book-open', 'lantern-rise', 'veil-lift', 'mosaic-reveal', 'ring-zoom', 'petal-fall'] as const
+const OPENING_TYPES = ['fade-reveal', 'ring-zoom', 'petal-fall'] as const
 const TRANSITION_TYPES = ['fade', 'slide-up', 'slide-left', 'slide-right', 'zoom-in'] as const
 
 const OPENING_META: Record<string, { icon: string; label: string }> = {
   'fade-reveal':   { icon: '✨', label: 'Fade Reveal' },
-  'envelope':      { icon: '✉️', label: 'Amplop' },
-  'curtain':       { icon: '🎭', label: 'Tirai' },
-  'gate-open':     { icon: '🚪', label: 'Gerbang' },
-  'flower-bloom':  { icon: '🌸', label: 'Bunga' },
-  'scroll-reveal': { icon: '📜', label: 'Gulungan' },
-  'diamond-split': { icon: '💎', label: 'Berlian' },
-  'book-open':     { icon: '📖', label: 'Buku' },
-  'lantern-rise':  { icon: '🏮', label: 'Lentera' },
-  'veil-lift':     { icon: '👰', label: 'Kerudung' },
-  'mosaic-reveal': { icon: '🔷', label: 'Mosaik' },
   'ring-zoom':     { icon: '💍', label: 'Cincin' },
   'petal-fall':    { icon: '🌺', label: 'Petal Jatuh' },
 }
@@ -3381,6 +3371,22 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         <input type="number" min={14} max={40} step={1}
                           value={cfg.opening.couple_name_connector_size ?? 26}
                           onChange={e => { const v = Number(e.target.value); if (v >= 14 && v <= 40) updateOpening({ couple_name_connector_size: v }) }}
+                          className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
+                        <span className="text-[8px] text-gray-400">px</span>
+                      </div>
+                    </div>
+                  </Field>
+
+                  <Field label="Jarak Nama (px)">
+                    <div className="flex items-center gap-2">
+                      <input type="range" min={0} max={24} step={1}
+                        value={cfg.opening.couple_name_gap ?? 3}
+                        onChange={e => updateOpening({ couple_name_gap: Number(e.target.value) })}
+                        className="flex-1 accent-indigo-600 h-1.5" />
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <input type="number" min={0} max={24} step={1}
+                          value={cfg.opening.couple_name_gap ?? 3}
+                          onChange={e => { const v = Number(e.target.value); if (v >= 0 && v <= 24) updateOpening({ couple_name_gap: v }) }}
                           className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
                         <span className="text-[8px] text-gray-400">px</span>
                       </div>

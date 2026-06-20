@@ -313,6 +313,7 @@ export interface OpeningConfig {
   button_size?: 'sm' | 'md' | 'lg' // default 'lg'
   couple_name_connector?: 'ampersand' | 'heart' | 'dot' | 'dash' | 'ring' | 'flower' // default 'ampersand'
   couple_name_connector_size?: number // px, default 26
+  couple_name_gap?: number            // px, gap antara nama pria, connector, nama wanita, default 3
   content_padding_x?: number       // px, default 28
   content_padding_bottom?: number  // px, default 48
   // Aset dekorasi custom (upload-based)
@@ -359,6 +360,7 @@ export interface LoadingConfig {
   background_color: string
   logo_image?: string
   text: string
+  show_text?: boolean
   animation?: string
   variant?: LoadingVariant
   duration_ms?: number
@@ -653,6 +655,9 @@ export interface NewInvitationData {
   opening_type?: OpeningType
   opening_greeting?: string
   opening_subtitle?: string
+  opening_groom_name?: string
+  opening_bride_name?: string
+  opening_name_gap?: number
   // Story
   story_title?: string
   story_text?: string

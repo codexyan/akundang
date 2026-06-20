@@ -135,16 +135,61 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
       </FormField>
 
       {/* ─── Teks Loading ────────────────────────────────── */}
-      <FormField label="Teks" hint="Tampil di bawah animasi">
-        <input
-          type="text"
-          value={config.text}
-          onChange={(e) => update({ text: e.target.value })}
-          className={inputClass}
-          placeholder="Membuka undangan..."
-          maxLength={40}
-        />
-      </FormField>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-stone-700">Teks Loading</span>
+            <p className="text-[10px] text-stone-400">Tampil di bawah animasi</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => update({ show_text: !(config.show_text !== false) })}
+            className={`relative w-10 h-5 rounded-full transition-colors ${config.show_text !== false ? 'bg-gold-500' : 'bg-stone-300'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${config.show_text !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </div>
+
+        {config.show_text !== false && (
+          <>
+            <input
+              type="text"
+              value={config.text}
+              onChange={(e) => update({ text: e.target.value })}
+              className={inputClass}
+              placeholder="Membuka undangan..."
+              maxLength={40}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Ukuran Teks">
+                <div className="flex gap-1">
+                  {TEXT_SIZES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => update({ text_size: t.value })}
+                      className={`
+                        flex-1 py-2 rounded-lg border text-xs font-bold transition-all
+                        ${(config.text_size ?? 'sm') === t.value
+                          ? 'border-gold-500 bg-gold-50 text-gold-800'
+                          : 'border-stone-200 text-stone-500'
+                        }
+                      `}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+              <ColorRow
+                label="Warna Teks"
+                value={config.text_color ?? '#b3b3b3'}
+                onChange={(v) => update({ text_color: v })}
+              />
+            </div>
+          </>
+        )}
+      </div>
 
       {/* ─── Background Type ─────────────────────────────── */}
       <FormField label="Background">
@@ -343,34 +388,6 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
             <span className="text-[10px] text-stone-400">{((config.duration_ms ?? 1600) / 1000).toFixed(1)} detik</span>
           </FormField>
 
-          {/* Text color + size */}
-          <div className="grid grid-cols-2 gap-3">
-            <ColorRow
-              label="Warna Teks"
-              value={config.text_color ?? '#b3b3b3'}
-              onChange={(v) => update({ text_color: v })}
-            />
-            <FormField label="Ukuran Teks">
-              <div className="flex gap-1">
-                {TEXT_SIZES.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => update({ text_size: t.value })}
-                    className={`
-                      flex-1 py-2 rounded-lg border text-xs font-bold transition-all
-                      ${(config.text_size ?? 'sm') === t.value
-                        ? 'border-gold-500 bg-gold-50 text-gold-800'
-                        : 'border-stone-200 text-stone-500'
-                      }
-                    `}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </FormField>
-          </div>
 
           {/* Logo */}
           <FormField label="Logo" hint="URL gambar logo di atas animasi">

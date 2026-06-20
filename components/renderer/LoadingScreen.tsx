@@ -85,12 +85,14 @@ export default function LoadingScreen({ config, onDone, isPreview = false }: Pro
       >
         <VariantRenderer variant={variant} accent={accent} speed={speed} text={config.text} />
 
-        <p
-          className={`${textSizeClass} tracking-[0.3em] uppercase`}
-          style={{ color: textColor, ...fontStyle }}
-        >
-          {config.text}
-        </p>
+        {config.show_text !== false && (
+          <p
+            className={`${textSizeClass} tracking-[0.3em] uppercase`}
+            style={{ color: textColor, ...fontStyle }}
+          >
+            {config.text}
+          </p>
+        )}
 
         {config.show_progress && (
           <div className="w-32 h-0.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>

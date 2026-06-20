@@ -60,6 +60,9 @@ function initData(inv: Invitation): NewInvitationData {
     opening_type: d.opening_type ?? 'fade-reveal',
     opening_greeting: d.opening_greeting ?? 'Assalamualaikum Warahmatullahi Wabarakatuh',
     opening_subtitle: d.opening_subtitle ?? 'Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk menghadiri acara pernikahan kami.',
+    opening_groom_name: d.opening_groom_name ?? '',
+    opening_bride_name: d.opening_bride_name ?? '',
+    opening_name_gap: d.opening_name_gap,
     music_url: d.music_url ?? '',
     music_title: d.music_title ?? '',
     quote_arabic: d.quote_arabic ?? '',
@@ -219,9 +222,17 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
           openingType={(data.opening_type as OpeningType) || 'fade-reveal'}
           openingGreeting={data.opening_greeting || ''}
           openingSubtitle={data.opening_subtitle || ''}
+          openingGroomName={data.opening_groom_name || ''}
+          openingBrideName={data.opening_bride_name || ''}
+          groomName={data.groom_name}
+          brideName={data.bride_name}
+          nameGap={data.opening_name_gap ?? template.config.opening.couple_name_gap ?? 3}
           onOpeningTypeChange={(val) => updateData({ opening_type: val })}
           onOpeningGreetingChange={(val) => updateData({ opening_greeting: val })}
           onOpeningSubtitleChange={(val) => updateData({ opening_subtitle: val })}
+          onOpeningGroomNameChange={(val) => updateData({ opening_groom_name: val })}
+          onOpeningBrideNameChange={(val) => updateData({ opening_bride_name: val })}
+          onNameGapChange={(val) => updateData({ opening_name_gap: val })}
         />
       </div>
 
