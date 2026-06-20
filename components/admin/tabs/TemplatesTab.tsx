@@ -756,9 +756,14 @@ export default function TemplatesTab({
                         <div className={`w-2 h-2 rounded-full shrink-0 ${count > 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
                         <span className="text-sm font-medium text-gray-800 flex-1">{c.label}</span>
                         <span className="text-[11px] text-gray-400">{count} tema</span>
-                        <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
-                          className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><X className="w-3.5 h-3.5" /></button>
+                        {c.is_built_in && <span className="text-[9px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full font-semibold shrink-0">bawaan</span>}
+                        {!c.is_built_in && (
+                          <>
+                            <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
+                              className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><X className="w-3.5 h-3.5" /></button>
+                          </>
+                        )}
                       </div>
                     )
                   })}
@@ -818,6 +823,15 @@ export default function TemplatesTab({
                           <div className="text-right shrink-0">
                             <p className="text-base font-bold" style={{ color: t.color || '#6366f1' }}>{formatRp(t.price)}</p>
                           </div>
+                          {!t.is_built_in && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); if (used > 0) { toast.error('Masih dipakai template'); return } if (confirm(`Hapus paket "${t.label}"?`)) removeTier(t.id) }}
+                              className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                              title="Hapus paket"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
                         </div>
                         {f && (

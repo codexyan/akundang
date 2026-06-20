@@ -4,17 +4,37 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Check, ArrowRight, ShieldCheck, MessageCircle, QrCode } from 'lucide-react'
 import { PRICING_CONFIG } from '@/lib/pricing-config'
+import type { PriceTier, FlashSale } from '@/lib/types'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type CardVariant = 'light' | 'dark' | 'gold'
 
+function formatRp(n: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
+}
+
+function getActiveFlashSale(tierId: string, flashSales: FlashSale[]): FlashSale | null {
+  const now = new Date()
+  return flashSales.find(s =>
+    s.is_active &&
+    new Date(s.start_date) <= now &&
+    new Date(s.end_date) >= now &&
+    (s.scope === 'all' || (s.scope === 'tier' && s.scope_ids.includes(tierId)))
+  ) ?? null
+}
+
+function calcDiscountedPrice(price: number, sale: FlashSale): number {
+  if (sale.discount_type === 'percentage') return Math.round(price * (1 - sale.discount_value / 100))
+  return Math.max(0, price - sale.discount_value)
+}
+
 function PricingCard({
-  name, badge, price, duration, features, highlightedFeature,
+  name, badge, price, originalPrice, discountLabel, duration, features, highlightedFeature,
   ctaLabel, ctaHint, variant, popular, delay = 0,
 }: {
-  name: string; badge: string; price: string; duration: string
-  features: readonly string[]; highlightedFeature?: string
+  name: string; badge: string; price: string; originalPrice?: string; discountLabel?: string
+  duration: string; features: readonly string[]; highlightedFeature?: string
   ctaLabel: string; ctaHint: string; variant: CardVariant
   popular?: boolean; delay?: number
 }) {
@@ -40,6 +60,14 @@ function PricingCard({
           style={{ background: 'linear-gradient(90deg, #2c4a34, #4a6355, #c9a961)' }} />
       )}
 
+      {discountLabel && (
+        <div className={`absolute top-3 right-3 text-[9px] font-bold px-2 py-1 rounded-lg animate-pulse ${
+          isDark ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          {discountLabel}
+        </div>
+      )}
+
       <div className={`px-6 pt-6 pb-5 ${isDark ? 'border-b border-white/8' : 'border-b border-stone-100'}`}>
         <span className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-lg mb-4 ${
           isDark ? 'bg-forest-500/20 text-forest-400'
@@ -51,6 +79,9 @@ function PricingCard({
         <p className={`text-[13px] font-medium mb-2 ${isDark ? 'text-white/60' : 'text-stone-500'}`}>{name}</p>
         <div className="flex items-baseline gap-2">
           <span className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-stone-900'}`}>{price}</span>
+          {originalPrice && (
+            <span className={`text-sm line-through ${isDark ? 'text-white/30' : 'text-stone-400'}`}>{originalPrice}</span>
+          )}
         </div>
         <p className={`text-[12px] mt-2 ${isDark ? 'text-white/35' : 'text-stone-400'}`}>
           sekali bayar · aktif {duration}
@@ -102,7 +133,47 @@ function PricingCard({
   )
 }
 
-export default function Pricing() {
+const TIER_VARIANTS: Record<string, CardVariant> = { starter: 'light', popular: 'dark', eksklusif: 'gold' }
+const TIER_CTA: Record<string, { label: string; hint: string }> = {
+  starter: { label: 'Mulai Gratis', hint: 'Coba dulu, bayar kalau cocok' },
+  popular: { label: 'Pilih Popular', hint: 'Pilihan terpopuler pasangan' },
+  eksklusif: { label: 'Pilih Eksklusif', hint: 'Untuk acara besar & eksklusif' },
+}
+
+function buildFeatureList(tier: PriceTier): string[] {
+  const f = tier.features
+  if (!f) return []
+  const list: string[] = []
+  if (tier.id === 'popular') list.push('Semua fitur Starter')
+  else if (tier.id === 'eksklusif') list.push('Semua fitur Popular')
+  else {
+    if (f.music) list.push('Musik pengiring')
+    if (f.rsvp) list.push(`RSVP online`)
+    if (f.gallery) list.push('Galeri foto')
+    if (f.countdown) list.push('Countdown hari H')
+    if (f.wishes) list.push('Ucapan & doa dari tamu')
+  }
+  if (f.rsvp && tier.id !== 'starter') list.push(`RSVP online`)
+  if (f.gift) list.push('Amplop digital & rekening')
+  if (f.gift_registry) list.push('Wishlist hadiah')
+  if (f.story && tier.id !== 'starter') list.push('Kisah cinta pasangan')
+  if (f.video && tier.id !== 'starter') list.push('Video prewedding')
+  if (f.qrcode && tier.id === 'eksklusif') list.push('Scan barcode kehadiran tamu')
+  if (f.custom_domain) list.push('Custom domain sendiri')
+  if (f.priority_support) list.push('Priority support via WhatsApp')
+  list.push(`Aktif ${f.validity_days} hari`)
+  return list
+}
+
+interface PricingProps {
+  priceTiers?: PriceTier[]
+  flashSales?: FlashSale[]
+}
+
+export default function Pricing({ priceTiers, flashSales }: PricingProps) {
+  const tiers = priceTiers?.length ? priceTiers : null
+  const sales = flashSales ?? []
+
   return (
     <section id="harga" className="py-20 sm:py-28 lg:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-8">
@@ -125,47 +196,63 @@ export default function Pricing() {
           </p>
         </motion.div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 max-w-4xl mx-auto items-stretch">
-          <PricingCard
-            name="Paket Starter"
-            badge={PRICING_CONFIG.starter.badge}
-            price={PRICING_CONFIG.starter.priceFormatted}
-            duration={PRICING_CONFIG.starter.durationLabel}
-            features={PRICING_CONFIG.starter.features}
-            ctaLabel="Mulai Gratis"
-            ctaHint="Coba dulu, bayar kalau cocok"
-            variant="light"
-            delay={0}
-          />
-          <PricingCard
-            name="Paket Popular"
-            badge={PRICING_CONFIG.popular.badge}
-            price={PRICING_CONFIG.popular.priceFormatted}
-            duration={PRICING_CONFIG.popular.durationLabel}
-            features={PRICING_CONFIG.popular.features}
-            highlightedFeature={PRICING_CONFIG.popular.highlightedFeature}
-            ctaLabel="Pilih Popular"
-            ctaHint="Pilihan terpopuler pasangan"
-            variant="dark"
-            popular
-            delay={0.08}
-          />
-          <PricingCard
-            name="Paket Eksklusif"
-            badge={PRICING_CONFIG.eksklusif.badge}
-            price={PRICING_CONFIG.eksklusif.priceFormatted}
-            duration={PRICING_CONFIG.eksklusif.durationLabel}
-            features={PRICING_CONFIG.eksklusif.features}
-            highlightedFeature={PRICING_CONFIG.eksklusif.highlightedFeature}
-            ctaLabel="Pilih Eksklusif"
-            ctaHint="Untuk acara besar & eksklusif"
-            variant="gold"
-            delay={0.16}
-          />
+          {tiers ? (
+            tiers
+              .filter(t => ['starter', 'popular', 'eksklusif'].includes(t.id))
+              .sort((a, b) => a.price - b.price)
+              .map((tier, i) => {
+                const sale = getActiveFlashSale(tier.id, sales)
+                const discounted = sale ? calcDiscountedPrice(tier.price, sale) : null
+                const variant = TIER_VARIANTS[tier.id] ?? 'light'
+                const cta = TIER_CTA[tier.id] ?? { label: `Pilih ${tier.label}`, hint: '' }
+                const features = buildFeatureList(tier)
+                const highlighted = tier.id === 'popular' ? 'Amplop digital & rekening'
+                  : tier.id === 'eksklusif' ? 'Scan barcode kehadiran tamu' : undefined
+
+                return (
+                  <PricingCard
+                    key={tier.id}
+                    name={`Paket ${tier.label}`}
+                    badge={tier.id === 'popular' ? 'PALING DIPILIH' : tier.label.toUpperCase()}
+                    price={formatRp(discounted ?? tier.price)}
+                    originalPrice={discounted ? formatRp(tier.price) : undefined}
+                    discountLabel={sale ? (sale.discount_type === 'percentage' ? `-${sale.discount_value}%` : `-${formatRp(sale.discount_value)}`) : undefined}
+                    duration={tier.features ? `${tier.features.validity_days} hari` : '30 hari'}
+                    features={features}
+                    highlightedFeature={highlighted}
+                    ctaLabel={cta.label}
+                    ctaHint={cta.hint}
+                    variant={variant}
+                    popular={!!tier.highlight}
+                    delay={i * 0.08}
+                  />
+                )
+              })
+          ) : (
+            <>
+              <PricingCard
+                name="Paket Starter" badge={PRICING_CONFIG.starter.badge}
+                price={PRICING_CONFIG.starter.priceFormatted} duration={PRICING_CONFIG.starter.durationLabel}
+                features={PRICING_CONFIG.starter.features}
+                ctaLabel="Mulai Gratis" ctaHint="Coba dulu, bayar kalau cocok" variant="light" delay={0}
+              />
+              <PricingCard
+                name="Paket Popular" badge={PRICING_CONFIG.popular.badge}
+                price={PRICING_CONFIG.popular.priceFormatted} duration={PRICING_CONFIG.popular.durationLabel}
+                features={PRICING_CONFIG.popular.features} highlightedFeature={PRICING_CONFIG.popular.highlightedFeature}
+                ctaLabel="Pilih Popular" ctaHint="Pilihan terpopuler pasangan" variant="dark" popular delay={0.08}
+              />
+              <PricingCard
+                name="Paket Eksklusif" badge={PRICING_CONFIG.eksklusif.badge}
+                price={PRICING_CONFIG.eksklusif.priceFormatted} duration={PRICING_CONFIG.eksklusif.durationLabel}
+                features={PRICING_CONFIG.eksklusif.features} highlightedFeature={PRICING_CONFIG.eksklusif.highlightedFeature}
+                ctaLabel="Pilih Eksklusif" ctaHint="Untuk acara besar & eksklusif" variant="gold" delay={0.16}
+              />
+            </>
+          )}
         </div>
 
-        {/* Barcode note */}
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -177,7 +264,6 @@ export default function Pricing() {
           Fitur scan barcode (Eksklusif): tamu menerima QR code saat dikirimi undangan via WhatsApp, lalu dipindai saat hadir untuk konfirmasi kehadiran otomatis.
         </motion.p>
 
-        {/* Trust Signals */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

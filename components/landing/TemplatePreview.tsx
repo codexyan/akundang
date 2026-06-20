@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Play, Sparkles, ArrowRight } from 'lucide-react'
+import type { TemplateRecord } from '@/lib/types'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -49,9 +50,31 @@ interface ShowcaseData {
   comingSoon: { label: string; accent: string; bg: string }[]
 }
 
-export default function TemplatePreview({ showcase }: { showcase?: ShowcaseData }) {
-  const FEATURED = { ...DEFAULT_FEATURED, ...showcase?.featured, textColor: '#ffffff', background: '#0f2d0f' }
-  const COMING_SOON = (showcase?.comingSoon ?? DEFAULT_COMING_SOON).map(c => ({ ...c, photo: '/images/templates/modern.jpg' }))
+function templateToFeatured(t: TemplateRecord): ShowcaseData['featured'] {
+  const cs = t.config.meta.color_scheme
+  const opening = t.config?.opening
+  const coverPhoto = opening?.cover_photo_url || opening?.background_image || ''
+  return {
+    name: t.name,
+    tagline: 'Template undangan digital elegan',
+    coverPhoto,
+    primary: cs.primary,
+    accent: cs.accent,
+    href: `/demo/renderer?id=${t.id}`,
+  }
+}
+
+export default function TemplatePreview({ showcase, templates }: { showcase?: ShowcaseData; templates?: TemplateRecord[] }) {
+  const activeTemplates = templates?.filter(t => t.status === 'active') ?? []
+
+  const featuredTemplate = activeTemplates.length > 0 ? activeTemplates[0] : null
+  const featuredData = featuredTemplate
+    ? templateToFeatured(featuredTemplate)
+    : { ...DEFAULT_FEATURED, ...showcase?.featured }
+  const FEATURED = { ...featuredData, textColor: '#ffffff', background: featuredData.primary.replace(/^#/, '#0f') }
+
+  const otherTemplates = activeTemplates.slice(1, 4)
+  const comingSoonItems = (showcase?.comingSoon ?? DEFAULT_COMING_SOON).map(c => ({ ...c, photo: '/images/templates/modern.jpg' }))
 
   return (
     <section id="templates" className="py-20 sm:py-28 lg:py-32 bg-[#fafaf9] overflow-hidden">
@@ -94,14 +117,16 @@ export default function TemplatePreview({ showcase }: { showcase?: ShowcaseData 
               <div className="w-[220px] sm:w-[260px]">
                 <PhoneMockup>
                   <div className="absolute inset-0" style={{ backgroundColor: FEATURED.primary }}>
-                    <Image
-                      src={FEATURED.coverPhoto}
-                      alt={FEATURED.name}
-                      fill
-                      className="object-cover"
-                      sizes="260px"
-                      style={{ opacity: 0.6 }}
-                    />
+                    {FEATURED.coverPhoto && (
+                      <Image
+                        src={FEATURED.coverPhoto}
+                        alt={FEATURED.name}
+                        fill
+                        className="object-cover"
+                        sizes="260px"
+                        style={{ opacity: 0.6 }}
+                      />
+                    )}
                     <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 20%, ${FEATURED.primary}dd 60%, ${FEATURED.primary} 100%)` }} />
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-end pb-12 px-5">
                       <p className="text-[9px] tracking-[0.35em] uppercase mb-4" style={{ color: `${FEATURED.accent}cc` }}>
@@ -143,7 +168,7 @@ export default function TemplatePreview({ showcase }: { showcase?: ShowcaseData 
 
             <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 mb-3">{FEATURED.name}</h3>
             <p className="text-stone-500 text-[15px] leading-relaxed max-w-md mx-auto lg:mx-0 mb-7">
-              {FEATURED.tagline}. Dilengkapi opening animasi, musik latar, countdown, galeri, RSVP, dan ucapan dalam satu undangan elegan.
+              {featuredData.tagline}. Dilengkapi opening animasi, musik latar, countdown, galeri, RSVP, dan ucapan dalam satu undangan elegan.
             </p>
 
             <div className="flex items-center gap-2.5 mb-7 justify-center lg:justify-start">
@@ -180,42 +205,94 @@ export default function TemplatePreview({ showcase }: { showcase?: ShowcaseData 
           </motion.div>
         </div>
 
-        {/* Coming Soon */}
+        {/* Other Active Templates or Coming Soon */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-40px' }}
           transition={{ duration: 0.6, delay: 0.15 }}
         >
-          <p className="text-center text-[11px] font-semibold tracking-[.15em] uppercase text-stone-400 mb-7">Segera Hadir</p>
-          <div className="flex justify-center gap-8 sm:gap-10">
-            {COMING_SOON.map((tpl, i) => (
-              <motion.div
-                key={tpl.label}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
-                className="text-center"
-              >
-                <div className="w-[110px] sm:w-[130px] opacity-50 mx-auto mb-3">
-                  <PhoneMockup>
-                    <div className="absolute inset-0" style={{ backgroundColor: tpl.bg }}>
-                      <Image src={tpl.photo} alt="" fill className="object-cover" sizes="130px" style={{ opacity: 0.15 }} />
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center mb-1.5" style={{ backgroundColor: `${tpl.accent}12`, border: `1px solid ${tpl.accent}25` }}>
-                          <Sparkles size={13} style={{ color: tpl.accent }} />
+          {otherTemplates.length > 0 ? (
+            <>
+              <p className="text-center text-[11px] font-semibold tracking-[.15em] uppercase text-stone-400 mb-7">
+                Template Lainnya
+              </p>
+              <div className="flex justify-center gap-8 sm:gap-10">
+                {otherTemplates.map((tpl, i) => {
+                  const cs = tpl.config.meta.color_scheme
+                  const opening = tpl.config?.opening
+                  const coverPhoto = opening?.cover_photo_url || opening?.background_image
+                  return (
+                    <motion.div
+                      key={tpl.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+                      className="text-center"
+                    >
+                      <Link href={`/demo/renderer?id=${tpl.id}`}>
+                        <div className="w-[110px] sm:w-[130px] mx-auto mb-3 hover:scale-105 transition-transform">
+                          <PhoneMockup>
+                            <div className="absolute inset-0" style={{ backgroundColor: cs.primary }}>
+                              {coverPhoto && (
+                                <Image src={coverPhoto} alt={tpl.name} fill className="object-cover" sizes="130px" style={{ opacity: 0.5 }} />
+                              )}
+                              <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${cs.primary}dd 70%, ${cs.primary} 100%)` }} />
+                              <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 px-2">
+                                <p className="text-[7px] tracking-[0.2em] uppercase font-semibold" style={{ color: cs.accent }}>The Wedding of</p>
+                                <p className="text-[14px] font-bold mt-1" style={{ color: cs.text, fontFamily: "var(--font-playfair), 'Playfair Display', serif" }}>{tpl.name}</p>
+                              </div>
+                            </div>
+                          </PhoneMockup>
                         </div>
-                        <p className="text-[7px] tracking-[0.2em] uppercase font-semibold" style={{ color: tpl.accent }}>Coming Soon</p>
-                      </div>
+                      </Link>
+                      <p className="text-xs font-semibold text-stone-600">{tpl.name}</p>
+                      {tpl.category && (
+                        <p className="text-[10px] text-stone-400 mt-0.5">{tpl.category}</p>
+                      )}
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-center text-[11px] font-semibold tracking-[.15em] uppercase text-stone-400 mb-7">Segera Hadir</p>
+              <div className="flex justify-center gap-8 sm:gap-10">
+                {comingSoonItems.map((tpl, i) => (
+                  <motion.div
+                    key={tpl.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="w-[110px] sm:w-[130px] opacity-50 mx-auto mb-3">
+                      <PhoneMockup>
+                        <div className="absolute inset-0" style={{ backgroundColor: tpl.bg }}>
+                          <Image src={tpl.photo} alt="" fill className="object-cover" sizes="130px" style={{ opacity: 0.15 }} />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center mb-1.5" style={{ backgroundColor: `${tpl.accent}12`, border: `1px solid ${tpl.accent}25` }}>
+                              <Sparkles size={13} style={{ color: tpl.accent }} />
+                            </div>
+                            <p className="text-[7px] tracking-[0.2em] uppercase font-semibold" style={{ color: tpl.accent }}>Coming Soon</p>
+                          </div>
+                        </div>
+                      </PhoneMockup>
                     </div>
-                  </PhoneMockup>
-                </div>
-                <p className="text-xs font-semibold text-stone-500">{tpl.label}</p>
-              </motion.div>
-            ))}
-          </div>
-          <p className="text-center text-[12px] text-stone-400 mt-7">12+ gaya opening akan tersedia saat peluncuran resmi</p>
+                    <p className="text-xs font-semibold text-stone-500">{tpl.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          )}
+          <p className="text-center text-[12px] text-stone-400 mt-7">
+            {activeTemplates.length > 1
+              ? `${activeTemplates.length} template tersedia — pilih yang cocok untuk acara kalian`
+              : '12+ gaya opening akan tersedia saat peluncuran resmi'}
+          </p>
         </motion.div>
       </div>
     </section>
