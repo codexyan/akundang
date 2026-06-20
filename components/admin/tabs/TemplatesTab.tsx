@@ -19,11 +19,13 @@ interface Props {
   priceTiers?: PriceTier[]
   flashSales?: FlashSale[]
   coupons?: Coupon[]
+  deletedCategoryIds?: string[]
+  deletedTierIds?: string[]
   onRecordsUpdate: (records: TemplateRecord[]) => void
   onGoToLab?: () => void
   onEditInLab?: (record: TemplateRecord) => void
-  onCategoriesUpdate?: (cats: TemplateCategory[]) => void
-  onPriceTiersUpdate?: (tiers: PriceTier[]) => void
+  onCategoriesUpdate?: (cats: TemplateCategory[], deletedIds?: string[]) => void
+  onPriceTiersUpdate?: (tiers: PriceTier[], deletedIds?: string[]) => void
   onFlashSalesUpdate?: (sales: FlashSale[]) => void
   onCouponsUpdate?: (coupons: Coupon[]) => void
 }
@@ -185,6 +187,7 @@ function ScopeBadge({ scope, scopeIds, tiers, categories }: {
 // ═══════════════════════════════════════════════════════════════
 export default function TemplatesTab({
   records, categories, priceTiers, flashSales, coupons,
+  deletedCategoryIds: propDeletedCatIds, deletedTierIds: propDeletedTierIds,
   onRecordsUpdate, onGoToLab, onEditInLab,
   onCategoriesUpdate, onPriceTiersUpdate, onFlashSalesUpdate, onCouponsUpdate,
 }: Props) {
@@ -330,7 +333,8 @@ export default function TemplatesTab({
   }
   function removeCategory(slug: string) {
     if (records.some(r => r.category === slug)) { toast.error('Masih dipakai template'); return }
-    onCategoriesUpdate?.(allCategories.filter(c => c.slug !== slug)); toast.success('Dihapus')
+    const newDeleted = [...(propDeletedCatIds ?? []), slug]
+    onCategoriesUpdate?.(allCategories.filter(c => c.slug !== slug), newDeleted); toast.success('Dihapus')
   }
 
   // ── Price Tier CRUD ──
@@ -349,7 +353,8 @@ export default function TemplatesTab({
   function removeTier(id: string) {
     const tier = allTiers.find(t => t.id === id)
     if (tier && records.some(r => r.price === tier.price)) { toast.error('Masih dipakai'); return }
-    onPriceTiersUpdate?.(allTiers.filter(t => t.id !== id)); toast.success('Dihapus')
+    const newDeleted = [...(propDeletedTierIds ?? []), id]
+    onPriceTiersUpdate?.(allTiers.filter(t => t.id !== id), newDeleted); toast.success('Dihapus')
   }
 
   // ── Flash Sale ──
@@ -757,13 +762,9 @@ export default function TemplatesTab({
                         <span className="text-sm font-medium text-gray-800 flex-1">{c.label}</span>
                         <span className="text-[11px] text-gray-400">{count} tema</span>
                         {c.is_built_in && <span className="text-[9px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full font-semibold shrink-0">bawaan</span>}
-                        {!c.is_built_in && (
-                          <>
-                            <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
-                              className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><X className="w-3.5 h-3.5" /></button>
-                          </>
-                        )}
+                        <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
+                          className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     )
                   })}
@@ -823,15 +824,13 @@ export default function TemplatesTab({
                           <div className="text-right shrink-0">
                             <p className="text-base font-bold" style={{ color: t.color || '#6366f1' }}>{formatRp(t.price)}</p>
                           </div>
-                          {!t.is_built_in && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); if (used > 0) { toast.error('Masih dipakai template'); return } if (confirm(`Hapus paket "${t.label}"?`)) removeTier(t.id) }}
-                              className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                              title="Hapus paket"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); if (used > 0) { toast.error('Masih dipakai template'); return } if (confirm(`Hapus paket "${t.label}"?`)) removeTier(t.id) }}
+                            className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                            title="Hapus paket"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                           <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
                         </div>
                         {f && (

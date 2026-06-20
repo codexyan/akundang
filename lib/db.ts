@@ -61,6 +61,8 @@ export interface AppSettings {
   priceTiers: PriceTier[]
   flashSales: FlashSale[]
   coupons: Coupon[]
+  deletedCategoryIds: string[]
+  deletedTierIds: string[]
   bankAccounts: BankAccount[]
   qrisImageUrl: string
   paymentInstructions: string
@@ -499,6 +501,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   price: 149000, packageName: 'Popular', packageDuration: 3, promoEndDate: '2026-08-31',
   templates: BUILT_IN_TEMPLATES, categories: BUILT_IN_CATEGORIES, colorPalettes: BUILT_IN_PALETTES,
   priceTiers: BUILT_IN_PRICE_TIERS, flashSales: [], coupons: [],
+  deletedCategoryIds: [], deletedTierIds: [],
   bankAccounts: [], qrisImageUrl: '',
   paymentInstructions: 'Transfer ke salah satu rekening di bawah ini, kemudian kirimkan bukti transfer.',
   confirmationWhatsapp: '628123456789', siteName: 'iaundang', siteTagline: 'Digital Wedding Invitation',
@@ -522,10 +525,13 @@ export const settings = {
       }
     }
 
+    const deletedCatIds = new Set(stored.deletedCategoryIds ?? [])
+    const deletedTierIds = new Set(stored.deletedTierIds ?? [])
+
     const storedCategories = (stored.categories ?? []) as TemplateCategory[]
     const categories: TemplateCategory[] = [
-      ...BUILT_IN_CATEGORIES,
-      ...storedCategories.filter(c => !BUILT_IN_CATEGORIES.find(b => b.slug === c.slug)),
+      ...BUILT_IN_CATEGORIES.filter(b => !deletedCatIds.has(b.slug)),
+      ...storedCategories.filter(c => !BUILT_IN_CATEGORIES.find(b => b.slug === c.slug) && !deletedCatIds.has(c.slug)),
     ]
 
     const storedPalettes = (stored.colorPalettes ?? []) as ColorPalette[]
@@ -536,11 +542,11 @@ export const settings = {
 
     const storedTiers = (stored.priceTiers ?? []) as PriceTier[]
     const priceTiers: PriceTier[] = [
-      ...BUILT_IN_PRICE_TIERS,
-      ...storedTiers.filter(t => !BUILT_IN_PRICE_TIERS.find(b => b.id === t.id)),
+      ...BUILT_IN_PRICE_TIERS.filter(b => !deletedTierIds.has(b.id)),
+      ...storedTiers.filter(t => !BUILT_IN_PRICE_TIERS.find(b => b.id === t.id) && !deletedTierIds.has(t.id)),
     ]
 
-    return { ...DEFAULT_SETTINGS, ...stored, templates, categories, colorPalettes, priceTiers, flashSales: stored.flashSales ?? [], coupons: stored.coupons ?? [], bankAccounts: stored.bankAccounts ?? [] }
+    return { ...DEFAULT_SETTINGS, ...stored, templates, categories, colorPalettes, priceTiers, deletedCategoryIds: stored.deletedCategoryIds ?? [], deletedTierIds: stored.deletedTierIds ?? [], flashSales: stored.flashSales ?? [], coupons: stored.coupons ?? [], bankAccounts: stored.bankAccounts ?? [] }
   },
   async save(data: AppSettings): Promise<void> {
     await prisma.appSetting.upsert({

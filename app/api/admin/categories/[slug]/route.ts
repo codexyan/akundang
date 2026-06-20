@@ -38,12 +38,8 @@ export async function DELETE(
   const target = s.categories.find((c) => c.slug === slug)
   if (!target) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Prevent deletion of built-in categories
-  if (target.is_built_in) {
-    return NextResponse.json({ error: 'Kategori bawaan tidak dapat dihapus' }, { status: 400 })
-  }
-
   s.categories = s.categories.filter((c) => c.slug !== slug)
+  s.deletedCategoryIds = [...(s.deletedCategoryIds ?? []), slug]
   await settings.save(s)
   return NextResponse.json({ success: true })
 }

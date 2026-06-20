@@ -80,6 +80,8 @@ interface LocalAppSettings {
   priceTiers: PriceTier[]
   flashSales: FlashSale[]
   coupons: Coupon[]
+  deletedCategoryIds: string[]
+  deletedTierIds: string[]
   bankAccounts: BankAccount[]
   qrisImageUrl: string
   paymentInstructions: string
@@ -360,9 +362,11 @@ export default function AdminPanel({
             onGoToLab={() => handleTabChange('lab')}
             onEditInLab={(rec) => { setLabEditRecord(rec); handleTabChange('lab') }}
             categories={appSettings.categories}
-            onCategoriesUpdate={(cats) => handleSaveSettings({ ...appSettings, categories: cats })}
+            deletedCategoryIds={appSettings.deletedCategoryIds}
+            deletedTierIds={appSettings.deletedTierIds}
+            onCategoriesUpdate={(cats, deletedIds) => handleSaveSettings({ ...appSettings, categories: cats, deletedCategoryIds: deletedIds ?? appSettings.deletedCategoryIds })}
             priceTiers={appSettings.priceTiers}
-            onPriceTiersUpdate={(tiers) => handleSaveSettings({ ...appSettings, priceTiers: tiers })}
+            onPriceTiersUpdate={(tiers, deletedIds) => handleSaveSettings({ ...appSettings, priceTiers: tiers, deletedTierIds: deletedIds ?? appSettings.deletedTierIds })}
             flashSales={appSettings.flashSales}
             onFlashSalesUpdate={(sales) => handleSaveSettings({ ...appSettings, flashSales: sales })}
             coupons={appSettings.coupons}

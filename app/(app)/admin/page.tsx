@@ -71,6 +71,8 @@ export default async function AdminPage() {
         priceTiers: appSettings.priceTiers,
         flashSales: appSettings.flashSales,
         coupons: appSettings.coupons,
+        deletedCategoryIds: appSettings.deletedCategoryIds ?? [],
+        deletedTierIds: appSettings.deletedTierIds ?? [],
         bankAccounts: appSettings.bankAccounts,
         qrisImageUrl: appSettings.qrisImageUrl,
         paymentInstructions: appSettings.paymentInstructions,
