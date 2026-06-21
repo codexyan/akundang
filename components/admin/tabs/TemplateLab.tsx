@@ -29,10 +29,16 @@ const InvitationRenderer  = dynamic(() => import('@/components/renderer/Invitati
 
 //  Sample data default untuk preview 
 const PREVIEW_DATA_DEFAULT: NewInvitationData = {
-  groom_name: 'Ikhwal',
-  bride_name: 'Fani',
-  bride_parents: 'Bapak & Ibu Santoso',
-  groom_parents: 'Bapak & Ibu Wijaya',
+  groom_name: 'Ikhwal Ramadhan',
+  bride_name: 'Fani Aulia',
+  groom_nickname: 'Ikhwal',
+  bride_nickname: 'Fani',
+  groom_father: 'H. Ahmad Wijaya',
+  groom_mother: 'Hj. Siti Rahayu',
+  bride_father: 'H. Santoso',
+  bride_mother: 'Hj. Kartini',
+  bride_parents: 'Bpk. H. Santoso & Ibu Hj. Kartini',
+  groom_parents: 'Bpk. H. Ahmad Wijaya & Ibu Hj. Siti Rahayu',
   tagline: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan-pasangan dari jenismu sendiri.',
   groom_photo_url: 'https://images.unsplash.com/photo-1526922782478-4946233fabf5?w=400&h=500&fit=crop&crop=face',
   bride_photo_url: 'https://images.unsplash.com/photo-1492175742197-ed20dc5a6bed?w=400&h=500&fit=crop&crop=face',
@@ -1783,7 +1789,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/* Diagram visual: warna dipakai di mana */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Penerapan Warna</p>
+                <p className="text-[10px] font-semibold text-gray-500 mb-2">Penerapan Warna</p>
                 <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
                   {/* Header = primary */}
                   <div className="relative px-4 pt-4 pb-3"
@@ -1842,7 +1848,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               {/* Palette presets */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <p className="text-[10px] font-semibold text-gray-500">
                     Palet Tema Siap Pakai
                   </p>
                   {onGoToManagement && (
@@ -1889,7 +1895,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/* Custom color pickers */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Custom Warna</p>
+                <p className="text-[10px] font-semibold text-gray-500 mb-2.5">Custom Warna</p>
                 <div className="space-y-3">
                   {([
                     ['primary',    'Latar Utama',   'Background cover & section utama'],
@@ -2109,7 +2115,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               <details className="group">
                 <summary className="flex items-center justify-between cursor-pointer select-none py-1 list-none [&::-webkit-details-marker]:hidden">
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pasangan Font</p>
+                    <p className="text-[10px] font-semibold text-gray-500">Pasangan Font</p>
                     <p className="text-[9px] text-gray-400 mt-0.5">Kombinasi heading + body terkurasi   klik untuk buka</p>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-gray-400 transition-transform group-open:rotate-180 shrink-0" />
@@ -2179,7 +2185,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/*  Custom Font Override  */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Pilih &amp; Atur Font
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
@@ -2477,7 +2483,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/* Button Variant */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Gaya Tombol
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
@@ -2531,7 +2537,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/* Border Variant */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Gaya Sudut / Border
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
@@ -2586,7 +2592,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/* Ornament Variant */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Gaya Ornamen
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
@@ -2642,11 +2648,11 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/*  Pilih Gaya Opening  */}
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Gaya Tampilan
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
-                  Pilih gaya tampilan animasi saat tamu pertama kali membuka undangan
+                  Animasi saat tamu pertama kali membuka undangan
                 </p>
                 <div className="grid grid-cols-3 gap-1.5">
                   {OPENING_TYPES.map(ot => {
@@ -2678,7 +2684,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/*  Opening Content  */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                <p className="text-[10px] font-semibold text-gray-500 mb-3">
                   Konten Opening
                 </p>
 
@@ -2790,36 +2796,90 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                 </div>
               </div>
 
-              {/*  Data Preview Nama  */}
+              {/*  Data Mempelai  */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  Data Preview
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
+                  Data Mempelai
                 </p>
-                <div className="space-y-2">
-                  <Field label="Nama Mempelai Pria">
-                    <input type="text" value={previewData.groom_name}
-                      onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))}
-                      placeholder="Nama pria..."
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                  </Field>
-                  <Field label="Nama Mempelai Wanita">
-                    <input type="text" value={previewData.bride_name}
-                      onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))}
-                      placeholder="Nama wanita..."
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                  </Field>
-                  <Field label="Nama Tamu Preview">
-                    <input type="text" value={previewGuestName}
-                      onChange={e => setPreviewGuestName(e.target.value)}
-                      placeholder="Nama tamu contoh..."
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                  </Field>
+                <p className="text-[9px] text-gray-400 mb-3">
+                  Isi data contoh untuk preview. User bisa mengubah saat membuat undangan.
+                </p>
+
+                {/* Pria */}
+                <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-3 mb-3">
+                  <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-2">Mempelai Pria</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Nama Lengkap">
+                      <input type="text" value={previewData.groom_name}
+                        onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))}
+                        placeholder="Nama lengkap..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Nama Panggilan">
+                      <input type="text" value={previewData.groom_nickname ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, groom_nickname: e.target.value || undefined }))}
+                        placeholder="Panggilan..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Ayah">
+                      <input type="text" value={previewData.groom_father ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, groom_father: e.target.value || undefined }))}
+                        placeholder="Nama ayah..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Ibu">
+                      <input type="text" value={previewData.groom_mother ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, groom_mother: e.target.value || undefined }))}
+                        placeholder="Nama ibu..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                  </div>
                 </div>
+
+                {/* Wanita */}
+                <div className="rounded-xl border border-rose-100 bg-rose-50/30 p-3 mb-3">
+                  <p className="text-[9px] font-bold text-rose-600 uppercase tracking-widest mb-2">Mempelai Wanita</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Nama Lengkap">
+                      <input type="text" value={previewData.bride_name}
+                        onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))}
+                        placeholder="Nama lengkap..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Nama Panggilan">
+                      <input type="text" value={previewData.bride_nickname ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, bride_nickname: e.target.value || undefined }))}
+                        placeholder="Panggilan..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Ayah">
+                      <input type="text" value={previewData.bride_father ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, bride_father: e.target.value || undefined }))}
+                        placeholder="Nama ayah..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                    <Field label="Ibu">
+                      <input type="text" value={previewData.bride_mother ?? ''}
+                        onChange={e => setPreviewData(d => ({ ...d, bride_mother: e.target.value || undefined }))}
+                        placeholder="Nama ibu..."
+                        className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" />
+                    </Field>
+                  </div>
+                </div>
+
+                {/* Nama tamu preview */}
+                <Field label="Nama Tamu Preview">
+                  <input type="text" value={previewGuestName}
+                    onChange={e => setPreviewGuestName(e.target.value)}
+                    placeholder="dr. Gia dan Istri"
+                    className="w-full text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                  <p className="text-[9px] text-gray-400 mt-1">Untuk preview saja. Di undangan asli dari URL ?to=</p>
+                </Field>
               </div>
 
               {/*  Typography & Layout  */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                <p className="text-[10px] font-semibold text-gray-500 mb-3">
                   Tipografi &amp; Layout
                 </p>
                 <div className="space-y-4">
@@ -3104,7 +3164,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               </div>
 
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                <p className="text-[10px] font-semibold text-gray-500 mb-3">
                   Foto Pasangan
                 </p>
                 <div className="space-y-4">
@@ -3204,7 +3264,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               {/*  Petal Fall Attributes (hanya tampil saat type = petal-fall)  */}
               {cfg.opening.type === 'petal-fall' && (
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                  <p className="text-[10px] font-semibold text-gray-500 mb-1">
                     Pengaturan Petal Fall
                   </p>
                   <p className="text-[9px] text-gray-400 mb-3">
@@ -3427,7 +3487,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
               {/*  Loading Screen (bagian dari Opening)  */}
               <div className="pt-4 border-t border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-semibold text-gray-500 mb-1">
                   Loading Screen
                 </p>
                 <p className="text-[9px] text-gray-400 mb-3">
@@ -3980,14 +4040,14 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                     )}
                   </div>
 
-                  {/* Advanced controls   hanya tampil saat di-expand */}
+                  {/* Advanced controls */}
                   {s.enabled && expandedSectionId === s.id && (
-                    <div className="bg-white border-t border-gray-50 divide-y divide-gray-50">
+                    <div className="bg-white border-t border-gray-100 divide-y divide-gray-100">
 
-                      {/* Style variant selector   visual thumbnails */}
+                      {/* Style variant selector */}
                       {SECTION_VARIANTS[s.type] && (
                         <div className="px-3 py-2.5">
-                          <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mb-2">
+                          <p className="text-[9px] font-semibold text-gray-500 mb-2">
                             Gaya Tampilan
                           </p>
                           <div className="flex gap-2 flex-wrap">
@@ -4020,15 +4080,15 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         </div>
                       )}
 
-                      {/* Latar belakang section */}
+                      {/* Background */}
                       <div className="px-3 py-2.5">
-                        <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Latar Belakang</p>
+                        <p className="text-[9px] font-semibold text-gray-500 mb-2">Latar Belakang</p>
                         <div className="flex gap-1 mb-2.5">
                           {(['color', 'image', 'video'] as const).map(t => (
                             <button key={t} type="button"
                               onClick={() => updateSection(s.id, { background: { ...s.background, type: t, ...(t === 'color' ? { url: undefined } : {}) } })}
-                              className={`flex-1 py-1.5 rounded-lg text-[9px] font-semibold transition-colors ${
-                                s.background.type === t ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-indigo-50'
+                              className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                                s.background.type === t ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-indigo-300'
                               }`}>
                               {t === 'color' ? 'Warna' : t === 'image' ? 'Gambar / GIF' : 'Video'}
                             </button>
@@ -4101,10 +4161,10 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         )}
                       </div>
 
-                      {/* Animasi masuk / keluar */}
-                      <div className="px-3 py-2 flex gap-2">
+                      {/* Animation */}
+                      <div className="px-3 py-2.5 flex gap-2">
                         <div className="flex-1">
-                          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Animasi Masuk</p>
+                          <p className="text-[9px] font-semibold text-gray-500 mb-1">Animasi Masuk</p>
                           <div className="flex gap-1">
                             <select value={s.transition_in} onChange={e => updateSection(s.id, { transition_in: e.target.value })}
                               className="flex-1 text-xs border border-gray-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400">
@@ -4123,7 +4183,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                           </div>
                         </div>
                         <div className="flex-1">
-                          <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Animasi Keluar</p>
+                          <p className="text-[9px] font-semibold text-gray-500 mb-1">Animasi Keluar</p>
                           <select value={s.transition_out} onChange={e => updateSection(s.id, { transition_out: e.target.value })}
                             className="w-full text-xs border border-gray-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400">
                             {TRANSITION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -4140,8 +4200,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                       )}
 
                       {/*  Konten Section  */}
-                      <div className="px-3 pb-3 border-t border-violet-50 bg-violet-50/30">
-                        <p className="text-[9px] font-bold text-violet-600 uppercase tracking-widest mt-2.5 mb-3">
+                      <div className="px-3 pb-3 border-t border-gray-100 bg-gray-50/40">
+                        <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-2.5 mb-2">
                           Konten & Foto
                         </p>
 
@@ -4149,15 +4209,16 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         {s.type === 'hero' && (
                           <div className="space-y-3">
 
-                            {/* Konten */}
-                            <div className="space-y-1.5">
-                              <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Konten</p>
-                              <SectionField label="Nama Pria">
-                                <input className={miniInput} value={previewData.groom_name} onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))} />
-                              </SectionField>
-                              <SectionField label="Nama Wanita">
-                                <input className={miniInput} value={previewData.bride_name} onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))} />
-                              </SectionField>
+                            {/* Nama & konten */}
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <SectionField label="Nama Lengkap Pria">
+                                  <input className={miniInput} value={previewData.groom_name} onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))} />
+                                </SectionField>
+                                <SectionField label="Nama Lengkap Wanita">
+                                  <input className={miniInput} value={previewData.bride_name} onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))} />
+                                </SectionField>
+                              </div>
                               <SectionField label="Tagline / Ayat">
                                 <textarea className={miniInput + ' resize-none'} rows={2} value={previewData.tagline ?? ''} onChange={e => setPreviewData(d => ({ ...d, tagline: e.target.value }))} />
                               </SectionField>
@@ -4167,13 +4228,13 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                             </div>
 
                             {/* Bismillah */}
-                            <div className="border-t border-violet-50 pt-2.5 space-y-1.5">
-                              <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Bismillah</p>
+                            <div className="border-t border-gray-200/60 pt-2.5 space-y-1.5">
+                              <p className="text-[9px] font-semibold text-gray-500 mb-1">Bismillah</p>
                               <div className="flex gap-1">
                                 {([['none','Tanpa'],['text','Teks'],['arabic','Arab']] as const).map(([v,lbl]) => (
                                   <button key={v} type="button"
                                     onClick={() => updateSection(s.id, { hero_bismillah: v })}
-                                    className={`flex-1 py-1 rounded text-[9px] font-semibold transition-colors ${(s.hero_bismillah ?? 'text') === v ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-violet-100'}`}>
+                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${(s.hero_bismillah ?? 'text') === v ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-indigo-300'}`}>
                                     {lbl}
                                   </button>
                                 ))}
@@ -4185,24 +4246,24 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                                 </SectionField>
                               )}
                               {s.hero_bismillah === 'arabic' && (
-                                <p className="text-[8px] text-gray-400 italic">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ + transliterasi</p>
+                                <p className="text-[9px] text-gray-400 italic">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ + transliterasi</p>
                               )}
                             </div>
 
-                            {/* Tipografi ukuran px */}
-                            <div className="border-t border-violet-50 pt-2.5 space-y-1.5">
-                              <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Ukuran Font (px)</p>
-                              <div className="grid grid-cols-2 gap-1.5">
+                            {/* Tipografi */}
+                            <div className="border-t border-gray-200/60 pt-2.5">
+                              <p className="text-[9px] font-semibold text-gray-500 mb-1.5">Ukuran Font (px)</p>
+                              <div className="grid grid-cols-4 gap-1.5">
                                 {([
                                   ['Nama', 'hero_title_size', 36],
-                                  ['Simbol &', 'hero_and_size', 22],
+                                  ['&', 'hero_and_size', 22],
                                   ['Tagline', 'hero_tagline_size', 11],
-                                  ['Label kecil', 'hero_label_size', 9],
+                                  ['Label', 'hero_label_size', 9],
                                 ] as const).map(([lbl, key, def]) => (
-                                  <div key={key}>
-                                    <p className="text-[8px] text-gray-400 mb-0.5">{lbl} <span className="text-gray-300">({def}px)</span></p>
+                                  <div key={key} className="text-center">
+                                    <p className="text-[8px] text-gray-400 mb-0.5">{lbl}</p>
                                     <input type="number" min={6} max={120} step={1}
-                                      className={miniInput}
+                                      className="w-full text-[10px] text-center px-1 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white"
                                       value={s[key] ?? def}
                                       onChange={e => updateSection(s.id, { [key]: Number(e.target.value) })} />
                                   </div>
@@ -4211,20 +4272,20 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                             </div>
 
                             {/* Animasi */}
-                            <div className="border-t border-violet-50 pt-2.5 space-y-1.5">
-                              <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Animasi</p>
-                              <div className="grid grid-cols-2 gap-1.5">
+                            <div className="border-t border-gray-200/60 pt-2.5">
+                              <p className="text-[9px] font-semibold text-gray-500 mb-1.5">Animasi</p>
+                              <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <p className="text-[8px] text-gray-400 mb-0.5">Durasi (dtk)</p>
                                   <div className="flex items-center gap-1">
                                     <input type="range" min={0.2} max={2.0} step={0.1}
                                       value={s.hero_anim_duration ?? 0.8}
                                       onChange={e => updateSection(s.id, { hero_anim_duration: Number(e.target.value) })}
-                                      className="flex-1 h-1 accent-violet-500" />
+                                      className="flex-1 h-1 accent-indigo-500" />
                                     <input type="number" min={0.2} max={2.0} step={0.1}
                                       value={s.hero_anim_duration ?? 0.8}
                                       onChange={e => { const v = Number(e.target.value); if (v >= 0.2 && v <= 2.0) updateSection(s.id, { hero_anim_duration: v }) }}
-                                      className="w-12 px-1 py-0.5 text-[8px] text-center border border-gray-200 rounded focus:border-violet-400 focus:outline-none font-mono" />
+                                      className="w-11 px-1 py-0.5 text-[9px] text-center border border-gray-200 rounded-lg focus:border-indigo-400 focus:outline-none font-mono bg-white" />
                                   </div>
                                 </div>
                                 <div>
@@ -4233,61 +4294,59 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                                     <input type="range" min={0} max={0.5} step={0.05}
                                       value={s.hero_anim_stagger ?? 0.15}
                                       onChange={e => updateSection(s.id, { hero_anim_stagger: Number(e.target.value) })}
-                                      className="flex-1 h-1 accent-violet-500" />
+                                      className="flex-1 h-1 accent-indigo-500" />
                                     <input type="number" min={0} max={0.5} step={0.05}
                                       value={s.hero_anim_stagger ?? 0.15}
                                       onChange={e => { const v = Number(e.target.value); if (v >= 0 && v <= 0.5) updateSection(s.id, { hero_anim_stagger: v }) }}
-                                      className="w-12 px-1 py-0.5 text-[8px] text-center border border-gray-200 rounded focus:border-violet-400 focus:outline-none font-mono" />
+                                      className="w-11 px-1 py-0.5 text-[9px] text-center border border-gray-200 rounded-lg focus:border-indigo-400 focus:outline-none font-mono bg-white" />
                                   </div>
                                 </div>
                               </div>
                             </div>
 
-                            {/* Layout & padding */}
-                            <div className="border-t border-violet-50 pt-2.5 space-y-1.5">
-                              <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Layout</p>
-                              <div className="grid grid-cols-2 gap-1.5">
-                                <div>
-                                  <p className="text-[8px] text-gray-400 mb-0.5">Padding Atas (px)</p>
+                            {/* Layout */}
+                            <div className="border-t border-gray-200/60 pt-2.5">
+                              <p className="text-[9px] font-semibold text-gray-500 mb-1.5">Layout</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="text-center">
+                                  <p className="text-[8px] text-gray-400 mb-0.5">Padding Atas</p>
                                   <input type="number" min={0} max={200} step={4}
-                                    className={miniInput} value={s.hero_padding_top ?? 0}
+                                    className="w-full text-[10px] text-center px-1 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white"
+                                    value={s.hero_padding_top ?? 0}
                                     onChange={e => updateSection(s.id, { hero_padding_top: Number(e.target.value) })} />
                                 </div>
-                                <div>
-                                  <p className="text-[8px] text-gray-400 mb-0.5">Padding Bawah (px)</p>
+                                <div className="text-center">
+                                  <p className="text-[8px] text-gray-400 mb-0.5">Padding Bawah</p>
                                   <input type="number" min={0} max={200} step={4}
-                                    className={miniInput} value={s.hero_padding_bottom ?? 0}
+                                    className="w-full text-[10px] text-center px-1 py-1 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white"
+                                    value={s.hero_padding_bottom ?? 0}
                                     onChange={e => updateSection(s.id, { hero_padding_bottom: Number(e.target.value) })} />
                                 </div>
                                 <div>
-                                  <p className="text-[8px] text-gray-400 mb-0.5">Overlay background</p>
+                                  <p className="text-[8px] text-gray-400 mb-0.5">Overlay</p>
                                   <div className="flex items-center gap-1">
                                     <input type="range" min={0} max={0.95} step={0.05}
                                       value={s.hero_overlay ?? 0.52}
                                       onChange={e => updateSection(s.id, { hero_overlay: Number(e.target.value) })}
-                                      className="flex-1 h-1 accent-violet-500" />
-                                    <div className="flex items-center gap-0.5 shrink-0">
-                                      <input type="number" min={0} max={95} step={5}
-                                        value={Math.round((s.hero_overlay ?? 0.52) * 100)}
-                                        onChange={e => { const v = Number(e.target.value) / 100; if (v >= 0 && v <= 0.95) updateSection(s.id, { hero_overlay: v }) }}
-                                        className="w-10 px-0.5 py-0.5 text-[8px] text-center border border-gray-200 rounded focus:border-violet-400 focus:outline-none font-mono" />
-                                      <span className="text-[7px] text-gray-400">%</span>
-                                    </div>
+                                      className="flex-1 h-1 accent-indigo-500" />
+                                    <span className="text-[9px] text-gray-500 font-mono w-8 text-right">{Math.round((s.hero_overlay ?? 0.52) * 100)}%</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2 pt-3">
-                                  <input type="checkbox" id={`scroll-${s.id}`}
-                                    checked={s.hero_show_scroll !== false}
-                                    onChange={e => updateSection(s.id, { hero_show_scroll: e.target.checked })}
-                                    className="accent-violet-500 w-3 h-3" />
-                                  <label htmlFor={`scroll-${s.id}`} className="text-[9px] text-gray-500 cursor-pointer">Indikator scroll</label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <input type="checkbox" id={`shadow-${s.id}`}
-                                    checked={s.hero_text_shadow !== false}
-                                    onChange={e => updateSection(s.id, { hero_text_shadow: e.target.checked })}
-                                    className="accent-violet-500 w-3 h-3" />
-                                  <label htmlFor={`shadow-${s.id}`} className="text-[9px] text-gray-500 cursor-pointer">Bayangan teks</label>
+                                <div className="flex flex-col gap-1.5 pt-1">
+                                  <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id={`scroll-${s.id}`}
+                                      checked={s.hero_show_scroll !== false}
+                                      onChange={e => updateSection(s.id, { hero_show_scroll: e.target.checked })}
+                                      className="accent-indigo-500 w-3 h-3 rounded" />
+                                    <span className="text-[9px] text-gray-500">Scroll indicator</span>
+                                  </label>
+                                  <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id={`shadow-${s.id}`}
+                                      checked={s.hero_text_shadow !== false}
+                                      onChange={e => updateSection(s.id, { hero_text_shadow: e.target.checked })}
+                                      className="accent-indigo-500 w-3 h-3 rounded" />
+                                    <span className="text-[9px] text-gray-500">Text shadow</span>
+                                  </label>
                                 </div>
                               </div>
                             </div>
@@ -4297,17 +4356,29 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                         {/* PROFILES */}
                         {s.type === 'profiles' && (
-                          <div className="space-y-2">
-                            <p className="text-[9px] font-semibold text-gray-500 mt-1">Pengantin Pria</p>
-                            <SectionField label="Nama"><input className={miniInput} value={previewData.groom_name} onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))} /></SectionField>
-                            <SectionField label="Orang Tua"><input className={miniInput} value={previewData.groom_parents ?? ''} onChange={e => setPreviewData(d => ({ ...d, groom_parents: e.target.value }))} /></SectionField>
-                            <SectionField label="Bio"><input className={miniInput} value={previewData.groom_bio ?? ''} onChange={e => setPreviewData(d => ({ ...d, groom_bio: e.target.value }))} /></SectionField>
-                            <SectionField label="Foto"><ImageUploadField value={previewData.groom_photo_url} onChange={url => setPreviewData(d => ({ ...d, groom_photo_url: url }))} /></SectionField>
-                            <p className="text-[9px] font-semibold text-gray-500 mt-2">Pengantin Wanita</p>
-                            <SectionField label="Nama"><input className={miniInput} value={previewData.bride_name} onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))} /></SectionField>
-                            <SectionField label="Orang Tua"><input className={miniInput} value={previewData.bride_parents ?? ''} onChange={e => setPreviewData(d => ({ ...d, bride_parents: e.target.value }))} /></SectionField>
-                            <SectionField label="Bio"><input className={miniInput} value={previewData.bride_bio ?? ''} onChange={e => setPreviewData(d => ({ ...d, bride_bio: e.target.value }))} /></SectionField>
-                            <SectionField label="Foto"><ImageUploadField value={previewData.bride_photo_url} onChange={url => setPreviewData(d => ({ ...d, bride_photo_url: url }))} /></SectionField>
+                          <div className="space-y-3">
+                            {/* Pria */}
+                            <div className="rounded-lg border border-blue-100 bg-blue-50/30 p-2.5 space-y-1.5">
+                              <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Mempelai Pria</p>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <SectionField label="Nama Lengkap"><input className={miniInput} value={previewData.groom_name} onChange={e => setPreviewData(d => ({ ...d, groom_name: e.target.value }))} /></SectionField>
+                                <SectionField label="Panggilan"><input className={miniInput} value={previewData.groom_nickname ?? ''} placeholder="Opsional" onChange={e => setPreviewData(d => ({ ...d, groom_nickname: e.target.value || undefined }))} /></SectionField>
+                              </div>
+                              <SectionField label="Orang Tua"><input className={miniInput} value={previewData.groom_parents ?? ''} placeholder="Bpk. ... & Ibu ..." onChange={e => setPreviewData(d => ({ ...d, groom_parents: e.target.value }))} /></SectionField>
+                              <SectionField label="Bio Singkat"><input className={miniInput} value={previewData.groom_bio ?? ''} placeholder="Profesi, usia, dll" onChange={e => setPreviewData(d => ({ ...d, groom_bio: e.target.value }))} /></SectionField>
+                              <SectionField label="Foto Profil"><ImageUploadField value={previewData.groom_photo_url} onChange={url => setPreviewData(d => ({ ...d, groom_photo_url: url }))} /></SectionField>
+                            </div>
+                            {/* Wanita */}
+                            <div className="rounded-lg border border-rose-100 bg-rose-50/30 p-2.5 space-y-1.5">
+                              <p className="text-[9px] font-bold text-rose-600 uppercase tracking-widest">Mempelai Wanita</p>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <SectionField label="Nama Lengkap"><input className={miniInput} value={previewData.bride_name} onChange={e => setPreviewData(d => ({ ...d, bride_name: e.target.value }))} /></SectionField>
+                                <SectionField label="Panggilan"><input className={miniInput} value={previewData.bride_nickname ?? ''} placeholder="Opsional" onChange={e => setPreviewData(d => ({ ...d, bride_nickname: e.target.value || undefined }))} /></SectionField>
+                              </div>
+                              <SectionField label="Orang Tua"><input className={miniInput} value={previewData.bride_parents ?? ''} placeholder="Bpk. ... & Ibu ..." onChange={e => setPreviewData(d => ({ ...d, bride_parents: e.target.value }))} /></SectionField>
+                              <SectionField label="Bio Singkat"><input className={miniInput} value={previewData.bride_bio ?? ''} placeholder="Profesi, usia, dll" onChange={e => setPreviewData(d => ({ ...d, bride_bio: e.target.value }))} /></SectionField>
+                              <SectionField label="Foto Profil"><ImageUploadField value={previewData.bride_photo_url} onChange={url => setPreviewData(d => ({ ...d, bride_photo_url: url }))} /></SectionField>
+                            </div>
                           </div>
                         )}
 
@@ -4322,14 +4393,10 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                         {/* EVENTS */}
                         {s.type === 'events' && (
-                          <div className="space-y-4">
-
-                            {/*  Akad Nikah  */}
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 pb-1 border-b border-violet-100">
-                                <div className="w-2 h-2 rounded-full bg-violet-500" />
-                                <p className="text-[9px] font-bold text-violet-600 uppercase tracking-widest">Akad Nikah</p>
-                              </div>
+                          <div className="space-y-3">
+                            {/* Akad */}
+                            <div className="rounded-lg border border-amber-100 bg-amber-50/30 p-2.5 space-y-1.5">
+                              <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest">Akad Nikah</p>
                               <div className="grid grid-cols-2 gap-1.5">
                                 <SectionField label="Tanggal">
                                   <input type="date" className={miniInput} value={previewData.akad?.date ?? ''}
@@ -4359,17 +4426,14 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                                 <ImageUploadField
                                   value={previewData.akad?.venue_photo_url}
                                   onChange={url => setPreviewData(d => ({ ...d, akad: { ...d.akad!, venue_photo_url: url } }))}
-                                  hint="Foto masjid/gedung untuk variant Foto"
+                                  hint="Foto masjid/gedung"
                                 />
                               </SectionField>
                             </div>
 
-                            {/*  Resepsi  */}
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 pb-1 border-b border-emerald-100">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Resepsi</p>
-                              </div>
+                            {/* Resepsi */}
+                            <div className="rounded-lg border border-emerald-100 bg-emerald-50/30 p-2.5 space-y-1.5">
+                              <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Resepsi</p>
                               <div className="grid grid-cols-2 gap-1.5">
                                 <SectionField label="Tanggal">
                                   <input type="date" className={miniInput} value={previewData.resepsi?.date ?? ''}
@@ -4399,11 +4463,10 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                                 <ImageUploadField
                                   value={previewData.resepsi?.venue_photo_url}
                                   onChange={url => setPreviewData(d => ({ ...d, resepsi: { ...d.resepsi!, venue_photo_url: url } }))}
-                                  hint="Foto ballroom/gedung untuk variant Foto"
+                                  hint="Foto ballroom/gedung"
                                 />
                               </SectionField>
                             </div>
-
                           </div>
                         )}
 
@@ -4445,17 +4508,17 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                               {/*  Provider preview picker  */}
                               <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                  <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Preview Provider</p>
+                                  <p className="text-[9px] font-semibold text-gray-500">Preview Provider</p>
                                   <div className="flex gap-1.5">
                                     <button type="button"
                                       onClick={() => setPreviewData(d => ({ ...d, gift_accounts: Object.entries(GIFT_LAB_BRANDS).slice(0, MAX_GIFT).map(([n, b]) => makeGiftAccount(n, b)) }))}
-                                      className="text-[7px] font-bold text-violet-500 hover:text-violet-700 transition-colors">
+                                      className="text-[8px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors">
                                       Maks 3
                                     </button>
-                                    <span className="text-[7px] text-gray-300">·</span>
+                                    <span className="text-[8px] text-gray-300">·</span>
                                     <button type="button"
                                       onClick={() => setPreviewData(d => ({ ...d, gift_accounts: [] }))}
-                                      className="text-[7px] font-bold text-gray-400 hover:text-red-400 transition-colors">
+                                      className="text-[8px] font-semibold text-gray-400 hover:text-red-400 transition-colors">
                                       Reset
                                     </button>
                                   </div>
@@ -4502,10 +4565,10 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                                 ['gift_show_logo',    'Logo Brand',           'Tampilkan logo pada kartu'],
                                 ['gift_proof_enabled','Upload Bukti Transfer', 'Tombol & form kirim bukti'],
                               ] as const).map(([key, label, desc]) => (
-                                <div key={key} className="flex items-center justify-between border-t border-violet-50 pt-2.5">
+                                <div key={key} className="flex items-center justify-between border-t border-gray-200/60 pt-2.5">
                                   <div>
-                                    <p className="text-[9px] font-semibold text-gray-600">{label}</p>
-                                    <p className="text-[7px] text-gray-400">{desc}</p>
+                                    <p className="text-[10px] font-semibold text-gray-600">{label}</p>
+                                    <p className="text-[8px] text-gray-400">{desc}</p>
                                   </div>
                                   <button type="button"
                                     onClick={() => updateSection(s.id, { [key]: !(s[key] ?? true) })}
@@ -4520,8 +4583,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                               {/*  Thank you text  */}
                               {(s.gift_proof_enabled ?? true) && (
-                                <div className="border-t border-violet-50 pt-2.5 space-y-1">
-                                  <p className="text-[8px] font-bold text-violet-500 uppercase tracking-widest">Pesan Terima Kasih</p>
+                                <div className="border-t border-gray-200/60 pt-2.5 space-y-1">
+                                  <p className="text-[9px] font-semibold text-gray-500">Pesan Terima Kasih</p>
                                   <textarea
                                     value={s.gift_thankyou_text ?? ''}
                                     onChange={e => updateSection(s.id, { gift_thankyou_text: e.target.value || undefined })}
@@ -4548,14 +4611,14 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               ))}
 
               {/* Add section */}
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-2">Tambah section baru</p>
+              <div className="pt-2">
+                <p className="text-[10px] font-semibold text-gray-400 mb-2">Tambah Section</p>
                 <div className="flex flex-wrap gap-1.5">
                   {SECTION_TYPES.filter(t => !sections.find(s => s.type === t)).map(t => (
                     <button
                       key={t}
                       onClick={() => addSection(t)}
-                      className="flex items-center gap-1 text-[10px] font-medium bg-white border border-gray-200 hover:border-indigo-300 hover:text-indigo-600 text-gray-500 px-2.5 py-1 rounded-full transition-colors"
+                      className="flex items-center gap-1 text-[10px] font-medium bg-white border border-gray-200 hover:border-indigo-300 hover:text-indigo-600 text-gray-500 px-2.5 py-1.5 rounded-lg transition-colors"
                     >
                       <Plus className="w-2.5 h-2.5" />
                       {SECTION_LABELS[t] ?? t}
@@ -4591,7 +4654,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                 <>
                   {/* File Musik   Current Selection */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Musik Terpilih</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Musik Terpilih</p>
                     {musicCfg.url ? (
                       <div className="p-3 rounded-xl border border-purple-200 bg-purple-50 flex items-center gap-3">
                         <button
@@ -4730,7 +4793,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                   {/* Autoplay & Volume */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Pengaturan Putar</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Pengaturan Putar</p>
 
                     <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-white mb-3">
                       <div>
@@ -4773,7 +4836,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                   {/* Gaya Tampilan Player */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Gaya Tampilan Player</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Gaya Tampilan Player</p>
                     <div className="grid grid-cols-2 gap-2">
                       {([
                         { id: 'pill', icon: '💊', name: 'Pill', desc: 'Tombol + judul lagu' },
@@ -4798,7 +4861,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                   {/* Posisi Player */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Posisi Player</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Posisi Player</p>
                     <div className="grid grid-cols-2 gap-2">
                       {([
                         { id: 'bottom-right', name: 'Kanan Bawah', icon: '↘' },
@@ -4822,7 +4885,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                   {/* Animasi Masuk */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Animasi Masuk</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Animasi Masuk</p>
                     <div className="grid grid-cols-2 gap-2">
                       {([
                         { id: 'fade-slide', name: 'Fade Slide', desc: 'Muncul halus dari bawah' },
@@ -4846,7 +4909,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
                   {/* Ukuran Player */}
                   <div className="pt-4 border-t border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Ukuran Player</p>
+                    <p className="text-[10px] font-semibold text-gray-500 mb-3">Ukuran Player</p>
                     <div className="grid grid-cols-3 gap-2">
                       {([
                         { id: 'sm', name: 'Kecil' },
@@ -5819,13 +5882,13 @@ function KfFields({ label, state, color, onUpdate, onClear }: {
 function SectionField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
+      <p className="text-[8px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
       {children}
     </div>
   )
 }
 
-const miniInput = 'w-full text-xs px-2 py-1.5 border border-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white'
+const miniInput = 'w-full text-[11px] px-2.5 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

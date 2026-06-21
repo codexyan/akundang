@@ -58,12 +58,12 @@ function Drawer({ open, onClose, title, width = 'max-w-md', children }: {
 
   return (
     <div className={`fixed inset-0 z-50 transition-all duration-300 ${open ? 'visible' : 'invisible pointer-events-none'}`}>
-      <div className={`absolute inset-0 bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
+      <div className={`absolute inset-0 bg-black/25 backdrop-blur-[3px] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
       <div className={`absolute inset-y-0 right-0 w-full ${width} bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${open ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-base font-bold text-gray-900">{title}</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-            <X className="w-5 h-5" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 shrink-0">
+          <h2 className="text-sm font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto">{children}</div>
@@ -226,6 +226,7 @@ export default function TemplatesTab({
   const [tierEditorId, setTierEditorId] = useState<string | null>(null)
   const [tierStep, setTierStep] = useState(0)
   const [tierDraft, setTierDraft] = useState<Partial<PriceTier>>({})
+  const [searchQuery, setSearchQuery] = useState('')
 
   const DEFAULT_FEATURES: TierFeatures = {
     max_photos: 6, max_guests: 100, music: true, custom_music: false,
@@ -279,7 +280,8 @@ export default function TemplatesTab({
 
   const sorted = [...records].sort((a, b) => a.sort_order - b.sort_order)
   const counts = { all: sorted.length, active: sorted.filter(r => r.status === 'active').length, draft: sorted.filter(r => r.status === 'draft').length, archived: sorted.filter(r => r.status === 'archived').length }
-  const filtered = filter === 'all' ? sorted : sorted.filter(r => r.status === filter)
+  const searched = searchQuery ? sorted.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase())) : sorted
+  const filtered = filter === 'all' ? searched : searched.filter(r => r.status === filter)
 
   const editingRec = editingId ? records.find(r => r.id === editingId) : null
 
@@ -388,42 +390,44 @@ export default function TemplatesTab({
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50/60">
+    <div className="min-h-screen bg-gray-50/50">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200/60 sticky top-0 z-10">
         <div className="px-6 lg:px-8">
-          <div className="flex items-center justify-between py-5">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Manajemen Tema</h1>
-              <p className="text-sm text-gray-400 mt-0.5">Kelola tema, kategori, harga, dan promosi</p>
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <Layers className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Manajemen Tema</h1>
+                <p className="text-xs text-gray-400">Kelola template, harga, dan promosi</p>
+              </div>
             </div>
             {onGoToLab && (
               <button onClick={onGoToLab}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all">
                 <FlaskConical className="w-4 h-4" /> Studio Desain
               </button>
             )}
           </div>
 
-          {/* Main navigation tabs */}
-          <div className="flex items-center gap-1 pb-0">
+          {/* Main navigation tabs — pill style */}
+          <div className="flex items-center gap-1 bg-gray-100/80 rounded-xl p-1 w-fit mb-3">
             {MAIN_TABS.map(tab => (
               <button key={tab.id} onClick={() => setMainTab(tab.id)}
-                className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                   mainTab === tab.id
-                    ? 'text-indigo-600'
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}>
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
                 {tab.count != null && tab.count > 0 && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                    mainTab === tab.id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400'
+                    mainTab === tab.id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200/80 text-gray-400'
                   }`}>{tab.count}</span>
-                )}
-                {mainTab === tab.id && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-600 rounded-full" />
                 )}
               </button>
             ))}
@@ -437,45 +441,62 @@ export default function TemplatesTab({
         {/* TEMA TAB */}
         {mainTab === 'tema' && (
           <div>
-            {/* Filter + Stats */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 shadow-sm">
+            {/* Stats row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {([
+                { label: 'Total', count: counts.all, color: 'text-gray-700', bg: 'bg-white' },
+                { label: 'Aktif', count: counts.active, color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
+                { label: 'Draft', count: counts.draft, color: 'text-amber-600', bg: 'bg-amber-50/50' },
+                { label: 'Arsip', count: counts.archived, color: 'text-gray-400', bg: 'bg-gray-50' },
+              ]).map(s => (
+                <div key={s.label} className={`${s.bg} rounded-xl border border-gray-200/60 px-4 py-3`}>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{s.label}</p>
+                  <p className={`text-2xl font-bold ${s.color} mt-0.5`}>{s.count}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Filter + Search */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-1 bg-white border border-gray-200/60 rounded-xl p-1 shadow-sm">
                 {([
-                  { f: 'all' as Filter, label: 'Semua', count: counts.all },
-                  { f: 'active' as Filter, label: 'Aktif', count: counts.active },
-                  { f: 'draft' as Filter, label: 'Draft', count: counts.draft },
-                  { f: 'archived' as Filter, label: 'Arsip', count: counts.archived },
-                ]).map(({ f, label, count }) => (
+                  { f: 'all' as Filter, label: 'Semua' },
+                  { f: 'active' as Filter, label: 'Aktif' },
+                  { f: 'draft' as Filter, label: 'Draft' },
+                  { f: 'archived' as Filter, label: 'Arsip' },
+                ]).map(({ f, label }) => (
                   <button key={f} onClick={() => setFilter(f)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all ${
-                      filter === f ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      filter === f ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'
                     }`}>
                     {label}
-                    {count > 0 && (
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                        filter === f ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'
-                      }`}>{count}</span>
-                    )}
                   </button>
                 ))}
+              </div>
+              <div className="flex-1" />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Cari tema..."
+                  className="pl-9 pr-4 py-2 text-sm border border-gray-200/60 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 w-56 shadow-sm" />
               </div>
             </div>
 
             {/* Template grid */}
             {filtered.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
+              <div className="bg-white rounded-2xl border border-dashed border-gray-200/60 p-16 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                  <FlaskConical className="w-7 h-7 text-gray-200" />
+                  {searchQuery ? <Search className="w-6 h-6 text-gray-200" /> : <FlaskConical className="w-7 h-7 text-gray-200" />}
                 </div>
                 <p className="text-base font-semibold text-gray-400 mb-1">
-                  {filter === 'all' ? 'Belum ada tema' : `Tidak ada tema ${filter === 'draft' ? 'draft' : filter === 'active' ? 'aktif' : 'arsip'}`}
+                  {searchQuery ? `Tidak ditemukan "${searchQuery}"` : filter === 'all' ? 'Belum ada tema' : `Tidak ada tema ${filter === 'draft' ? 'draft' : filter === 'active' ? 'aktif' : 'arsip'}`}
                 </p>
                 <p className="text-sm text-gray-300 mb-5">
-                  {filter === 'all' ? 'Buat desain pertama di Studio Desain.' : 'Ubah filter atau buat tema baru.'}
+                  {searchQuery ? 'Coba kata kunci lain.' : filter === 'all' ? 'Buat desain pertama di Studio Desain.' : 'Ubah filter atau buat tema baru.'}
                 </p>
-                {filter === 'all' && onGoToLab && (
+                {!searchQuery && filter === 'all' && onGoToLab && (
                   <button onClick={onGoToLab}
-                    className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all">
                     <FlaskConical className="w-4 h-4" /> Mulai Desain
                   </button>
                 )}
@@ -491,16 +512,17 @@ export default function TemplatesTab({
 
                   return catGroups.map(({ cat, items }) => (
                     <div key={cat.slug}>
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <h3 className="text-sm font-bold text-gray-700">{cat.label}</h3>
-                        <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-semibold">{items.length}</span>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-1 h-5 rounded-full bg-gradient-to-b from-indigo-500 to-violet-500" />
+                        <h3 className="text-sm font-bold text-gray-800">{cat.label}</h3>
+                        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-semibold">{items.length} tema</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {items.map(rec => {
                           const cs = rec.config.meta.color_scheme
                           const tierLabel = findTierLabel(rec.price)
                           return (
-                            <div key={rec.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all duration-200 group">
+                            <div key={rec.id} className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 group">
                               <div className="relative aspect-[3/4] overflow-hidden cursor-pointer" onClick={() => openEdit(rec)}
                                 style={{ background: `linear-gradient(135deg, ${cs.primary} 0%, ${cs.background} 100%)` }}>
                                 <div className="absolute inset-0">
@@ -516,8 +538,8 @@ export default function TemplatesTab({
                                     </span>
                                   </div>
                                 )}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                  <span className="text-white text-xs font-semibold bg-black/50 px-4 py-2 rounded-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <span className="text-white text-xs font-semibold bg-black/40 px-4 py-2 rounded-xl backdrop-blur-sm translate-y-2 group-hover:translate-y-0 transition-transform">
                                     Pengaturan
                                   </span>
                                 </div>
@@ -540,12 +562,12 @@ export default function TemplatesTab({
                                 <div className="flex gap-2">
                                   {onEditInLab && (
                                     <button onClick={() => onEditInLab(rec)}
-                                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors">
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
                                       <FlaskConical className="w-3.5 h-3.5" /> Desain
                                     </button>
                                   )}
                                   <button onClick={() => openEdit(rec)}
-                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-gray-600 border border-gray-200/60 hover:bg-gray-50 transition-colors">
                                     <Settings2 className="w-3.5 h-3.5" /> Atur
                                   </button>
                                 </div>
@@ -564,18 +586,21 @@ export default function TemplatesTab({
 
         {/* KATEGORI TAB */}
         {mainTab === 'kategori' && (
-          <div className="max-w-xl">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-50">
+          <div className="max-w-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <div>
                 <h2 className="text-base font-bold text-gray-900">Kategori Tema</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Kelompokkan tema berdasarkan gaya. Kategori yang dipakai tidak bisa dihapus.</p>
+                <p className="text-sm text-gray-400 mt-0.5">Kelompokkan tema berdasarkan gaya</p>
               </div>
-              <div className="p-6 space-y-3">
+              <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">{allCategories.length} kategori</span>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+              <div className="divide-y divide-gray-100">
                 {allCategories.map(c => {
                   const count = records.filter(r => r.category === c.slug).length
                   const isEd = editingCatSlug === c.slug
                   return isEd ? (
-                    <div key={c.slug} className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                    <div key={c.slug} className="flex items-center gap-2 bg-indigo-50/50 px-5 py-3.5">
                       <input value={editingCatLabel} onChange={e => setEditingCatLabel(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') saveEditCategory(); if (e.key === 'Escape') setEditingCatSlug(null) }}
                         autoFocus className="flex-1 px-3 py-1.5 text-sm bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
@@ -583,48 +608,51 @@ export default function TemplatesTab({
                       <button onClick={() => setEditingCatSlug(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4" /></button>
                     </div>
                   ) : (
-                    <div key={c.slug} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-white hover:border-gray-200 transition-colors group">
-                      <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${count > 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
+                    <div key={c.slug} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors group">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${count > 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
                       <span className="text-sm font-medium text-gray-800 flex-1">{c.label}</span>
-                      <span className="text-[11px] text-gray-400 tabular-nums">{count} tema</span>
+                      <span className="text-[11px] text-gray-400 tabular-nums bg-gray-50 px-2 py-0.5 rounded-md">{count} tema</span>
                       {c.is_built_in && <span className="text-[9px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full font-semibold shrink-0">bawaan</span>}
-                      <button onClick={() => startEditCategory(c)} className="p-1 text-gray-300 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
-                        className="p-1 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => startEditCategory(c)} className="p-1.5 text-gray-300 hover:text-indigo-500 rounded-lg hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
+                          className="p-1.5 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </div>
                   )
                 })}
               </div>
-              <div className="px-6 pb-6">
+              <div className="px-5 py-4 bg-gray-50/50 border-t border-gray-100">
                 <div className="flex gap-2">
                   <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') addCategory() }}
                     placeholder="Nama kategori baru..."
                     className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
                   <button onClick={addCategory} disabled={!newCatLabel.trim()}
-                    className="flex items-center gap-1.5 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-40 transition-colors">
+                    className="flex items-center gap-1.5 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-40 transition-colors">
                     <Plus className="w-3.5 h-3.5" /> Tambah
                   </button>
                 </div>
               </div>
             </div>
+            <p className="text-xs text-gray-400 mt-3 ml-1">Kategori yang masih dipakai oleh tema tidak bisa dihapus.</p>
           </div>
         )}
 
         {/* PAKET HARGA TAB */}
         {mainTab === 'harga' && (
-          <div className="max-w-2xl">
+          <div className="max-w-3xl">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-base font-bold text-gray-900">Paket Harga</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Kelola tier harga dan fitur per paket</p>
               </div>
               <button onClick={() => openTierEditor()}
-                className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors shadow-sm">
                 <Plus className="w-4 h-4" /> Buat Paket
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {allTiers.sort((a, b) => a.price - b.price).map(t => {
                 const used = records.filter(r => r.price === t.price).length
                 const f = t.features
@@ -632,57 +660,60 @@ export default function TemplatesTab({
                 const TierIcon = t.icon === 'crown' ? Crown : t.icon === 'gem' ? Gem : Rocket
                 return (
                   <div key={t.id}
-                    className={`bg-white rounded-2xl border overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 group ${
-                      t.highlight ? 'border-purple-200 ring-1 ring-purple-100' : 'border-gray-100'
+                    className={`bg-white rounded-2xl border overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group relative ${
+                      t.highlight ? 'border-purple-200 ring-1 ring-purple-100' : 'border-gray-200/60'
                     }`}
                     onClick={() => openTierEditor(t)}>
-                    <div className="px-5 py-4 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${t.color || '#6366f1'}12` }}>
-                        <TierIcon className="w-5 h-5" style={{ color: t.color || '#6366f1' }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-900">{t.label}</span>
-                          {t.highlight && <span className="text-[9px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">POPULER</span>}
-                          {t.is_built_in && <span className="text-[9px] bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded-full font-semibold">bawaan</span>}
-                        </div>
-                        {t.description && <p className="text-[11px] text-gray-400 truncate mt-0.5">{t.description}</p>}
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-[11px] text-gray-400">{used} tema</span>
-                          <span className="text-[11px] text-gray-400">{enabledCount} fitur</span>
-                          {f && <span className="text-[11px] text-gray-400">{f.validity_days} hari</span>}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-lg font-bold" style={{ color: t.color || '#6366f1' }}>
-                          {t.price === 0 ? 'Gratis' : formatRp(t.price)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); if (used > 0) { toast.error('Masih dipakai template'); return } if (confirm(`Hapus paket "${t.label}"?`)) removeTier(t.id) }}
-                        className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                        title="Hapus paket"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" />
-                    </div>
-                    {f && (
-                      <div className="px-5 pb-4 flex flex-wrap gap-1.5">
-                        {f.music && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">Musik</span>}
-                        {f.gallery && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">Galeri {f.max_photos}</span>}
-                        {f.rsvp && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">RSVP</span>}
-                        {f.wishes && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">Ucapan</span>}
-                        {f.story && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md border border-emerald-100">Story</span>}
-                        {f.video && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md border border-emerald-100">Video</span>}
-                        {f.gift_registry && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md border border-emerald-100">Gift Registry</span>}
-                        {f.custom_music && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">Upload Musik</span>}
-                        {f.remove_watermark && <span className="text-[10px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md border border-purple-100">No Watermark</span>}
-                        {f.custom_domain && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">Custom Domain</span>}
-                        {f.analytics && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">Analytics</span>}
-                        {f.priority_support && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">Priority</span>}
-                      </div>
+                    {t.highlight && (
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-violet-500" />
                     )}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${t.color || '#6366f1'}12` }}>
+                            <TierIcon className="w-5 h-5" style={{ color: t.color || '#6366f1' }} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-gray-900">{t.label}</span>
+                              {t.highlight && <span className="text-[9px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">POPULER</span>}
+                            </div>
+                            {t.description && <p className="text-[11px] text-gray-400 mt-0.5">{t.description}</p>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); if (used > 0) { toast.error('Masih dipakai template'); return } if (confirm(`Hapus paket "${t.label}"?`)) removeTier(t.id) }}
+                          className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-500 text-gray-300 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          title="Hapus paket">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-2xl font-bold mb-3" style={{ color: t.color || '#6366f1' }}>
+                        {t.price === 0 ? 'Gratis' : formatRp(t.price)}
+                      </p>
+                      <div className="flex items-center gap-3 text-[11px] text-gray-400 mb-3">
+                        <span className="bg-gray-50 px-2 py-0.5 rounded-md">{used} tema</span>
+                        <span className="bg-gray-50 px-2 py-0.5 rounded-md">{enabledCount} fitur</span>
+                        {f && <span className="bg-gray-50 px-2 py-0.5 rounded-md">{f.validity_days} hari</span>}
+                        {t.is_built_in && <span className="bg-blue-50 text-blue-500 px-2 py-0.5 rounded-md font-semibold">bawaan</span>}
+                      </div>
+                      {f && (
+                        <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-100">
+                          {f.music && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md">Musik</span>}
+                          {f.gallery && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md">Galeri {f.max_photos}</span>}
+                          {f.rsvp && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md">RSVP</span>}
+                          {f.wishes && <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md">Ucapan</span>}
+                          {f.story && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">Story</span>}
+                          {f.video && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">Video</span>}
+                          {f.gift_registry && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">Gift Registry</span>}
+                          {f.custom_music && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md">Upload Musik</span>}
+                          {f.remove_watermark && <span className="text-[10px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md">No Watermark</span>}
+                          {f.custom_domain && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md">Custom Domain</span>}
+                          {f.analytics && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md">Analytics</span>}
+                          {f.priority_support && <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md">Priority</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )
               })}
@@ -692,17 +723,22 @@ export default function TemplatesTab({
 
         {/* PROMOSI TAB */}
         {mainTab === 'promo' && (
-          <div className="max-w-2xl space-y-8">
+          <div className="max-w-3xl space-y-6">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Promosi</h2>
+              <p className="text-sm text-gray-400 mt-0.5">Flash sale dan kupon diskon</p>
+            </div>
+
             {/* Flash Sale */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-amber-500" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm shadow-amber-500/20">
+                    <Zap className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">Flash Sale</h2>
-                    <p className="text-[12px] text-gray-400">Diskon otomatis berdasarkan periode waktu</p>
+                    <h3 className="text-sm font-bold text-gray-900">Flash Sale</h3>
+                    <p className="text-[11px] text-gray-400">Diskon otomatis berdasarkan periode</p>
                   </div>
                   {allFlashSales.length > 0 && <span className="text-[10px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-bold">{allFlashSales.length}</span>}
                 </div>
@@ -789,15 +825,15 @@ export default function TemplatesTab({
             </div>
 
             {/* Kupon */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-                    <Ticket className="w-4 h-4 text-violet-500" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm shadow-violet-500/20">
+                    <Ticket className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">Kupon Diskon</h2>
-                    <p className="text-[12px] text-gray-400">Kode promo yang bisa dipakai user saat checkout</p>
+                    <h3 className="text-sm font-bold text-gray-900">Kupon Diskon</h3>
+                    <p className="text-[11px] text-gray-400">Kode promo untuk checkout</p>
                   </div>
                   {allCoupons.length > 0 && <span className="text-[10px] bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full font-bold">{allCoupons.length}</span>}
                 </div>
@@ -902,10 +938,11 @@ export default function TemplatesTab({
         {editingRec && (
           <div className="flex flex-col h-full">
             <div className="flex-1 overflow-y-auto">
-              <div className="p-5">
-                <div className="rounded-2xl overflow-hidden border border-gray-100" style={{ background: `linear-gradient(135deg, ${editingRec.config.meta.color_scheme.primary}12 0%, ${editingRec.config.meta.color_scheme.accent}08 100%)` }}>
+              {/* Hero card */}
+              <div className="p-5 pb-0">
+                <div className="rounded-2xl overflow-hidden border border-gray-200/60 bg-gradient-to-br from-gray-50 to-white">
                   <div className="flex gap-4 p-4">
-                    <div className="w-[72px] h-[96px] rounded-xl overflow-hidden border border-gray-200 shrink-0 shadow-sm">
+                    <div className="w-[72px] h-[96px] rounded-xl overflow-hidden border border-gray-200/60 shrink-0 shadow-md">
                       <TemplateThumbnail rec={editingRec} />
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -926,24 +963,24 @@ export default function TemplatesTab({
                       </div>
                     </div>
                   </div>
-                  <div className="flex border-t border-gray-100 divide-x divide-gray-100">
+                  <div className="flex border-t border-gray-200/60 divide-x divide-gray-200/60 bg-white/80">
                     <button onClick={() => toggleStatus(editingRec)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-white/60 transition-colors">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                       {editingRec.status === 'active' ? <Eye className="w-3.5 h-3.5 text-emerald-500" /> : <EyeOff className="w-3.5 h-3.5" />}
                       {editingRec.status === 'active' ? 'Aktif' : 'Draft'}
                     </button>
                     <a href={`/demo/renderer?id=${editingRec.id}`} target="_blank" rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-white/60 transition-colors">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" /> Preview
                     </a>
                     {editingRec.status !== 'archived' ? (
                       <button onClick={() => requestArchive(editingRec)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-amber-600 hover:bg-amber-50/60 transition-colors">
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-amber-600 hover:bg-amber-50/50 transition-colors">
                         <Archive className="w-3.5 h-3.5" /> Arsip
                       </button>
                     ) : (
                       <button onClick={() => requestDelete(editingRec)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/60 transition-colors">
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/50 transition-colors">
                         <Trash2 className="w-3.5 h-3.5" /> Hapus
                       </button>
                     )}
@@ -951,7 +988,8 @@ export default function TemplatesTab({
                 </div>
               </div>
 
-              <div className="px-5 pb-2 space-y-5">
+              {/* Settings sections */}
+              <div className="px-5 py-5 space-y-6">
                 <div className="grid grid-cols-[1fr_auto] gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Tampilan</label>
@@ -1047,11 +1085,11 @@ export default function TemplatesTab({
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-white shrink-0">
-              <div className="flex items-center gap-2">
+            <div className="p-5 border-t border-gray-200/60 bg-gray-50/80 shrink-0">
+              <div className="flex items-center gap-3">
                 <button onClick={saveEdit} disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm">
-                  <Save className="w-4 h-4" /> {saving ? 'Menyimpan...' : 'Simpan'}
+                  className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors">
+                  <Save className="w-4 h-4" /> {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
                 <button onClick={() => setEditingId(null)} className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors">
                   Batal
