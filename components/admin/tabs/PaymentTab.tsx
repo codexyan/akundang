@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import toast from 'react-hot-toast'
 import {
   Plus, Trash2, Save, CheckCircle2, XCircle, Clock,
-  Landmark, QrCode, MessageSquare, Eye, Upload,
+  Landmark, QrCode, Eye, Upload,
   CreditCard, ToggleLeft, ToggleRight, Loader2,
   Phone, FileText, AlertTriangle, Image as ImageIcon,
   X, Edit3, Building2, Hash, User,
@@ -332,7 +332,6 @@ function PaymentConfigTab({ config, onUpdate }: { config: PaymentConfig; onUpdat
                     accountNumber={acc.accountNumber}
                     accountName={acc.accountName}
                     showCopy
-                    compact
                   />
                   <div className="flex items-center gap-1.5 px-1">
                     <button onClick={() => toggleActive(acc.id)}

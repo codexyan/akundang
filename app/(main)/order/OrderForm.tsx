@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   ChevronRight, ChevronLeft, Check, Crown, Rocket, Gem,
-  Copy, QrCode, CreditCard, Send, Loader2, CheckCircle2,
+  Copy, CreditCard, Send, Loader2, CheckCircle2,
   User, Users, Globe, ShoppingBag, Clock, X, Landmark,
 } from 'lucide-react'
 import BankCard, { QrisCard } from '@/components/ui/BankCard'
@@ -632,6 +632,16 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
                     </div>
                     <p className="text-sm font-bold text-amber-700 mt-4">Rp {order.total_amount.toLocaleString('id-ID')}</p>
                     <p className="text-[11px] text-stone-400 mt-1">Pastikan nominal sesuai termasuk kode unik</p>
+                  </div>
+                )}
+
+                {/* Payment instructions */}
+                {selectedPayment && paymentConfig.paymentInstructions && (
+                  <div className="mb-8 rounded-2xl bg-blue-50 border border-blue-100 p-5">
+                    <p className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-3">Instruksi Pembayaran</p>
+                    <div className="text-xs text-blue-900/80 leading-relaxed whitespace-pre-line">
+                      {paymentConfig.paymentInstructions}
+                    </div>
                   </div>
                 )}
 

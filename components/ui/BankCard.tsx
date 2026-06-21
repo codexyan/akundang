@@ -44,14 +44,13 @@ interface BankCardProps {
   accountName: string
   selected?: boolean
   selectable?: boolean
-  compact?: boolean
   showCopy?: boolean
   onClick?: () => void
 }
 
 export default function BankCard({
   bankName, accountNumber, accountName,
-  selected, selectable, compact, showCopy, onClick,
+  selected, selectable, showCopy, onClick,
 }: BankCardProps) {
   const [copied, setCopied] = useState(false)
   const g = getGradient(bankName)
@@ -64,13 +63,12 @@ export default function BankCard({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const height = compact ? 'h-[160px]' : 'h-[190px]'
   const ring = selected ? 'ring-2 ring-white ring-offset-2 ring-offset-forest-500' : ''
 
   return (
     <div
       onClick={onClick}
-      className={`relative ${height} rounded-2xl overflow-hidden text-white transition-all ${
+      className={`relative aspect-[8/5] rounded-2xl overflow-hidden text-white transition-all ${
         selectable ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''
       } ${ring} ${selected ? 'shadow-xl' : 'shadow-lg'}`}
       style={{ background: `linear-gradient(135deg, ${g.from} 0%, ${g.to} 100%)` }}
@@ -81,10 +79,10 @@ export default function BankCard({
       <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full opacity-[0.05]" style={{ backgroundColor: '#fff' }} />
 
       {/* Card content */}
-      <div className="relative z-10 h-full flex flex-col justify-between p-5">
+      <div className="relative z-10 h-full flex flex-col justify-between p-4 sm:p-5">
         {/* Top row: bank name + chip */}
         <div className="flex items-center justify-between">
-          <p className={`font-bold tracking-tight ${compact ? 'text-sm' : 'text-base'}`}>{bankName}</p>
+          <p className="font-bold tracking-tight text-sm">{bankName}</p>
           <div className="flex items-center gap-2">
             <div className="w-8 h-6 rounded-[3px] bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 flex items-center justify-center shadow-inner">
               <div className="w-5 h-3.5 rounded-[2px] border border-yellow-600/30 bg-gradient-to-br from-yellow-200/50 to-yellow-500/50" />
@@ -95,7 +93,7 @@ export default function BankCard({
 
         {/* Account number */}
         <div>
-          <p className={`font-mono tracking-[0.15em] text-white/90 ${compact ? 'text-sm' : 'text-lg'}`}>
+          <p className="font-mono tracking-[0.15em] text-white/90 text-sm sm:text-base">
             {maskNumber(accountNumber)}
           </p>
         </div>
@@ -104,7 +102,7 @@ export default function BankCard({
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[9px] text-white/40 uppercase tracking-[0.15em] font-medium mb-0.5">Atas Nama</p>
-            <p className={`font-semibold text-white/90 truncate ${compact ? 'text-xs' : 'text-sm'}`}>{accountName}</p>
+            <p className="font-semibold text-white/90 truncate text-xs sm:text-sm">{accountName}</p>
           </div>
           {showCopy && (
             <button
@@ -140,7 +138,7 @@ export function QrisCard({
   return (
     <div
       onClick={onClick}
-      className={`relative h-[190px] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 text-white transition-all shadow-lg ${
+      className={`relative aspect-[8/5] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 text-white transition-all shadow-lg ${
         selectable ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''
       } ${ring}`}
     >

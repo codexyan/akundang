@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   Crown, Rocket, Gem, CheckCircle2, Clock, AlertTriangle,
-  ArrowUpRight, Calendar, Shield, Zap, Star, ExternalLink,
+  ArrowUpRight, Shield, Zap, Star, ExternalLink,
   Loader2, Receipt,
 } from 'lucide-react'
 import type { Invitation } from '@/lib/types'
