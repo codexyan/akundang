@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
               </Link>
 
               <Link
-                href="/order"
+                href="/templates"
                 className="block w-full py-2.5 px-4 bg-white text-stone-700 text-sm font-medium rounded-lg border border-stone-300 hover:bg-stone-50 transition-all"
               >
                 Buat Undangan Baru

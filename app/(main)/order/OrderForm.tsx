@@ -1,24 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Image from 'next/image'
 import {
   ChevronRight, ChevronLeft, Check, Crown, Rocket, Gem,
   Copy, QrCode, CreditCard, Send, Loader2, CheckCircle2,
-  User, Users, Globe, Palette, ShoppingBag, Clock, X,
+  User, Users, Globe, ShoppingBag, Clock, X,
 } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
-
-interface TemplateInfo {
-  id: string
-  name: string
-  category: string
-  thumbnail_url: string
-  config: {
-    meta: { color_scheme: { primary: string; accent: string; text: string } }
-    opening?: { cover_photo_url?: string; background_image?: string }
-  }
-}
 
 interface TierFeatures {
   max_photos: number
@@ -63,18 +51,17 @@ interface PaymentConfig {
 }
 
 interface Props {
-  templates: TemplateInfo[]
+  templateId: string
+  templateName: string
   tiers: TierInfo[]
   paymentConfig: PaymentConfig
-  initialTemplate?: string
 }
 
-type Step = 0 | 1 | 2 | 3 | 4
+type Step = 0 | 1 | 2 | 3
 
 const STEP_LABELS = [
   { icon: User, label: 'Data Mempelai' },
   { icon: Globe, label: 'Subdomain & Kontak' },
-  { icon: Palette, label: 'Pilih Template' },
   { icon: ShoppingBag, label: 'Pilih Paket' },
   { icon: CreditCard, label: 'Pembayaran' },
 ]
@@ -108,7 +95,7 @@ function buildTierFeatureList(tierId: string, f: TierFeatures): { label: string;
 const INPUT_CLS = 'w-full px-4 py-3 text-sm border border-stone-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-forest-500/20 focus:border-forest-400 transition-colors'
 const LABEL_CLS = 'block text-xs font-semibold text-stone-600 mb-1.5'
 
-export default function OrderForm({ templates, tiers, paymentConfig, initialTemplate }: Props) {
+export default function OrderForm({ templateId, templateName, tiers, paymentConfig }: Props) {
   const [step, setStep] = useState<Step>(0)
 
   // Step 0: Couple data
@@ -130,16 +117,10 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null)
   const [checkingSubdomain, setCheckingSubdomain] = useState(false)
 
-  // Step 2: Template — pre-select from query param
-  const [templateId, setTemplateId] = useState(() => {
-    if (initialTemplate && templates.some(t => t.id === initialTemplate)) return initialTemplate
-    return ''
-  })
-
-  // Step 3: Package
+  // Step 2: Package
   const [packageTier, setPackageTier] = useState('')
 
-  // Step 4: Payment result
+  // Step 3: Payment result
   const [order, setOrder] = useState<{ order_number: string; total_amount: number; unique_code: number; amount: number } | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
@@ -172,8 +153,7 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
     switch (step) {
       case 0: return !!(groomName && brideName && groomNickname && brideNickname)
       case 1: return !!(email && subdomain && subdomainAvailable)
-      case 2: return !!templateId
-      case 3: return !!packageTier
+      case 2: return !!packageTier
       default: return false
     }
   }
@@ -203,7 +183,7 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
       }
       const { order: newOrder } = await res.json()
       setOrder(newOrder)
-      setStep(4)
+      setStep(3)
       toast.success('Pesanan berhasil dibuat!')
     } catch { toast.error('Terjadi kesalahan') }
     finally { setSubmitting(false) }
@@ -245,7 +225,9 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">Buat Undangan Digital</h1>
-          <p className="mt-2 text-sm text-stone-400">Isi data, pilih desain, dan undangan siap dibagikan</p>
+          <p className="mt-2 text-sm text-stone-400">
+            Template: <span className="font-semibold text-stone-600">{templateName}</span>
+          </p>
         </div>
 
         {/* Step indicator */}
@@ -389,63 +371,8 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
             </div>
           )}
 
-          {/* Step 2: Template */}
+          {/* Step 2: Package */}
           {step === 2 && (
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <Palette size={18} className="text-forest-500" />
-                <h2 className="text-lg font-semibold text-stone-900">Pilih Template</h2>
-              </div>
-
-              {templates.length === 0 ? (
-                <p className="text-sm text-stone-400 text-center py-10">Belum ada template tersedia.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {templates.map(t => {
-                    const cs = t.config.meta.color_scheme
-                    const coverPhoto = t.config.opening?.cover_photo_url || t.config.opening?.background_image
-                    const selected = templateId === t.id
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => setTemplateId(t.id)}
-                        className={`relative text-left rounded-2xl border-2 overflow-hidden transition-all ${
-                          selected
-                            ? 'border-forest-500 shadow-lg shadow-forest-100'
-                            : 'border-stone-150 hover:border-stone-300 hover:shadow-md'
-                        }`}
-                      >
-                        <div className="relative" style={{ aspectRatio: '9/16', backgroundColor: cs.primary }}>
-                          {coverPhoto && (
-                            <Image src={coverPhoto} alt={t.name} fill className="object-cover" sizes="200px" style={{ opacity: 0.6 }} />
-                          )}
-                          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${cs.primary}dd 70%, ${cs.primary} 100%)` }} />
-                          <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 px-2">
-                            <p className="text-[7px] tracking-[0.2em] uppercase" style={{ color: cs.accent }}>The Wedding of</p>
-                            <p className="text-xs font-bold mt-1" style={{ color: cs.text, fontFamily: "var(--font-playfair), 'Playfair Display', serif" }}>
-                              {groomNickname || 'Rizky'} & {brideNickname || 'Aulia'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-white">
-                          <p className="text-xs font-semibold text-stone-800">{t.name}</p>
-                          {t.category && <p className="text-[10px] text-stone-400">{t.category}</p>}
-                        </div>
-                        {selected && (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-forest-600 flex items-center justify-center shadow">
-                            <Check size={12} className="text-white" strokeWidth={3} />
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: Package */}
-          {step === 3 && (
             <div className="p-6 sm:p-8">
               <div className="flex items-center gap-2 mb-6">
                 <ShoppingBag size={18} className="text-forest-500" />
@@ -529,7 +456,7 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between"><span className="text-stone-500">Mempelai</span><span className="font-medium text-stone-800">{groomNickname} & {brideNickname}</span></div>
                     <div className="flex justify-between"><span className="text-stone-500">Subdomain</span><span className="font-mono text-stone-800">{subdomain}.iaundang.id</span></div>
-                    <div className="flex justify-between"><span className="text-stone-500">Template</span><span className="font-medium text-stone-800">{templates.find(t => t.id === templateId)?.name}</span></div>
+                    <div className="flex justify-between"><span className="text-stone-500">Template</span><span className="font-medium text-stone-800">{templateName}</span></div>
                     <div className="flex justify-between"><span className="text-stone-500">Paket</span><span className="font-medium text-stone-800">{selectedTier.label}</span></div>
                     <div className="border-t border-stone-200 my-2" />
                     <div className="flex justify-between text-base"><span className="font-semibold text-stone-700">Total</span><span className="font-bold text-stone-900">Rp {selectedTier.price.toLocaleString('id-ID')}</span></div>
@@ -540,8 +467,8 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
             </div>
           )}
 
-          {/* Step 4: Payment Confirmation */}
-          {step === 4 && order && (
+          {/* Step 3: Payment Confirmation */}
+          {step === 3 && order && (
             <div className="p-6 sm:p-8">
               <div className="text-center mb-8">
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
@@ -647,7 +574,7 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
           )}
 
           {/* Navigation */}
-          {step < 4 && (
+          {step < 3 && (
             <div className="flex items-center justify-between px-6 sm:px-8 py-4 border-t border-stone-100 bg-stone-50/50">
               {step > 0 ? (
                 <button onClick={() => setStep((step - 1) as Step)} className="flex items-center gap-1 text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors">
@@ -655,7 +582,7 @@ export default function OrderForm({ templates, tiers, paymentConfig, initialTemp
                 </button>
               ) : <div />}
 
-              {step === 3 ? (
+              {step === 2 ? (
                 <button
                   onClick={handleSubmitOrder}
                   disabled={!canNext() || submitting}

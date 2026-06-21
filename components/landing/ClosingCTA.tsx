@@ -74,7 +74,7 @@ export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
           transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
           className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center"
         >
-          <Link href="/order">
+          <Link href="/templates">
             <motion.span
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

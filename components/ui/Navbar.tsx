@@ -187,7 +187,7 @@ export default function Navbar() {
                     Masuk
                   </Link>
                   <Link
-                    href="/order"
+                    href="/templates"
                     className="group relative text-[13px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-forest-500/20"
                     style={{
                       background: 'linear-gradient(135deg, #2c4a34 0%, #3a5a40 100%)',
@@ -306,7 +306,7 @@ export default function Navbar() {
                         Masuk
                       </Link>
                       <Link
-                        href="/order"
+                        href="/templates"
                         onClick={() => setMobileOpen(false)}
                         className="block text-sm font-semibold text-center text-white px-4 py-2.5 rounded-xl transition-all duration-200"
                         style={{ background: 'linear-gradient(135deg, #2c4a34 0%, #3a5a40 100%)' }}

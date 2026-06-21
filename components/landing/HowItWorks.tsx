@@ -125,7 +125,7 @@ export default function HowItWorks({ steps: propSteps }: { steps?: { title: stri
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-16 flex flex-col items-center gap-3"
         >
-          <Link href="/order">
+          <Link href="/templates">
             <motion.span
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

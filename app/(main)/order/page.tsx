@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { settings, templateRecords } from '@/lib/db'
 import OrderForm from './OrderForm'
 
@@ -5,28 +6,25 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Buat Undangan | iaundang',
-  description: 'Isi data pernikahan, pilih template & paket, dan buat undangan digital Anda.',
+  description: 'Isi data pernikahan, pilih paket, dan buat undangan digital Anda.',
 }
 
 export default async function OrderPage({ searchParams }: { searchParams: Promise<{ template?: string }> }) {
   const params = await searchParams
+
+  if (!params.template) {
+    redirect('/templates')
+  }
+
   const [appSettings, allTemplates] = await Promise.all([
     settings.get(),
     templateRecords.findAll(),
   ])
 
-  const activeTemplates = allTemplates
-    .filter(t => t.status === 'active')
-    .map(t => ({
-      id: t.id,
-      name: t.name,
-      category: t.category,
-      thumbnail_url: t.thumbnail_url,
-      config: {
-        meta: t.config.meta,
-        opening: t.config.opening,
-      },
-    }))
+  const template = allTemplates.find(t => t.id === params.template && t.status === 'active')
+  if (!template) {
+    redirect('/templates')
+  }
 
   const tiers = appSettings.priceTiers
     .filter(t => ['starter', 'popular', 'eksklusif'].includes(t.id))
@@ -49,5 +47,12 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
     confirmationWhatsapp: appSettings.confirmationWhatsapp,
   }
 
-  return <OrderForm templates={activeTemplates} tiers={tiers} paymentConfig={paymentConfig} initialTemplate={params.template} />
+  return (
+    <OrderForm
+      templateId={template.id}
+      templateName={template.name}
+      tiers={tiers}
+      paymentConfig={paymentConfig}
+    />
+  )
 }

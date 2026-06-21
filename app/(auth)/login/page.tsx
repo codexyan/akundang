@@ -209,7 +209,7 @@ function LoginContent() {
               <p className="text-sm text-stone-600">
                 Belum punya akun?{' '}
                 <Link
-                  href={templateId ? `/order?template=${templateId}` : '/order'}
+                  href={templateId ? `/order?template=${templateId}` : '/templates'}
                   className="font-semibold text-gold-600 hover:text-gold-600"
                 >
                   Buat undangan

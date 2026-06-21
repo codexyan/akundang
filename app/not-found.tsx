@@ -69,7 +69,7 @@ export default function NotFound() {
               Masuk
             </Link>
             <span className="text-stone-700">•</span>
-            <Link href="/order" className="text-stone-400 hover:text-gold-400 transition-colors">
+            <Link href="/templates" className="text-stone-400 hover:text-gold-400 transition-colors">
               Buat Undangan
             </Link>
             <span className="text-stone-700">•</span>
