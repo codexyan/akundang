@@ -6,8 +6,8 @@ import toast from 'react-hot-toast'
 import {
   FlaskConical, Save, RefreshCw, Maximize2, Move, Music, Volume2,
   ChevronUp, ChevronDown, Eye, EyeOff, Palette, Type, Layers,
-  LayoutTemplate, Code2, Sparkles, Loader2, Plus, Trash2, Rocket, X, GripVertical, Play, Check, Lock, Unlock,
-  Paintbrush, ImageIcon, Undo2, Redo2, FileCheck, FileClock, PenLine, ArrowLeft, Upload,
+  Code2, Sparkles, Plus, Trash2, Rocket, X, GripVertical, Play, Check, Lock, Unlock,
+  Paintbrush, ImageIcon, Undo2, Redo2, PenLine, ArrowLeft, Upload,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getTransitionVariants } from '@/components/renderer/transitions/useTransition'
@@ -773,7 +773,7 @@ const BODY_FONTS = [
   'Libre Caslon Text', 'Gentium Book Plus', 'EB Garamond',
 ]
 
-type ConfigTab = 'identity' | 'colors' | 'style' | 'opening' | 'decor' | 'loading' | 'sections' | 'music'
+type ConfigTab = 'tampilan' | 'opening' | 'decor' | 'konten' | 'music'
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (Cover)', profiles: 'Profil Pasangan', countdown: 'Hitung Mundur',
@@ -825,12 +825,11 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [setupName, setSetupName] = useState('')
   const [setupDesc, setSetupDesc] = useState('')
-  const [setupCategory, setSetupCategory] = useState('modern')
-  const [activeTab, setActiveTab] = useState<ConfigTab>('identity')
+  const [activeTab, setActiveTab] = useState<ConfigTab>('tampilan')
   const [previewMode, setPreviewMode] = useState<'invitation' | 'opening' | 'loading'>('opening')
   const [previewGuestName, setPreviewGuestName] = useState('Bapak Budi dan Keluarga')
   const [previewData, setPreviewData] = useState<NewInvitationData>(PREVIEW_DATA_DEFAULT)
-  const [showHowTo, setShowHowTo] = useState(false)
+
   //  Categories: mutable state + inline CRUD 
   const BUILT_IN_CATS: TemplateCategory[] = [
     { slug: 'modern',      label: 'Modern',      is_built_in: true },
@@ -976,9 +975,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
       if (decorScope === 'opening') { setPreviewMode('opening'); setDecorEditMode(true) }
       else { setPreviewMode('invitation'); setDecorEditMode(false) }
     }
-    else if (activeTab === 'opening' || activeTab === 'identity' || activeTab === 'colors' || activeTab === 'style') setPreviewMode('opening')
-    else if (activeTab === 'loading') setPreviewMode('loading')
-    else if (activeTab === 'sections' || activeTab === 'music') setPreviewMode('invitation')
+    else if (activeTab === 'tampilan' || activeTab === 'opening') setPreviewMode('opening')
+    else if (activeTab === 'konten' || activeTab === 'music') setPreviewMode('invitation')
     if (activeTab !== 'music') {
       musicAudioRef.current?.pause()
       setMusicPreviewId(null)
@@ -1376,9 +1374,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
     const slug = setupName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     setConfig(prev => ({ ...prev, name: setupName.trim(), slug }))
     setTemplateDesc(setupDesc)
-    if (setupCategory) updateMeta({ category: setupCategory as typeof cfg.meta.category })
     setShowSetup(false)
-    setActiveTab('identity')
+    setActiveTab('tampilan')
   }
 
   // 
@@ -1465,7 +1462,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               <p className="text-sm text-gray-500 mt-1">Kelola dan buat template undangan digital</p>
             </div>
             <button
-              onClick={() => { setSetupName(''); setSetupDesc(''); setSetupCategory('modern'); setShowCreateModal(true) }}
+              onClick={() => { setSetupName(''); setSetupDesc(''); setShowCreateModal(true) }}
               className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" /> Buat Template Baru
@@ -1501,7 +1498,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                 <h2 className="text-lg font-bold text-gray-900 mb-2">Belum ada template</h2>
                 <p className="text-sm text-gray-500 mb-6">Mulai buat desain pertama untuk undangan digital kamu</p>
                 <button
-                  onClick={() => { setSetupName(''); setSetupDesc(''); setSetupCategory('modern'); setShowCreateModal(true) }}
+                  onClick={() => { setSetupName(''); setSetupDesc(''); setShowCreateModal(true) }}
                   className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
                 >
                   <Sparkles className="w-4 h-4" /> Buat Template Pertama
@@ -1646,21 +1643,6 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                     className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Kategori</label>
-                  <div className="flex flex-wrap gap-2">
-                    {categoryList.map(c => (
-                      <button key={c.slug} onClick={() => setSetupCategory(c.slug)}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-                          setupCategory === c.slug
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
-                        }`}>
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
               <div className="px-6 pb-6">
                 <button
@@ -1748,19 +1730,22 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
           <p className="text-[9px] text-gray-400 mt-1">
             Slug otomatis: <span className="font-mono font-semibold text-indigo-600">{config.slug || 'template-baru'}</span>
           </p>
+          <input
+            value={templateDesc}
+            onChange={e => setTemplateDesc(e.target.value)}
+            className="w-full px-3 py-1.5 text-xs border border-gray-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400 text-gray-500 mt-1.5"
+            placeholder="Deskripsi singkat (opsional)..."
+          />
         </div>
 
         {/* Tabs */}
         <div className="flex border-b border-gray-100 bg-gray-50 shrink-0">
           {([
-            ['identity', LayoutTemplate, 'Identitas'],
-            ['colors',   Palette,        'Warna'],
-            ['style',    Paintbrush,     'Gaya'],
-            ['opening',  Sparkles,       'Opening'],
-            ['decor',    Layers,         'Dekorasi'],
-            ['loading',  Loader2,        'Loading'],
-            ['sections', Type,           'Sections'],
-            ['music',    Play,           'Musik'],
+            ['tampilan', Palette,   'Tampilan'],
+            ['opening',  Sparkles,  'Opening'],
+            ['decor',    Layers,    'Dekorasi'],
+            ['konten',   Type,      'Konten'],
+            ['music',    Play,      'Musik'],
           ] as [ConfigTab, React.ElementType, string][]).map(([id, Icon, label]) => (
             <button
               key={id}
@@ -1781,262 +1766,19 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
 
           {/*  Identitas  */}
-          {activeTab === 'identity' && (
-            <div className="space-y-5">
-
-              {/* Info: alur kerja Template Lab   collapsible */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 overflow-hidden">
-                <button
-                  onClick={() => setShowHowTo(s => !s)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-indigo-50/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">💡</span>
-                    <p className="text-xs font-bold text-indigo-700">Cara Kerja Template Lab</p>
-                  </div>
-                  <ChevronDown size={14} className={`text-indigo-400 transition-transform duration-200 ${showHowTo ? 'rotate-180' : ''}`} />
-                </button>
-                {showHowTo && (
-                  <div className="px-4 pb-4 space-y-2.5 border-t border-indigo-100">
-                    {[
-                      { icon: '✏️', title: 'Edit & Eksperimen', desc: 'Desain template bebas di sini. Klik "Simpan Eksperimen" untuk menyimpan sementara di browser.' },
-                      { icon: '🚀', title: 'Rilis ke Manajemen', desc: 'Klik "Rilis Template" untuk mengirim ke modul Manajemen, lalu atur harga & paket akses.' },
-                      { icon: '👤', title: 'Tersedia ke User', desc: 'Setelah diaktifkan di Manajemen, user bisa memilih template ini saat buat undangan.' },
-                    ].map(s => (
-                      <div key={s.icon} className="flex gap-2.5 items-start pt-2">
-                        <span className="text-sm shrink-0">{s.icon}</span>
-                        <div>
-                          <p className="text-[11px] font-semibold text-indigo-800">{s.title}</p>
-                          <p className="text-[10px] text-indigo-500 leading-relaxed">{s.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Identity fields */}
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Identitas Template</p>
-                <div className="space-y-3">
-                  <Field label="Deskripsi">
-                    <textarea
-                      value={templateDesc}
-                      onChange={e => setTemplateDesc(e.target.value)}
-                      rows={2}
-                      className={inputCls + ' text-sm resize-none'}
-                      placeholder="Deskripsi singkat template ini untuk ditampilkan ke user..."
-                    />
-                  </Field>
-                </div>
-              </div>
-
-              {/* OLD CATEGORY CRUD - HIDDEN */}
-              <div className="hidden">
-                {catAdding && (
-                  <div className="flex gap-1.5 mb-2.5">
-                    <input
-                      value={catAddLabel}
-                      onChange={e => setCatAddLabel(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && catAdd()}
-                      placeholder="Nama kategori baru..."
-                      className="flex-1 text-xs px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                      autoFocus
-                    />
-                    <button onClick={catAdd} disabled={!catAddLabel.trim() || catBusy}
-                      className="px-3 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-xl disabled:opacity-40 hover:bg-indigo-700 transition-colors">
-                      Simpan
-                    </button>
-                  </div>
-                )}
-
-                {/* Category list */}
-                <div className="space-y-1.5">
-                  {categoryList.map(c => (
-                    <div key={c.slug}
-                      className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${
-                        cfg.meta.category === c.slug ? 'bg-indigo-50 border-indigo-300' : 'bg-white border-gray-100 hover:border-indigo-200'
-                      }`}>
-
-                      {/* Select radio dot */}
-                      <button onClick={() => updateMeta({ category: c.slug as typeof cfg.meta.category })}
-                        className="shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors"
-                        style={{ borderColor: cfg.meta.category === c.slug ? '#4f46e5' : '#d1d5db' }}>
-                        {cfg.meta.category === c.slug && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
-                      </button>
-
-                      {/* Label (editable for non-built-in) */}
-                      {catEditSlug === c.slug ? (
-                        <input
-                          value={catEditLabel}
-                          onChange={e => setCatEditLabel(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') catEdit(c.slug); if (e.key === 'Escape') setCatEditSlug(null) }}
-                          className="flex-1 text-xs px-2 py-0.5 border border-indigo-300 rounded-lg focus:outline-none"
-                          autoFocus
-                          onBlur={() => catEdit(c.slug)}
-                        />
-                      ) : (
-                        <span className="flex-1 text-xs font-semibold text-gray-700 truncate">{c.label}</span>
-                      )}
-
-                      {/* Actions   all categories can be edited & deleted */}
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button onClick={() => { setCatEditSlug(c.slug); setCatEditLabel(c.label) }}
-                          className="text-[9px] text-indigo-400 hover:text-indigo-700 font-semibold px-1.5 py-0.5 rounded-md hover:bg-indigo-50 transition-colors">
-                          Edit
-                        </button>
-                        <button onClick={() => catDelete(c.slug)} disabled={catBusy}
-                          className="p-1 text-gray-300 hover:text-red-400 rounded-md hover:bg-red-50 transition-colors disabled:opacity-30">
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* OLD TYPOGRAPHY SETTINGS - HIDDEN */}
-              <div className="hidden">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Tipografi</p>
-                <div className="space-y-4">
-
-                  {/* Font Judul */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-gray-600">Font Judul</p>
-                      <span className="text-xs italic" style={{ fontFamily: `'${cfg.meta.font.heading}', serif`, color: cfg.meta.color_scheme.accent }}>
-                        {cfg.meta.font.heading}
-                      </span>
-                    </div>
-                    <select value={cfg.meta.font.heading} onChange={e => updateFont('heading', e.target.value)} className={inputCls}>
-                      {HEADING_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                    {/* Ukuran judul */}
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] text-gray-500 shrink-0">Ukuran</p>
-                      <input type="range" min={0.6} max={2.0} step={0.05}
-                        value={cfg.meta.font.heading_scale ?? 1.0}
-                        onChange={e => updateMeta({ font: { ...cfg.meta.font, heading_scale: Number(e.target.value) } })}
-                        className="flex-1 accent-indigo-600 h-1.5" />
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <input type="number" min={60} max={200} step={5}
-                          value={Math.round((cfg.meta.font.heading_scale ?? 1.0) * 100)}
-                          onChange={e => { const v = Number(e.target.value) / 100; if (v >= 0.6 && v <= 2.0) updateMeta({ font: { ...cfg.meta.font, heading_scale: v } }) }}
-                          className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
-                        <span className="text-[8px] text-gray-400">%</span>
-                      </div>
-                      {(cfg.meta.font.heading_scale ?? 1.0) !== 1.0 && (
-                        <button onClick={() => updateMeta({ font: { ...cfg.meta.font, heading_scale: 1.0 } })}
-                          className="text-[9px] text-gray-400 hover:text-indigo-500 shrink-0">↺</button>
-                      )}
-                    </div>
-                    {/* Preview */}
-                    <div className="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50">
-                      <p style={{
-                        fontFamily: `'${cfg.meta.font.heading}', serif`,
-                        color: cfg.meta.color_scheme.text,
-                        backgroundColor: cfg.meta.color_scheme.primary,
-                        fontSize: `calc(16px * ${cfg.meta.font.heading_scale ?? 1.0})`,
-                        fontWeight: 700,
-                        padding: '4px 8px', borderRadius: 6, display: 'inline-block',
-                      }}>
-                        Aa · Ikhwal &amp; Fani
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Font Teks */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-gray-600">Font Teks</p>
-                      <span className="text-xs" style={{ fontFamily: `'${cfg.meta.font.body}', sans-serif`, color: '#666' }}>
-                        {cfg.meta.font.body}
-                      </span>
-                    </div>
-                    <select value={cfg.meta.font.body} onChange={e => updateFont('body', e.target.value)} className={inputCls}>
-                      {BODY_FONTS.map(f => <option key={f} value={f}>{f}</option>)}
-                    </select>
-                    {/* Ukuran teks */}
-                    <div className="flex items-center gap-2">
-                      <p className="text-[10px] text-gray-500 shrink-0">Ukuran</p>
-                      <input type="range" min={0.6} max={1.6} step={0.05}
-                        value={cfg.meta.font.body_scale ?? 1.0}
-                        onChange={e => updateMeta({ font: { ...cfg.meta.font, body_scale: Number(e.target.value) } })}
-                        className="flex-1 accent-indigo-600 h-1.5" />
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <input type="number" min={60} max={160} step={5}
-                          value={Math.round((cfg.meta.font.body_scale ?? 1.0) * 100)}
-                          onChange={e => { const v = Number(e.target.value) / 100; if (v >= 0.6 && v <= 1.6) updateMeta({ font: { ...cfg.meta.font, body_scale: v } }) }}
-                          className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
-                        <span className="text-[8px] text-gray-400">%</span>
-                      </div>
-                      {(cfg.meta.font.body_scale ?? 1.0) !== 1.0 && (
-                        <button onClick={() => updateMeta({ font: { ...cfg.meta.font, body_scale: 1.0 } })}
-                          className="text-[9px] text-gray-400 hover:text-indigo-500 shrink-0">↺</button>
-                      )}
-                    </div>
-                    {/* Preview */}
-                    <div className="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50">
-                      <p style={{
-                        fontFamily: `'${cfg.meta.font.body}', sans-serif`,
-                        color: '#444',
-                        fontSize: `calc(11px * ${cfg.meta.font.body_scale ?? 1.0})`,
-                        lineHeight: 1.6,
-                      }}>
-                        Dengan penuh kebahagiaan kami mengundang kehadiran Bapak/Ibu
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Eksperimen tersimpan */}
-              {savedLabs.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                    Eksperimen Tersimpan ({savedLabs.length})
-                  </p>
-                  <p className="text-[9px] text-gray-400 mb-2">Tersimpan di browser kamu. Tidak hilang kalau tab ditutup.</p>
-                  <div className="space-y-1.5">
-                    {savedLabs.map(l => {
-                      const sIcon = l.status === 'released'
-                        ? <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                        : <FileClock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      const sBadge = l.status === 'released'
-                        ? <span className="text-[8px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1 py-0.5 rounded-full font-semibold">Dirilis</span>
-                        : <span className="text-[8px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded-full font-semibold">Draft</span>
-                      const cs = l.config?.config?.meta?.color_scheme
-                      return (
-                        <div key={l.id} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl border border-gray-100 group">
-                          {cs && (
-                            <div className="w-7 h-7 rounded-lg shrink-0"
-                              style={{ background: `linear-gradient(135deg, ${cs.primary}, ${cs.accent})` }} />
-                          )}
-                          {!cs && sIcon}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-700 truncate font-medium">{l.name}</span>
-                              {sBadge}
-                            </div>
-                            {l.savedAt && (
-                              <p className="text-[9px] text-gray-400">{new Date(l.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
-                            )}
-                          </div>
-                          <button onClick={() => loadLab(l.id)} className="text-[10px] text-indigo-600 hover:underline font-semibold shrink-0">Muat</button>
-                          <button onClick={() => deleteLab(l.id)} className="text-gray-300 hover:text-red-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/*  Warna  */}
-          {activeTab === 'colors' && (
+          {activeTab === 'tampilan' && (() => {
+            const _a = cfg.meta.color_scheme.accent
+            const _t = cfg.meta.color_scheme.text
+            const _p = cfg.meta.color_scheme.primary
+            const _cs = cfg.meta.component_style
+            const _brd = _cs?.border ?? 'sharp'
+            const _br = _brd === 'pill' ? 999 : _brd === 'rounded' ? 10 : 2
+            const _updateStyle = (patch: Record<string, string>) => {
+              updateMeta({ component_style: { button: _cs?.button ?? 'outlined', border: _cs?.border ?? 'sharp', ornament: _cs?.ornament ?? 'classic', ...patch } as any })
+              setPreviewKey(k => k + 1)
+              setDecorPreviewKey(k => k + 1)
+            }
+            return (
             <div className="space-y-5">
 
               {/* Diagram visual: warna dipakai di mana */}
@@ -2286,24 +2028,6 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                   </div>
                 )
               })()}
-            </div>
-          )}
-
-          {/*  Gaya Komponen  */}
-          {activeTab === 'style' && (() => {
-            const _a = cfg.meta.color_scheme.accent
-            const _t = cfg.meta.color_scheme.text
-            const _p = cfg.meta.color_scheme.primary
-            const _cs = cfg.meta.component_style
-            const _brd = _cs?.border ?? 'sharp'
-            const _br = _brd === 'pill' ? 999 : _brd === 'rounded' ? 10 : 2
-            const _updateStyle = (patch: Record<string, string>) => {
-              updateMeta({ component_style: { button: _cs?.button ?? 'outlined', border: _cs?.border ?? 'sharp', ornament: _cs?.ornament ?? 'classic', ...patch } as any })
-              setPreviewKey(k => k + 1)
-              setDecorPreviewKey(k => k + 1)
-            }
-            return (
-            <div className="space-y-5">
 
               {/* Preview mode toggle */}
               <div className="flex gap-1.5">
@@ -2912,7 +2636,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
             </div>
           )})()}
 
-          {/*  Opening  */}
+          {/*  Opening + Loading  */}
           {activeTab === 'opening' && (
             <div className="space-y-5">
 
@@ -3701,6 +3425,272 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                 </div>
               )}
 
+              {/*  Loading Screen (bagian dari Opening)  */}
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                  Loading Screen
+                </p>
+                <p className="text-[9px] text-gray-400 mb-3">
+                  Animasi loading yang tampil sebelum undangan terbuka
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {([
+                    { id: 'dual-ring',       icon: '💫', label: 'Dual Ring' },
+                    { id: 'heartbeat',       icon: '💗', label: 'Heartbeat' },
+                    { id: 'elegant-spinner', icon: '🌀', label: 'Spinner' },
+                    { id: 'petal-cascade',   icon: '🌸', label: 'Kelopak' },
+                    { id: 'wave-dots',       icon: '🔵', label: 'Wave Dots' },
+                    { id: 'letter-reveal',   icon: '✍️', label: 'Letter' },
+                    { id: 'arch-gate',       icon: '🕌', label: 'Arch Gate' },
+                    { id: 'candle-glow',     icon: '🕯️', label: 'Lilin' },
+                    { id: 'infinity-ribbon', icon: '♾️', label: 'Infinity' },
+                    { id: 'shimmer-bar',     icon: '▬', label: 'Shimmer' },
+                    { id: 'orbit-rings',     icon: '🪐', label: 'Orbit' },
+                    { id: 'ripple-pulse',    icon: '🔘', label: 'Ripple' },
+                    { id: 'diamond-spin',    icon: '💎', label: 'Diamond' },
+                    { id: 'hourglass',       icon: '⏳', label: 'Hourglass' },
+                    { id: 'crescent-moon',   icon: '🌙', label: 'Bulan Sabit' },
+                    { id: 'spiral-gold',     icon: '🌀', label: 'Spiral Gold' },
+                  ] as const).map(lv => {
+                    const active = (cfg.loading.variant ?? 'dual-ring') === lv.id
+                    return (
+                      <button key={lv.id} type="button"
+                        onClick={() => { setConfig(prev => ({
+                          ...prev,
+                          config: { ...prev.config, loading: { ...prev.config.loading, variant: lv.id as any } },
+                        })); setPreviewMode('loading'); setPreviewKey(k => k + 1) }}
+                        className={`relative p-2.5 rounded-xl text-center transition-all ${
+                          active
+                            ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
+                            : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        <span className="text-lg block mb-0.5">{lv.icon}</span>
+                        <p className={`text-[10px] font-semibold leading-tight ${active ? 'text-indigo-700' : 'text-gray-600'}`}>
+                          {lv.label}
+                        </p>
+                        {active && (
+                          <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                            <Check className="w-2 h-2 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/*  Loading Settings  */}
+              <div className="space-y-4">
+                {/* Teks Loading */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                    Teks Loading
+                  </label>
+                  <input
+                    value={cfg.loading.text}
+                    onChange={e => setConfig(prev => ({
+                      ...prev,
+                      config: { ...prev.config, loading: { ...prev.config.loading, text: e.target.value } },
+                    }))}
+                    className={inputCls}
+                    placeholder="MEMBUKA UNDANGAN..."
+                  />
+                </div>
+
+                {/* Tipe Background */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                    Background Loading
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5 mb-3">
+                    {([
+                      { id: 'solid',    label: 'Solid' },
+                      { id: 'gradient', label: 'Gradient' },
+                      { id: 'image',    label: 'Foto' },
+                    ] as const).map(bt => {
+                      const active = (cfg.loading.bg_type ?? 'solid') === bt.id
+                      return (
+                        <button key={bt.id} type="button"
+                          onClick={() => setConfig(prev => ({
+                            ...prev,
+                            config: { ...prev.config, loading: { ...prev.config.loading, bg_type: bt.id as any } },
+                          }))}
+                          className={`py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                            active
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                              : 'bg-gray-50 border border-gray-200 text-gray-500 hover:border-gray-300'
+                          }`}
+                        >
+                          {bt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Solid / Gradient color */}
+                  {(cfg.loading.bg_type ?? 'solid') !== 'image' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">
+                          {(cfg.loading.bg_type ?? 'solid') === 'gradient' ? 'Warna Awal' : 'Warna Background'}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                          />
+                          <input
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className={inputCls + ' font-mono flex-1'}
+                            placeholder="#2c4a34"
+                          />
+                        </div>
+                      </div>
+                      {cfg.loading.bg_type === 'gradient' && (
+                        <>
+                          <div>
+                            <label className="block text-[10px] text-gray-400 mb-1">Warna Akhir</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={cfg.loading.bg_gradient_to ?? '#000000'}
+                                onChange={e => setConfig(prev => ({
+                                  ...prev,
+                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
+                                }))}
+                                className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                              />
+                              <input
+                                value={cfg.loading.bg_gradient_to ?? '#000000'}
+                                onChange={e => setConfig(prev => ({
+                                  ...prev,
+                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
+                                }))}
+                                className={inputCls + ' font-mono flex-1'}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-gray-400 mb-1">Sudut Gradient</label>
+                            <div className="flex items-center gap-2">
+                              <input type="range" min={0} max={360} step={15}
+                                value={cfg.loading.bg_gradient_angle ?? 135}
+                                onChange={e => setConfig(prev => ({
+                                  ...prev,
+                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_angle: Number(e.target.value) } },
+                                }))}
+                                className="flex-1 accent-indigo-500 h-1.5"
+                              />
+                              <div className="flex items-center gap-0.5 shrink-0">
+                                <input type="number" min={0} max={360} step={15}
+                                  value={cfg.loading.bg_gradient_angle ?? 135}
+                                  onChange={e => { const v = Number(e.target.value); if (v >= 0 && v <= 360) setConfig(prev => ({ ...prev, config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_angle: v } } })) }}
+                                  className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
+                                <span className="text-[8px] text-gray-400">°</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Image background */}
+                  {cfg.loading.bg_type === 'image' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">Foto Latar Belakang</label>
+                        {cfg.loading.bg_image_url ? (
+                          <div className="relative rounded-xl overflow-hidden border border-gray-200" style={{ height: 120 }}>
+                            <img src={cfg.loading.bg_image_url} alt="Loading bg" className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => setConfig(prev => ({
+                                ...prev,
+                                config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: undefined } },
+                              }))}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+                            >
+                              <X className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        ) : (
+                          <ImageUploadField
+                            value=""
+                            onChange={(url) => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: url } },
+                            }))}
+                            label="Upload foto loading"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">
+                          Warna Overlay
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
+                          />
+                          <input
+                            value={cfg.loading.background_color}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
+                            }))}
+                            className={inputCls + ' font-mono flex-1'}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-1">Opacity Overlay</label>
+                        <div className="flex items-center gap-2">
+                          <input type="range" min={0} max={1} step={0.05}
+                            value={cfg.loading.overlay_opacity ?? 0.85}
+                            onChange={e => setConfig(prev => ({
+                              ...prev,
+                              config: { ...prev.config, loading: { ...prev.config.loading, overlay_opacity: Number(e.target.value) } },
+                            }))}
+                            className="flex-1 accent-indigo-500 h-1.5"
+                          />
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <input type="number" min={0} max={100} step={5}
+                              value={Math.round((cfg.loading.overlay_opacity ?? 0.85) * 100)}
+                              onChange={e => { const v = Number(e.target.value) / 100; if (v >= 0 && v <= 1) setConfig(prev => ({ ...prev, config: { ...prev.config, loading: { ...prev.config.loading, overlay_opacity: v } } })) }}
+                              className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
+                            <span className="text-[8px] text-gray-400">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview Button */}
+                <button
+                  onClick={() => setPreviewMode('loading')}
+                  className="flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-4 py-2.5 transition-colors"
+                >
+                  <Play className="w-4 h-4 fill-current" /> Preview Loading
+                </button>
+              </div>
+
             </div>
           )}
 
@@ -3886,289 +3876,8 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
             )
           })()}
 
-          {/*  Loading  */}
-          {activeTab === 'loading' && (
-            <div className="space-y-5">
-
-              {/*  Pilih Gaya Loading  */}
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Gaya Loading
-                </p>
-                <p className="text-[9px] text-gray-400 mb-3">
-                  Pilih animasi loading yang tampil setelah opening
-                </p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {([
-                    { id: 'dual-ring',       icon: '💫', label: 'Dual Ring' },
-                    { id: 'heartbeat',       icon: '💗', label: 'Heartbeat' },
-                    { id: 'elegant-spinner', icon: '🌀', label: 'Spinner' },
-                    { id: 'petal-cascade',   icon: '🌸', label: 'Kelopak' },
-                    { id: 'wave-dots',       icon: '🔵', label: 'Wave Dots' },
-                    { id: 'letter-reveal',   icon: '✍️', label: 'Letter' },
-                    { id: 'arch-gate',       icon: '🕌', label: 'Arch Gate' },
-                    { id: 'candle-glow',     icon: '🕯️', label: 'Lilin' },
-                    { id: 'infinity-ribbon', icon: '♾️', label: 'Infinity' },
-                    { id: 'shimmer-bar',     icon: '▬', label: 'Shimmer' },
-                    { id: 'orbit-rings',     icon: '🪐', label: 'Orbit' },
-                    { id: 'ripple-pulse',    icon: '🔘', label: 'Ripple' },
-                    { id: 'diamond-spin',    icon: '💎', label: 'Diamond' },
-                    { id: 'hourglass',       icon: '⏳', label: 'Hourglass' },
-                    { id: 'crescent-moon',   icon: '🌙', label: 'Bulan Sabit' },
-                    { id: 'spiral-gold',     icon: '🌀', label: 'Spiral Gold' },
-                  ] as const).map(lv => {
-                    const active = (cfg.loading.variant ?? 'dual-ring') === lv.id
-                    return (
-                      <button key={lv.id} type="button"
-                        onClick={() => { setConfig(prev => ({
-                          ...prev,
-                          config: { ...prev.config, loading: { ...prev.config.loading, variant: lv.id as any } },
-                        })); setPreviewMode('loading'); setPreviewKey(k => k + 1) }}
-                        className={`relative p-2.5 rounded-xl text-center transition-all ${
-                          active
-                            ? 'bg-indigo-50 border-2 border-indigo-500 ring-1 ring-indigo-500/20'
-                            : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100'
-                        }`}
-                      >
-                        <span className="text-lg block mb-0.5">{lv.icon}</span>
-                        <p className={`text-[10px] font-semibold leading-tight ${active ? 'text-indigo-700' : 'text-gray-600'}`}>
-                          {lv.label}
-                        </p>
-                        {active && (
-                          <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-indigo-500 flex items-center justify-center">
-                            <Check className="w-2 h-2 text-white" />
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/*  Settings  */}
-              <div className="pt-4 border-t border-gray-100 space-y-4">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Pengaturan
-                </p>
-
-                {/* Teks Loading */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                    Teks Loading
-                  </label>
-                  <input
-                    value={cfg.loading.text}
-                    onChange={e => setConfig(prev => ({
-                      ...prev,
-                      config: { ...prev.config, loading: { ...prev.config.loading, text: e.target.value } },
-                    }))}
-                    className={inputCls}
-                    placeholder="MEMBUKA UNDANGAN..."
-                  />
-                </div>
-
-                {/* Tipe Background */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                    Tipe Background
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5 mb-3">
-                    {([
-                      { id: 'solid',    label: 'Solid' },
-                      { id: 'gradient', label: 'Gradient' },
-                      { id: 'image',    label: 'Foto' },
-                    ] as const).map(bt => {
-                      const active = (cfg.loading.bg_type ?? 'solid') === bt.id
-                      return (
-                        <button key={bt.id} type="button"
-                          onClick={() => setConfig(prev => ({
-                            ...prev,
-                            config: { ...prev.config, loading: { ...prev.config.loading, bg_type: bt.id as any } },
-                          }))}
-                          className={`py-2 rounded-lg text-[10px] font-semibold transition-all ${
-                            active
-                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
-                              : 'bg-gray-50 border border-gray-200 text-gray-500 hover:border-gray-300'
-                          }`}
-                        >
-                          {bt.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Solid / Gradient color */}
-                  {(cfg.loading.bg_type ?? 'solid') !== 'image' && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-[10px] text-gray-400 mb-1">
-                          {(cfg.loading.bg_type ?? 'solid') === 'gradient' ? 'Warna Awal' : 'Warna Background'}
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={cfg.loading.background_color}
-                            onChange={e => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                            }))}
-                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
-                          />
-                          <input
-                            value={cfg.loading.background_color}
-                            onChange={e => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                            }))}
-                            className={inputCls + ' font-mono flex-1'}
-                            placeholder="#2c4a34"
-                          />
-                        </div>
-                      </div>
-                      {cfg.loading.bg_type === 'gradient' && (
-                        <>
-                          <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Warna Akhir</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="color"
-                                value={cfg.loading.bg_gradient_to ?? '#000000'}
-                                onChange={e => setConfig(prev => ({
-                                  ...prev,
-                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
-                                }))}
-                                className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
-                              />
-                              <input
-                                value={cfg.loading.bg_gradient_to ?? '#000000'}
-                                onChange={e => setConfig(prev => ({
-                                  ...prev,
-                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_to: e.target.value } },
-                                }))}
-                                className={inputCls + ' font-mono flex-1'}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Sudut Gradient</label>
-                            <div className="flex items-center gap-2">
-                              <input type="range" min={0} max={360} step={15}
-                                value={cfg.loading.bg_gradient_angle ?? 135}
-                                onChange={e => setConfig(prev => ({
-                                  ...prev,
-                                  config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_angle: Number(e.target.value) } },
-                                }))}
-                                className="flex-1 accent-indigo-500 h-1.5"
-                              />
-                              <div className="flex items-center gap-0.5 shrink-0">
-                                <input type="number" min={0} max={360} step={15}
-                                  value={cfg.loading.bg_gradient_angle ?? 135}
-                                  onChange={e => { const v = Number(e.target.value); if (v >= 0 && v <= 360) setConfig(prev => ({ ...prev, config: { ...prev.config, loading: { ...prev.config.loading, bg_gradient_angle: v } } })) }}
-                                  className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
-                                <span className="text-[8px] text-gray-400">°</span>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Image background */}
-                  {cfg.loading.bg_type === 'image' && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-[10px] text-gray-400 mb-1">Foto Latar Belakang</label>
-                        {cfg.loading.bg_image_url ? (
-                          <div className="relative rounded-xl overflow-hidden border border-gray-200" style={{ height: 120 }}>
-                            <img src={cfg.loading.bg_image_url} alt="Loading bg" className="w-full h-full object-cover" />
-                            <button
-                              onClick={() => setConfig(prev => ({
-                                ...prev,
-                                config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: undefined } },
-                              }))}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
-                            >
-                              <X className="w-3 h-3 text-white" />
-                            </button>
-                          </div>
-                        ) : (
-                          <ImageUploadField
-                            value=""
-                            onChange={(url) => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, bg_image_url: url } },
-                            }))}
-                            label="Upload foto loading"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-gray-400 mb-1">
-                          Warna Overlay
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={cfg.loading.background_color}
-                            onChange={e => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                            }))}
-                            className="w-10 h-9 rounded-lg cursor-pointer border border-gray-200"
-                          />
-                          <input
-                            value={cfg.loading.background_color}
-                            onChange={e => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, background_color: e.target.value } },
-                            }))}
-                            className={inputCls + ' font-mono flex-1'}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-gray-400 mb-1">Opacity Overlay</label>
-                        <div className="flex items-center gap-2">
-                          <input type="range" min={0} max={1} step={0.05}
-                            value={cfg.loading.overlay_opacity ?? 0.85}
-                            onChange={e => setConfig(prev => ({
-                              ...prev,
-                              config: { ...prev.config, loading: { ...prev.config.loading, overlay_opacity: Number(e.target.value) } },
-                            }))}
-                            className="flex-1 accent-indigo-500 h-1.5"
-                          />
-                          <div className="flex items-center gap-0.5 shrink-0">
-                            <input type="number" min={0} max={100} step={5}
-                              value={Math.round((cfg.loading.overlay_opacity ?? 0.85) * 100)}
-                              onChange={e => { const v = Number(e.target.value) / 100; if (v >= 0 && v <= 1) setConfig(prev => ({ ...prev, config: { ...prev.config, loading: { ...prev.config.loading, overlay_opacity: v } } })) }}
-                              className="w-14 px-1 py-0.5 text-[10px] text-center border border-gray-200 rounded-md focus:border-indigo-400 focus:outline-none font-mono" />
-                            <span className="text-[8px] text-gray-400">%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Preview Button */}
-              <div>
-                <button
-                  onClick={() => setPreviewMode('loading')}
-                  className="flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl px-4 py-2.5 transition-colors"
-                >
-                  <Play className="w-4 h-4 fill-current" /> Preview Loading di Mockup
-                </button>
-                <p className="text-[9px] text-gray-400 mt-2">
-                  Klik untuk melihat loading screen di mockup preview (kanan).
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/*  Sections  */}
-          {activeTab === 'sections' && (
+          {/*  Konten (Sections)  */}
+          {activeTab === 'konten' && (
             <div className="space-y-3">
               <p className="text-xs text-gray-500">Atur section yang tampil, urutan, dan warna latar masing-masing.</p>
 
