@@ -499,7 +499,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     { id: 'bsi-1', bankName: 'BSI', accountNumber: '7210384756', accountName: 'PT Iaundang Digital', isActive: true, logoUrl: '' },
   ],
   qrisImageUrl: '',
-  paymentInstructions: '',
+  paymentInstructions: 'Pastikan nominal transfer sesuai dengan total tagihan (termasuk kode unik) agar pembayaran dapat diverifikasi.\n\nLangkah pembayaran:\n1. Transfer ke salah satu rekening di atas sesuai nominal yang tertera\n2. Screenshot bukti transfer\n3. Klik tombol "Konfirmasi via WhatsApp" dan kirimkan bukti transfer\n4. Tim kami akan memverifikasi dalam 1×24 jam kerja\n5. Setelah diverifikasi, akun login akan dikirim via WhatsApp/email\n\nCatatan:\n• Pembayaran berlaku 1×24 jam sejak pesanan dibuat\n• Jika ada kendala, silakan hubungi admin via WhatsApp',
   confirmationWhatsapp: '628123456789', siteName: 'iaundang', siteTagline: 'Digital Wedding Invitation',
   logoHorizontalUrl: '/logos/logo-horizontal.png', logoVerticalUrl: '/logos/logo-vertical.png',
   contactWhatsapp: '628123456789', contactEmail: 'halo@iaundang.id',

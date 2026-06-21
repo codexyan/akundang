@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   ChevronRight, ChevronLeft, Check, Crown, Rocket, Gem,
   Copy, QrCode, CreditCard, Send, Loader2, CheckCircle2,
-  User, Users, Globe, ShoppingBag, Clock, X,
+  User, Users, Globe, ShoppingBag, Clock, X, Landmark,
 } from 'lucide-react'
+import BankCard, { QrisCard } from '@/components/ui/BankCard'
 import toast, { Toaster } from 'react-hot-toast'
 
 interface TierFeatures {
@@ -90,6 +91,7 @@ function buildTierFeatureList(tierId: string, f: TierFeatures): FeatureItem[] {
   list.push({ label: 'Section video highlight', included: f.video, section: true })
 
   // Fitur ekstra
+  list.push({ label: 'Tanpa watermark', included: f.remove_watermark })
   list.push({ label: 'QR code kehadiran tamu', included: f.qrcode })
   list.push({ label: 'Custom domain sendiri', included: f.custom_domain })
   list.push({ label: 'Priority support WhatsApp', included: f.priority_support })
@@ -128,6 +130,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
   const [order, setOrder] = useState<{ order_number: string; total_amount: number; unique_code: number; amount: number } | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -240,13 +243,19 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
             const Icon = s.icon
             const isActive = step === i
             const isDone = i < step
+            const canGoBack = isDone && step !== 3
             return (
               <div key={i} className="flex items-center">
                 {i > 0 && <div className={`w-6 sm:w-10 h-px mx-1 ${isDone ? 'bg-forest-300' : 'bg-stone-200'}`} />}
-                <div className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-medium transition-colors ${
-                  isActive ? 'bg-forest-100 text-forest-700' :
-                  isDone ? 'text-forest-500' : 'text-stone-400'
-                }`}>
+                <button
+                  type="button"
+                  onClick={() => { if (canGoBack) setStep(i as Step) }}
+                  disabled={!canGoBack && !isActive}
+                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-medium transition-colors ${
+                    isActive ? 'bg-forest-100 text-forest-700' :
+                    isDone ? 'text-forest-500 hover:bg-forest-50 cursor-pointer' : 'text-stone-400 cursor-default'
+                  }`}
+                >
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${
                     isActive ? 'bg-forest-600 text-white' :
                     isDone ? 'bg-forest-200 text-forest-700' : 'bg-stone-200 text-stone-500'
@@ -254,7 +263,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
                     {isDone ? <Check size={10} strokeWidth={3} /> : i + 1}
                   </div>
                   <span className="hidden sm:inline">{s.label}</span>
-                </div>
+                </button>
               </div>
             )
           })}
@@ -507,118 +516,160 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
           )}
 
           {/* Step 3: Payment Confirmation */}
-          {step === 3 && order && (
-            <div className="p-6 sm:p-8">
-              <div className="text-center mb-8">
-                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle2 size={28} className="text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-stone-900 mb-1">Pesanan Berhasil Dibuat!</h2>
-                <p className="text-sm text-stone-500">Silakan transfer ke salah satu rekening di bawah ini</p>
-              </div>
+          {step === 3 && order && (() => {
+            const hasBank = paymentConfig.bankAccounts.length > 0
+            const hasQris = !!paymentConfig.qrisImageUrl
+            const selectedBank = paymentConfig.bankAccounts.find(b => b.id === selectedPayment)
 
-              {/* Order number & amount side by side */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="rounded-2xl bg-forest-50 border border-forest-200 p-4 text-center">
-                  <p className="text-[11px] text-forest-600 font-semibold uppercase tracking-wider mb-1">Nomor Pesanan</p>
-                  <p className="text-lg font-bold font-mono text-forest-800">{order.order_number}</p>
+            return (
+              <div className="p-6 sm:p-8">
+                <div className="text-center mb-8">
+                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 size={28} className="text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-stone-900 mb-1">Pesanan Berhasil Dibuat!</h2>
+                  <p className="text-sm text-stone-500">Pilih metode pembayaran lalu transfer sesuai nominal</p>
                 </div>
-                <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center">
-                  <p className="text-[11px] text-amber-700 font-semibold uppercase tracking-wider mb-1">Total Transfer</p>
-                  <p className="text-2xl font-bold text-amber-900">
-                    Rp {order.total_amount.toLocaleString('id-ID')}
+
+                {/* Order number & amount side by side */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="rounded-2xl bg-forest-50 border border-forest-200 p-4 text-center">
+                    <p className="text-[11px] text-forest-600 font-semibold uppercase tracking-wider mb-1">Nomor Pesanan</p>
+                    <p className="text-lg font-bold font-mono text-forest-800">{order.order_number}</p>
+                  </div>
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center">
+                    <p className="text-[11px] text-amber-700 font-semibold uppercase tracking-wider mb-1">Total Transfer</p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      Rp {order.total_amount.toLocaleString('id-ID')}
+                    </p>
+                    <p className="text-[11px] text-amber-600 mt-0.5">
+                      Rp {order.amount.toLocaleString('id-ID')} + Rp {order.unique_code} (kode unik)
+                    </p>
+                    <button onClick={() => copyText(String(order.total_amount), 'amount')} className="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 font-medium">
+                      {copied === 'amount' ? <Check size={12} /> : <Copy size={12} />} Salin nominal
+                    </button>
+                  </div>
+                </div>
+
+                {/* Important notice */}
+                <div className="rounded-xl bg-red-50 border border-red-100 p-3 mb-8">
+                  <p className="text-xs text-red-700 font-medium text-center">
+                    Pastikan transfer sesuai nominal di atas (termasuk kode unik) agar pembayaran mudah diverifikasi
                   </p>
-                  <p className="text-[11px] text-amber-600 mt-0.5">
-                    Rp {order.amount.toLocaleString('id-ID')} + Rp {order.unique_code} (kode unik)
-                  </p>
-                  <button onClick={() => copyText(String(order.total_amount), 'amount')} className="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 font-medium">
-                    {copied === 'amount' ? <Check size={12} /> : <Copy size={12} />} Salin nominal
-                  </button>
                 </div>
-              </div>
 
-              {/* Important notice */}
-              <div className="rounded-xl bg-red-50 border border-red-100 p-3 mb-6">
-                <p className="text-xs text-red-700 font-medium text-center">
-                  Pastikan transfer sesuai nominal di atas (termasuk kode unik) agar pembayaran mudah diverifikasi
-                </p>
-              </div>
+                {/* Payment method selection */}
+                <div className="mb-8">
+                  <p className="text-sm font-semibold text-stone-800 mb-1">Pilih metode pembayaran</p>
+                  <p className="text-xs text-stone-400 mb-4">Klik kartu rekening atau QRIS yang ingin kamu gunakan untuk transfer</p>
 
-              {/* Bank accounts */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <CreditCard size={14} className="text-stone-500" />
-                  <p className="text-xs font-semibold text-stone-600 uppercase tracking-wider">Transfer ke salah satu rekening</p>
-                </div>
-                {paymentConfig.bankAccounts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {paymentConfig.bankAccounts.map(bank => (
-                      <div key={bank.id} className="rounded-xl border border-stone-200 bg-stone-50/50 p-4">
-                        <p className="text-xs font-bold text-stone-800 mb-1">{bank.bankName}</p>
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-mono text-stone-900">{bank.accountNumber}</p>
-                          <button onClick={() => copyText(bank.accountNumber, bank.id)} className="text-stone-400 hover:text-forest-600">
-                            {copied === bank.id ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                      <BankCard
+                        key={bank.id}
+                        bankName={bank.bankName}
+                        accountNumber={bank.accountNumber}
+                        accountName={bank.accountName}
+                        selectable
+                        selected={selectedPayment === bank.id}
+                        onClick={() => setSelectedPayment(bank.id)}
+                      />
+                    ))}
+                    {hasQris && (
+                      <QrisCard
+                        imageUrl={paymentConfig.qrisImageUrl}
+                        selectable
+                        selected={selectedPayment === 'qris'}
+                        onClick={() => setSelectedPayment('qris')}
+                      />
+                    )}
+                  </div>
+
+                  {!hasBank && !hasQris && (
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-6 text-center">
+                      <Landmark size={24} className="text-stone-300 mx-auto mb-2" />
+                      <p className="text-xs text-stone-500">Hubungi admin via WhatsApp untuk info metode pembayaran</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected payment detail */}
+                {selectedPayment && selectedPayment !== 'qris' && selectedBank && (
+                  <div className="mb-8 rounded-2xl bg-stone-50 border border-stone-200 p-5">
+                    <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Detail Transfer</p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-500">Bank</span>
+                        <span className="text-sm font-semibold text-stone-900">{selectedBank.bankName}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-500">No. Rekening</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono font-bold text-stone-900">{selectedBank.accountNumber}</span>
+                          <button onClick={() => copyText(selectedBank.accountNumber, selectedBank.id)} className="text-stone-400 hover:text-forest-600">
+                            {copied === selectedBank.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                           </button>
                         </div>
-                        <p className="text-xs text-stone-500">a.n. {bank.accountName}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 text-center">
-                    <p className="text-xs text-stone-500">Hubungi admin via WhatsApp untuk info rekening transfer</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-500">Atas Nama</span>
+                        <span className="text-sm font-semibold text-stone-900">{selectedBank.accountName}</span>
+                      </div>
+                      <div className="border-t border-stone-200 pt-2 mt-2 flex justify-between items-center">
+                        <span className="text-sm font-semibold text-stone-700">Nominal Transfer</span>
+                        <span className="text-base font-bold text-amber-700">Rp {order.total_amount.toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
 
-              {/* QRIS */}
-              {paymentConfig.qrisImageUrl && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <QrCode size={14} className="text-stone-500" />
-                    <p className="text-xs font-semibold text-stone-600 uppercase tracking-wider">Atau scan QRIS</p>
+                {selectedPayment === 'qris' && hasQris && (
+                  <div className="mb-8 rounded-2xl bg-stone-50 border border-stone-200 p-5 text-center">
+                    <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">Scan QRIS untuk Bayar</p>
+                    <div className="inline-block rounded-xl bg-white border border-stone-200 p-3 shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={paymentConfig.qrisImageUrl} alt="QRIS" className="w-52 h-52 object-contain" />
+                    </div>
+                    <p className="text-sm font-bold text-amber-700 mt-4">Rp {order.total_amount.toLocaleString('id-ID')}</p>
+                    <p className="text-[11px] text-stone-400 mt-1">Pastikan nominal sesuai termasuk kode unik</p>
                   </div>
-                  <div className="inline-block rounded-xl border border-stone-200 bg-white p-3">
-                    <img src={paymentConfig.qrisImageUrl} alt="QRIS" className="w-48 h-48 object-contain" />
-                  </div>
-                </div>
-              )}
-
-              {/* CTA: Konfirmasi WA */}
-              <div className="rounded-2xl bg-green-50 border border-green-200 p-5 mb-6">
-                <p className="text-sm font-semibold text-green-900 mb-1">Sudah transfer?</p>
-                <p className="text-xs text-green-700 mb-4">Kirimkan bukti transfer ke WhatsApp admin untuk verifikasi pembayaran.</p>
-                {paymentConfig.confirmationWhatsapp && (
-                  <button
-                    onClick={openWhatsApp}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20"
-                  >
-                    <Send size={16} />
-                    Kirim Bukti Transfer via WhatsApp
-                  </button>
                 )}
-              </div>
 
-              {/* Next steps */}
-              <div className="rounded-xl bg-stone-50 border border-stone-100 p-4">
-                <div className="flex items-start gap-2">
-                  <Clock size={14} className="text-stone-400 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-stone-700">Langkah selanjutnya</p>
-                    <ol className="text-[11px] text-stone-500 mt-1 space-y-1 list-decimal list-inside">
-                      <li>Transfer sesuai nominal unik di atas</li>
-                      <li>Screenshot bukti transfer</li>
-                      <li>Kirim bukti ke WhatsApp admin (klik tombol di atas)</li>
-                      <li>Admin verifikasi pembayaran (maks 1x24 jam kerja)</li>
-                      <li>Terima akun login via WhatsApp / email</li>
-                      <li>Login ke dashboard dan lengkapi undangan</li>
-                    </ol>
+                {/* CTA: Konfirmasi WA */}
+                <div className="rounded-2xl bg-green-50 border border-green-200 p-5 mb-6">
+                  <p className="text-sm font-semibold text-green-900 mb-1">Sudah transfer?</p>
+                  <p className="text-xs text-green-700 mb-4">Kirimkan bukti transfer ke WhatsApp admin untuk verifikasi pembayaran.</p>
+                  {paymentConfig.confirmationWhatsapp && (
+                    <button
+                      onClick={openWhatsApp}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20"
+                    >
+                      <Send size={16} />
+                      Kirim Bukti Transfer via WhatsApp
+                    </button>
+                  )}
+                </div>
+
+                {/* Next steps */}
+                <div className="rounded-xl bg-stone-50 border border-stone-100 p-4">
+                  <div className="flex items-start gap-2">
+                    <Clock size={14} className="text-stone-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold text-stone-700">Langkah selanjutnya</p>
+                      <ol className="text-[11px] text-stone-500 mt-1 space-y-1 list-decimal list-inside">
+                        <li>Pilih metode pembayaran di atas</li>
+                        <li>Transfer sesuai nominal unik</li>
+                        <li>Screenshot bukti transfer</li>
+                        <li>Kirim bukti ke WhatsApp admin (klik tombol di atas)</li>
+                        <li>Admin verifikasi pembayaran (maks 1x24 jam kerja)</li>
+                        <li>Terima akun login via WhatsApp / email</li>
+                      </ol>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Navigation */}
           {step < 3 && (

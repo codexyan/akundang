@@ -159,6 +159,7 @@ function buildFeatureList(tier: PriceTier): string[] {
   if (f.story && tier.id !== 'starter') list.push('Kisah cinta pasangan')
   if (f.video && tier.id !== 'starter') list.push('Video prewedding')
   if (f.qrcode && tier.id === 'eksklusif') list.push('Scan barcode kehadiran tamu')
+  if (f.remove_watermark) list.push('Tanpa watermark')
   if (f.custom_domain) list.push('Custom domain sendiri')
   if (f.priority_support) list.push('Priority support via WhatsApp')
   list.push(`Aktif ${f.validity_days} hari`)
@@ -192,7 +193,7 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
             Pilih paket yang pas untuk kalian
           </h2>
           <p className="mt-3 text-stone-400 text-[15px] max-w-md mx-auto">
-            Bayar sekali saja, tidak ada biaya bulanan. Semua paket tanpa watermark.
+            Bayar sekali saja, tidak ada biaya bulanan.
           </p>
         </motion.div>
 

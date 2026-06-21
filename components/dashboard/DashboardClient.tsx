@@ -7,8 +7,8 @@ import dynamic from 'next/dynamic'
 import {
   LayoutDashboard, FileEdit, Users, LogOut,
   ExternalLink, Copy, Menu, X, ChevronRight, Eye, Send,
-  Settings, CreditCard, MessageSquare, Maximize2,
-  Sparkles, Crown, Globe, ArrowUpRight,
+  Settings, MessageSquare,
+  Sparkles, Crown, Globe, ArrowUpRight, ShieldCheck,
 } from 'lucide-react'
 import type { Invitation, NewInvitationData } from '@/lib/types'
 import { LEGACY_TEMPLATE_IDS } from '@/lib/types'
@@ -19,7 +19,7 @@ import RSVPList from './RSVPList'
 import DashboardOverview from './DashboardOverview'
 import GuestManager from './GuestManager'
 import SettingsPanel from './SettingsPanel'
-import TransactionHistory from './TransactionHistory'
+import SubscriptionInfo from './SubscriptionInfo'
 import TemplateModule from './TemplateModule'
 import OnboardingWizard from './OnboardingWizard'
 import SupportTickets from './SupportTickets'
@@ -43,14 +43,14 @@ interface Props {
   isAdmin?: boolean
 }
 
-type Tab = 'overview' | 'undangan' | 'guest' | 'rsvp' | 'transactions' | 'support' | 'settings'
+type Tab = 'overview' | 'undangan' | 'guest' | 'rsvp' | 'subscription' | 'support' | 'settings'
 
 const NAV: { id: Tab; label: string; icon: React.ElementType; badge?: string }[] = [
   { id: 'overview',     label: 'Beranda',    icon: LayoutDashboard },
   { id: 'undangan',     label: 'Undangan',   icon: FileEdit },
   { id: 'guest',        label: 'Tamu',       icon: Send },
   { id: 'rsvp',         label: 'RSVP',       icon: Users },
-  { id: 'transactions', label: 'Pembayaran', icon: CreditCard },
+  { id: 'subscription', label: 'Langganan',  icon: ShieldCheck },
   { id: 'support',      label: 'Bantuan',    icon: MessageSquare },
   { id: 'settings',     label: 'Settings',   icon: Settings },
 ]
@@ -303,7 +303,6 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
                     <UpgradeBanner
                       invitation={inv}
                       onSimulatePay={handleSimulatePay}
-                      onGoToPayment={() => setTab('transactions')}
                     />
                   )}
 
@@ -312,7 +311,7 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
                   )}
                   {tab === 'guest' && <GuestManager invitation={inv} />}
                   {tab === 'rsvp' && <RSVPList invitationId={inv.id} />}
-                  {tab === 'transactions' && <TransactionHistory invitation={inv} />}
+                  {tab === 'subscription' && <SubscriptionInfo invitation={inv} />}
                   {tab === 'support' && <SupportTickets />}
                   {tab === 'settings' && <SettingsPanel invitation={inv} userEmail={user.email} onDeleted={() => { setInv(null); setTab('overview') }} />}
                 </>
@@ -412,10 +411,9 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
 
 //  Upgrade Banner 
 
-function UpgradeBanner({ onGoToPayment }: {
+function UpgradeBanner({}: {
   invitation: Invitation
   onSimulatePay: () => void
-  onGoToPayment: () => void
 }) {
   return (
     <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] p-6 text-white">
@@ -444,13 +442,13 @@ function UpgradeBanner({ onGoToPayment }: {
             </span>
           </div>
         </div>
-        <button
-          onClick={onGoToPayment}
-          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-5 py-3 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all shrink-0"
+        <a
+          href="/templates"
+          className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-5 py-3 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all shrink-0 no-underline"
         >
           <Sparkles size={14} />
-          Pilih Paket & Bayar
-        </button>
+          Pilih Template & Upgrade
+        </a>
       </div>
     </div>
   )

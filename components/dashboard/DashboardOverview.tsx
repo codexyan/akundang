@@ -358,7 +358,7 @@ export default function DashboardOverview({ invitation, onNavigate, onTogglePubl
             { icon: FileEdit, label: 'Edit Undangan', sub: 'Konten & section', tab: 'undangan', gradient: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20' },
             { icon: Users, label: 'Daftar Tamu', sub: 'Kelola undangan', tab: 'guest', gradient: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/20' },
             { icon: Eye, label: 'RSVP', sub: 'Respons tamu', tab: 'rsvp', gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20' },
-            { icon: Gift, label: 'Pembayaran', sub: 'Upgrade & bayar', tab: 'transactions', gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/20' },
+            { icon: Gift, label: 'Langganan', sub: 'Status & upgrade', tab: 'subscription', gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/20' },
           ].map((item, i) => (
             <motion.button
               key={item.label}
