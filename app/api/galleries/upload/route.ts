@@ -8,6 +8,18 @@ export const dynamic = 'force-dynamic'
 
 const MAX_FILES = 10
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.webp']
+
+const IMAGE_MAGIC: { bytes: number[] }[] = [
+  { bytes: [0xFF, 0xD8, 0xFF] },
+  { bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { bytes: [0x52, 0x49, 0x46, 0x46] },
+]
+
+function validateImageMagic(buffer: Buffer): boolean {
+  return IMAGE_MAGIC.some(s => s.bytes.every((b, i) => buffer[i] === b))
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,10 +48,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File terlalu besar (max 5MB)' }, { status: 400 })
     }
 
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Format tidak didukung. Gunakan JPG, PNG, atau WebP' }, { status: 400 })
+    }
+
+    const ext = path.extname(file.name).toLowerCase() || '.jpg'
+    if (!ALLOWED_EXTS.includes(ext)) {
+      return NextResponse.json({ error: 'Ekstensi file tidak valid' }, { status: 400 })
+    }
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const ext = path.extname(file.name) || '.jpg'
+    if (!validateImageMagic(buffer)) {
+      return NextResponse.json({ error: 'Konten file tidak sesuai dengan format gambar' }, { status: 400 })
+    }
     const filename = `${session.userId}-${Date.now()}${ext}`
     const storagePath = `galleries/${filename}`
 

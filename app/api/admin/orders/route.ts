@@ -10,6 +10,11 @@ export async function GET() {
   if (!session || !isAdmin(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const all = await orders.findAll()
-  return NextResponse.json({ orders: all })
+  try {
+    const all = await orders.findAll()
+    return NextResponse.json({ orders: all })
+  } catch (error) {
+    console.error('Orders GET error:', error)
+    return NextResponse.json({ error: 'Gagal memuat pesanan' }, { status: 500 })
+  }
 }

@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({
         message: 'Jika email terdaftar, link reset akan dikirim',
-        resetLink: null,
       })
     }
 
@@ -32,15 +31,16 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         email: user.email,
         token,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       },
     })
 
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`
+    // TODO: Send email with reset link to user
+    // const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`
+    // await sendEmail(user.email, 'Reset Password', resetLink)
 
     return NextResponse.json({
-      message: 'Link reset password berhasil dibuat',
-      resetLink,
+      message: 'Jika email terdaftar, link reset akan dikirim',
     })
   } catch (error) {
     console.error('Forgot password error:', error)

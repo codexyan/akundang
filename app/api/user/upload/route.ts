@@ -13,6 +13,28 @@ const VIDEO_EXTS = ['.mp4', '.webm', '.mov']
 const AUDIO_EXTS = ['.mp3', '.m4a', '.wav', '.ogg', '.aac']
 const ALLOWED_FOLDERS = ['user', 'music', 'photos', 'videos']
 
+const MAGIC_SIGS: { kind: string; bytes: number[]; offset?: number }[] = [
+  { kind: 'image', bytes: [0xFF, 0xD8, 0xFF] },
+  { kind: 'image', bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { kind: 'image', bytes: [0x52, 0x49, 0x46, 0x46] },
+  { kind: 'image', bytes: [0x47, 0x49, 0x46, 0x38] },
+  { kind: 'video', bytes: [0x66, 0x74, 0x79, 0x70], offset: 4 },
+  { kind: 'video', bytes: [0x1A, 0x45, 0xDF, 0xA3] },
+  { kind: 'audio', bytes: [0xFF, 0xFB] },
+  { kind: 'audio', bytes: [0x49, 0x44, 0x33] },
+  { kind: 'audio', bytes: [0x4F, 0x67, 0x67, 0x53] },
+  { kind: 'audio', bytes: [0x52, 0x49, 0x46, 0x46] },
+]
+
+function validateMagic(buffer: Buffer, kind: string): boolean {
+  const sigs = MAGIC_SIGS.filter(s => s.kind === kind)
+  if (sigs.length === 0) return true
+  return sigs.some(s => {
+    const off = s.offset ?? 0
+    return s.bytes.every((b, i) => buffer[off + i] === b)
+  })
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession()
@@ -43,6 +65,11 @@ export async function POST(req: NextRequest) {
     const kind = isVideo ? 'video' : isAudio ? 'audio' : 'image'
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+
+    if (!validateMagic(buffer, kind)) {
+      return NextResponse.json({ error: 'Konten file tidak sesuai dengan format yang dideklarasikan' }, { status: 400 })
+    }
+
     const safeName = `${session.userId.slice(0, 8)}-${Date.now()}${ext || (isVideo ? '.mp4' : isAudio ? '.mp3' : '.jpg')}`
     const storagePath = `${folder}/${safeName}`
 

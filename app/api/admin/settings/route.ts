@@ -12,7 +12,12 @@ export async function GET() {
   if (!isAdmin(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  return NextResponse.json({ settings: await settings.get() })
+  try {
+    return NextResponse.json({ settings: await settings.get() })
+  } catch (error) {
+    console.error('Settings GET error:', error)
+    return NextResponse.json({ error: 'Gagal memuat pengaturan' }, { status: 500 })
+  }
 }
 
 export async function PATCH(req: NextRequest) {
@@ -20,7 +25,12 @@ export async function PATCH(req: NextRequest) {
   if (!isAdmin(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const body = (await req.json()) as AppSettings
-  await settings.save(body)
-  return NextResponse.json({ settings: body })
+  try {
+    const body = (await req.json()) as AppSettings
+    await settings.save(body)
+    return NextResponse.json({ settings: body })
+  } catch (error) {
+    console.error('Settings PATCH error:', error)
+    return NextResponse.json({ error: 'Gagal menyimpan pengaturan' }, { status: 500 })
+  }
 }

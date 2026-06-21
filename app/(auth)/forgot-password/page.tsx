@@ -19,7 +19,6 @@ type FormData = z.infer<typeof schema>
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [resetLink, setResetLink] = useState('')
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -40,10 +39,8 @@ export default function ForgotPasswordPage() {
       return
     }
 
-    const { resetLink: link } = await res.json()
-    setResetLink(link)
     setSuccess(true)
-    toast.success('Link reset password berhasil dibuat!')
+    toast.success('Permintaan reset berhasil dikirim!')
   }
 
   if (success) {
@@ -56,11 +53,9 @@ export default function ForgotPasswordPage() {
           className="w-full max-w-md"
         >
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-stone-200/50 overflow-hidden">
-            {/* Accent bar */}
             <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500" />
 
             <div className="p-8 text-center">
-              {/* Success Icon */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -71,51 +66,23 @@ export default function ForgotPasswordPage() {
               </motion.div>
 
               <h1 className="text-2xl font-bold text-stone-900 mb-3">
-                Link Reset Berhasil Dibuat!
+                Cek Email Anda
               </h1>
 
               <p className="text-sm text-stone-600 mb-6">
-                Karena mode lokal, link reset password ditampilkan di bawah.
-                Di production, link ini akan dikirim ke email Anda.
+                Jika email terdaftar, kami akan mengirimkan link untuk reset password.
+                Silakan cek inbox dan folder spam Anda.
               </p>
-
-              {/* Reset Link Box */}
-              <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 mb-6">
-                <p className="text-xs font-semibold text-stone-700 mb-2">
-                  Link Reset Password:
-                </p>
-                <div className="bg-white border border-stone-300 rounded-lg p-3 mb-3">
-                  <p className="text-xs font-mono text-stone-800 break-all">
-                    {resetLink}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(resetLink)
-                    toast.success('Link berhasil disalin!')
-                  }}
-                  className="text-xs font-medium text-gold-600 hover:text-gold-700"
-                >
-                  📋 Salin Link
-                </button>
-              </div>
 
               <p className="text-xs text-stone-500 mb-6">
-                Link ini akan kadaluarsa dalam <strong>1 jam</strong>.
+                Link akan kadaluarsa dalam <strong>1 jam</strong>.
               </p>
 
-              {/* Actions */}
               <div className="space-y-3">
-                <Link href={resetLink}>
-                  <button className="w-full py-3 px-4 bg-gold-gradient text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                    <span>Buka Link Reset</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </Link>
-
                 <Link href="/login">
-                  <button className="w-full py-2.5 px-4 bg-white text-stone-700 text-sm font-medium rounded-lg border border-stone-300 hover:bg-stone-50 transition-all">
-                    Kembali ke Login
+                  <button className="w-full py-3 px-4 bg-gold-gradient text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <span>Kembali ke Login</span>
+                    <ArrowRight size={14} />
                   </button>
                 </Link>
               </div>
@@ -191,14 +158,6 @@ export default function ForgotPasswordPage() {
                     {errors.email.message}
                   </p>
                 )}
-              </div>
-
-              {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  <strong>Mode lokal:</strong> Link reset akan ditampilkan di layar.
-                  Di production, link akan dikirim ke email Anda.
-                </p>
               </div>
 
               {/* Submit Button */}

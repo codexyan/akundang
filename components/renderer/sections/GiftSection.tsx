@@ -376,6 +376,7 @@ function ProofModal({ onClose, invitationId, accent, thankyouText }: {
     setStep('uploading-img')
     const fd = new FormData()
     fd.append('file', file)
+    fd.append('invitationId', invitationId)
     const res  = await fetch('/api/gift-proof/upload', { method: 'POST', body: fd })
     const data = await res.json()
     setProofUrl(data.url ?? null)

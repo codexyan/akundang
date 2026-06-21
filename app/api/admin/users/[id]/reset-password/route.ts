@@ -21,19 +21,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const session = await getSession()
   if (!isAdmin(session)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const target = await users.findById(params.id)
-  if (!target) return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
+  try {
+    const target = await users.findById(params.id)
+    if (!target) return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
 
-  if (target.email === getAdminEmail()) {
-    return NextResponse.json({ error: 'Gunakan menu profil untuk mengubah password admin' }, { status: 403 })
+    if (target.email === getAdminEmail()) {
+      return NextResponse.json({ error: 'Gunakan menu profil untuk mengubah password admin' }, { status: 403 })
+    }
+
+    const newPassword = generatePassword()
+    const hash = await bcrypt.hash(newPassword, 10)
+    await users.updatePassword(params.id, hash)
+
+    return NextResponse.json({ ok: true, password: newPassword, email: target.email })
+  } catch (error) {
+    console.error('Reset password error:', error)
+    return NextResponse.json({ error: 'Gagal reset password' }, { status: 500 })
   }
-
-  const newPassword = generatePassword()
-  const hash = await bcrypt.hash(newPassword, 10)
-  await users.updatePassword(params.id, hash)
-
-  // TODO: Send email with new password to target.email
-  // await sendEmail(target.email, 'Password Baru Anda', `Password baru: ${newPassword}`)
-
-  return NextResponse.json({ ok: true, password: newPassword, email: target.email })
 }

@@ -23,6 +23,33 @@ const MAX_FONT_SIZE = 5 * 1024 * 1024  // 5 MB
 
 const ALLOWED_FOLDERS = ['covers', 'thumbnails', 'assets', 'templates', 'decorations', 'music', 'fonts']
 
+const MAGIC_SIGS: { type: string; bytes: number[]; offset?: number }[] = [
+  { type: 'image/jpeg', bytes: [0xFF, 0xD8, 0xFF] },
+  { type: 'image/png',  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { type: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46] },
+  { type: 'video/mp4',  bytes: [0x66, 0x74, 0x79, 0x70], offset: 4 },
+  { type: 'video/webm', bytes: [0x1A, 0x45, 0xDF, 0xA3] },
+  { type: 'audio/mpeg', bytes: [0xFF, 0xFB] },
+  { type: 'audio/mpeg', bytes: [0x49, 0x44, 0x33] },
+  { type: 'audio/ogg',  bytes: [0x4F, 0x67, 0x67, 0x53] },
+  { type: 'audio/wav',  bytes: [0x52, 0x49, 0x46, 0x46] },
+]
+
+function validateMagic(buffer: Buffer, kind: string): boolean {
+  if (kind === 'font') return true
+  const sigs = MAGIC_SIGS.filter(s => {
+    if (kind === 'image') return s.type.startsWith('image/')
+    if (kind === 'video') return s.type.startsWith('video/')
+    if (kind === 'audio') return s.type.startsWith('audio/')
+    return false
+  })
+  if (sigs.length === 0) return true
+  return sigs.some(s => {
+    const off = s.offset ?? 0
+    return s.bytes.every((b, i) => buffer[off + i] === b)
+  })
+}
+
 function fileKind(file: File): 'image' | 'video' | 'audio' | 'font' | null {
   if (IMAGE_TYPES.includes(file.type)) return 'image'
   if (VIDEO_TYPES.includes(file.type)) return 'video'
@@ -71,6 +98,10 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+
+    if (!validateMagic(buffer, kind)) {
+      return NextResponse.json({ error: 'Konten file tidak sesuai dengan format yang dideklarasikan' }, { status: 400 })
+    }
 
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(2, 9)
