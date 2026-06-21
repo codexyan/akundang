@@ -179,7 +179,7 @@ function TemplateCard({ rec, tier, flashSale }: {
             Coba Gratis
           </Link>
           <Link
-            href={`/register?template=${rec.id}`}
+            href={`/order?template=${rec.id}`}
             className="block w-full text-center py-2.5 rounded-xl text-xs font-medium border border-stone-200 text-stone-500 hover:border-forest-300 hover:text-forest-600 transition-colors"
           >
             Langsung buat undangan

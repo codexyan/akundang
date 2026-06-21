@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import dynamic from 'next/dynamic'
 import {
   CheckSquare, MessageSquare, BookOpen, Eye, X, Loader2, Check, RefreshCw,
-  Palette, User, Calendar, Sparkles, Music, Quote, Heart, Image, Gift, FileText,
-  ChevronDown, Layers,
+  User, Calendar, Sparkles, Music, Quote, Image, Gift, FileText,
+  Maximize2, ExternalLink, Lock, Video, Radio, Instagram, QrCode, ShoppingBag,
 } from 'lucide-react'
 import type { Invitation, NewInvitationData, TemplateRecord, OpeningType } from '@/lib/types'
 import type { PackageTier } from '@/lib/packages'
@@ -15,20 +15,22 @@ import InvitationPreview from '@/components/renderer/InvitationPreview'
 import GalleryManager from '@/components/dashboard/GalleryManager'
 import LockedOverlay from './ui/LockedOverlay'
 
-const CoverPagePreview = dynamic(() => import('@/components/renderer/CoverPagePreview'), { ssr: false })
-const LoadingScreen = dynamic(() => import('@/components/renderer/LoadingScreen'), { ssr: false })
+const InvitationRenderer = dynamic(() => import('@/components/renderer/InvitationRenderer'), { ssr: false })
 
 import StudioHeader from './StudioHeader'
-import ColorPaletteForm from './forms/ColorPaletteForm'
 import OpeningForm from './forms/OpeningForm'
+import LoadingForm from './forms/LoadingForm'
 import MusicForm from './forms/MusicForm'
 import QuoteForm from './forms/QuoteForm'
 import BasicInfoForm from './forms/BasicInfoForm'
 import EventDetailsForm from './forms/EventDetailsForm'
-import ProfilesForm from './forms/ProfilesForm'
 import GiftForm from './forms/GiftForm'
 import StoryForm from './forms/StoryForm'
-import DecorationForm from './forms/DecorationForm'
+import VideoForm from './forms/VideoForm'
+import LivestreamForm from './forms/LivestreamForm'
+import IGStoryForm from './forms/IGStoryForm'
+import QRCodeForm from './forms/QRCodeForm'
+import GiftRegistryForm from './forms/GiftRegistryForm'
 import InfoCard from './ui/InfoCard'
 import FormField, { textareaClass } from './ui/FormField'
 import SectionCard from './ui/SectionCard'
@@ -38,6 +40,7 @@ interface Props {
   template: TemplateRecord
   onSaved: (inv: Invitation) => void
   embedded?: boolean
+  isAdmin?: boolean
 }
 
 function initData(inv: Invitation): NewInvitationData {
@@ -45,8 +48,14 @@ function initData(inv: Invitation): NewInvitationData {
   return {
     groom_name: d.groom_name ?? '',
     bride_name: d.bride_name ?? '',
+    groom_nickname: d.groom_nickname ?? '',
+    bride_nickname: d.bride_nickname ?? '',
     groom_parents: d.groom_parents ?? '',
     bride_parents: d.bride_parents ?? '',
+    groom_father: d.groom_father ?? '',
+    groom_mother: d.groom_mother ?? '',
+    bride_father: d.bride_father ?? '',
+    bride_mother: d.bride_mother ?? '',
     tagline: d.tagline ?? '',
     groom_photo_url: d.groom_photo_url ?? '',
     bride_photo_url: d.bride_photo_url ?? '',
@@ -105,33 +114,128 @@ function calculateProgress(data: NewInvitationData) {
   return { percentage: Math.round((filled / total) * 100), requiredFieldsCount: filled, totalRequiredFields: total, missingFields: missing }
 }
 
-const SECTIONS = [
-  { id: 'warna', label: 'Warna', icon: Palette },
-  { id: 'dekorasi', label: 'Dekorasi', icon: Layers },
-  { id: 'info', label: 'Info Dasar', icon: User },
-  { id: 'acara', label: 'Acara', icon: Calendar },
-  { id: 'opening', label: 'Pembuka', icon: Sparkles },
-  { id: 'musik', label: 'Musik', icon: Music },
-  { id: 'quote', label: 'Doa', icon: Quote },
-  { id: 'profil', label: 'Profil', icon: Heart },
-  { id: 'cerita', label: 'Cerita', icon: BookOpen },
-  { id: 'galeri', label: 'Galeri', icon: Image },
-  { id: 'hadiah', label: 'Hadiah', icon: Gift },
-  { id: 'penutup', label: 'Penutup', icon: FileText },
-] as const
+interface NavItem { id: string; label: string; icon: React.ElementType; locked?: boolean; requiredTier?: string }
+interface NavGroup { label: string; items: NavItem[] }
 
-export default function InvitationStudio({ invitation, template, onSaved, embedded }: Props) {
+const NAV_SECTION_TYPE: Record<string, string> = {
+  info: 'profiles', acara: 'events', cerita: 'story', galeri: 'gallery',
+  hadiah: 'gift', quote: 'quote', penutup: 'closing', video: 'video',
+  livestream: 'livestream', ig_story: 'ig-story', qrcode: 'qrcode',
+  gift_registry: 'gift-registry', musik: 'wishes',
+}
+
+function buildNavGroups(
+  gating: { isSectionAllowed: (id: string) => boolean; getRequiredTier: (id: string) => string | undefined },
+  templateSections: { type: string; enabled: boolean }[],
+): { groups: NavGroup[]; sections: NavItem[] } {
+  const enabledTypes = new Set(templateSections.filter(s => s.enabled).map(s => s.type))
+
+  function item(id: string, label: string, icon: React.ElementType, gateKey?: string): NavItem | null {
+    const sectionType = NAV_SECTION_TYPE[id]
+    if (sectionType && !enabledTypes.has(sectionType)) return null
+    const isLocked = gateKey ? !gating.isSectionAllowed(gateKey) : false
+    return { id, label, icon, locked: isLocked, requiredTier: isLocked ? gating.getRequiredTier(gateKey!) : undefined }
+  }
+
+  const allGroups: { label: string; rawItems: (NavItem | null)[] }[] = [
+    {
+      label: 'Desain',
+      rawItems: [
+        item('opening', 'Pembuka', Sparkles),
+        item('loading', 'Loading', Loader2),
+      ],
+    },
+    {
+      label: 'Konten',
+      rawItems: [
+        item('info', 'Mempelai', User),
+        item('acara', 'Acara', Calendar),
+        item('cerita', 'Cerita', BookOpen, 'cerita'),
+        item('quote', 'Doa', Quote),
+      ],
+    },
+    {
+      label: 'Media',
+      rawItems: [
+        item('galeri', 'Galeri', Image, 'galeri'),
+        item('musik', 'Musik', Music, 'musik'),
+        item('video', 'Video', Video, 'video'),
+        item('livestream', 'Live', Radio, 'livestream'),
+        item('ig_story', 'IG Story', Instagram, 'ig_story'),
+      ],
+    },
+    {
+      label: 'Lainnya',
+      rawItems: [
+        item('hadiah', 'Hadiah', Gift, 'hadiah'),
+        item('gift_registry', 'Registry', ShoppingBag, 'gift_registry'),
+        item('qrcode', 'QR Code', QrCode, 'qrcode'),
+        item('penutup', 'Penutup', FileText),
+      ],
+    },
+  ]
+
+  const groups: NavGroup[] = allGroups
+    .map(g => ({ label: g.label, items: g.rawItems.filter((i): i is NavItem => i !== null) }))
+    .filter(g => g.items.length > 0)
+
+  return { groups, sections: groups.flatMap(g => g.items) }
+}
+
+export default function InvitationStudio({ invitation, template, onSaved, embedded, isAdmin }: Props) {
   const [data, setData] = useState<NewInvitationData>(() => initData(invitation))
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [showPreview, setShowPreview] = useState(false)
-  const [activeSection, setActiveSection] = useState<string>('warna')
-  const [previewMode, setPreviewMode] = useState<'opening' | 'loading' | 'invitation'>('opening')
+  const [activeSection, setActiveSection] = useState<string>('opening')
   const [previewKey, setPreviewKey] = useState(0)
+
+  const [showFullscreen, setShowFullscreen] = useState(false)
+
+  const [debouncedData, setDebouncedData] = useState(data)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>()
+  useEffect(() => {
+    debounceTimer.current = setTimeout(() => setDebouncedData(data), 600)
+    return () => clearTimeout(debounceTimer.current)
+  }, [data])
 
   const timer = useRef<ReturnType<typeof setTimeout>>()
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const progress = calculateProgress(data)
-  const gating = usePackageGating((invitation as unknown as Record<string, unknown>).package_tier as PackageTier | undefined)
+  const gating = usePackageGating(isAdmin ? 'eksklusif' : (invitation as unknown as Record<string, unknown>).package_tier as PackageTier | undefined)
+
+  const { groups: NAV_GROUPS, sections: SECTIONS } = useMemo(() => buildNavGroups(gating, template.config.sections), [gating, template.config.sections])
+
+  const SECTION_TYPE_FEATURE: Record<string, keyof import('@/lib/types').TierFeatures> = {
+    story: 'story', gift: 'gift', gallery: 'gallery', countdown: 'countdown',
+    video: 'video', livestream: 'livestream', 'ig-story': 'ig_story',
+    qrcode: 'qrcode', 'gift-registry': 'gift_registry', wishes: 'wishes', rsvp: 'rsvp',
+  }
+
+  const previewTemplate = useMemo<TemplateRecord>(() => ({
+    ...template,
+    config: {
+      ...template.config,
+      opening: {
+        ...template.config.opening,
+        type: (data.opening_type || template.config.opening.type) as OpeningType,
+        subtitle: data.opening_greeting || template.config.opening.subtitle,
+        invitation_text: data.opening_subtitle || template.config.opening.invitation_text,
+      },
+      loading: {
+        ...template.config.loading,
+        ...(data.loading_config ?? {}),
+      },
+      sections: template.config.sections.filter(s => {
+        const featureKey = SECTION_TYPE_FEATURE[s.type]
+        if (!featureKey) return true
+        return !!gating.features[featureKey]
+      }),
+    },
+  }), [template, data.opening_type, data.opening_greeting, data.opening_subtitle, data.loading_config, gating.features])
+
+  useEffect(() => {
+    setPreviewKey(k => k + 1)
+  }, [data.opening_type, data.loading_config])
 
   const scheduleSave = useCallback(
     (updatedData: NewInvitationData) => {
@@ -164,68 +268,46 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
     scheduleSave(updated)
   }
 
-  function scrollToSection(id: string) {
-    setActiveSection(id)
-    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const forms = (
-    <div className="space-y-3.5">
-      <div ref={el => { sectionRefs.current['warna'] = el }}>
-        <ColorPaletteForm
-          primaryColor={data.primary_color || '#2c4a34'}
-          accentColor={data.accent_color || '#c9a961'}
-          textColor={data.text_color || '#1a1a1a'}
-          backgroundColor={data.background_color || '#fefdf8'}
-          onPrimaryColorChange={(val) => updateData({ primary_color: val })}
-          onAccentColorChange={(val) => updateData({ accent_color: val })}
-          onTextColorChange={(val) => updateData({ text_color: val })}
-          onBackgroundColorChange={(val) => updateData({ background_color: val })}
-        />
-      </div>
-
-      <div ref={el => { sectionRefs.current['dekorasi'] = el }} className="relative">
-        <DecorationForm
-          template={template}
-          data={data}
-          onUpdate={updateData}
-          canEdit={gating.canEditDecorations}
-          maxAssets={gating.maxDecorationAssets}
-          requiredTier={gating.canEditDecorations ? undefined : (gating.getRequiredTier('dekorasi') ?? 'Popular')}
-        />
-      </div>
-
-      <div ref={el => { sectionRefs.current['info'] = el }}>
+  function renderActiveForm() {
+    switch (activeSection) {
+      case 'info': return (
         <BasicInfoForm
-          groomName={data.groom_name}
-          brideName={data.bride_name}
-          couplePhotoUrl={data.couple_photo_url}
-          tagline={data.tagline}
+          groomName={data.groom_name} brideName={data.bride_name}
+          groomNickname={data.groom_nickname} brideNickname={data.bride_nickname}
+          groomFather={data.groom_father} groomMother={data.groom_mother}
+          brideFather={data.bride_father} brideMother={data.bride_mother}
+          couplePhotoUrl={data.couple_photo_url} tagline={data.tagline}
+          groomPhotoUrl={data.groom_photo_url} bridePhotoUrl={data.bride_photo_url}
+          groomBio={data.groom_bio} brideBio={data.bride_bio}
           onGroomNameChange={(val) => updateData({ groom_name: val })}
           onBrideNameChange={(val) => updateData({ bride_name: val })}
+          onGroomNicknameChange={(val) => updateData({ groom_nickname: val })}
+          onBrideNicknameChange={(val) => updateData({ bride_nickname: val })}
+          onGroomFatherChange={(val) => updateData({ groom_father: val })}
+          onGroomMotherChange={(val) => updateData({ groom_mother: val })}
+          onBrideFatherChange={(val) => updateData({ bride_father: val })}
+          onBrideMotherChange={(val) => updateData({ bride_mother: val })}
           onCouplePhotoChange={(url) => updateData({ couple_photo_url: url })}
           onTaglineChange={(val) => updateData({ tagline: val })}
+          onGroomPhotoChange={(url) => updateData({ groom_photo_url: url })}
+          onBridePhotoChange={(url) => updateData({ bride_photo_url: url })}
+          onGroomBioChange={(val) => updateData({ groom_bio: val })}
+          onBrideBioChange={(val) => updateData({ bride_bio: val })}
         />
-      </div>
-
-      <div ref={el => { sectionRefs.current['acara'] = el }}>
+      )
+      case 'acara': return (
         <EventDetailsForm
-          akad={data.akad}
-          resepsi={data.resepsi}
+          akad={data.akad} resepsi={data.resepsi}
           onAkadChange={(patch) => updateData({ akad: { ...(data.akad ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['akad'] })}
           onResepsiChange={(patch) => updateData({ resepsi: { ...(data.resepsi ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['resepsi'] })}
         />
-      </div>
-
-      <div ref={el => { sectionRefs.current['opening'] = el }}>
+      )
+      case 'opening': return (
         <OpeningForm
           openingType={(data.opening_type as OpeningType) || 'fade-reveal'}
-          openingGreeting={data.opening_greeting || ''}
-          openingSubtitle={data.opening_subtitle || ''}
-          openingGroomName={data.opening_groom_name || ''}
-          openingBrideName={data.opening_bride_name || ''}
-          groomName={data.groom_name}
-          brideName={data.bride_name}
+          openingGreeting={data.opening_greeting || ''} openingSubtitle={data.opening_subtitle || ''}
+          openingGroomName={data.opening_groom_name || ''} openingBrideName={data.opening_bride_name || ''}
+          groomName={data.groom_name} brideName={data.bride_name}
           nameGap={data.opening_name_gap ?? template.config.opening.couple_name_gap ?? 3}
           onOpeningTypeChange={(val) => updateData({ opening_type: val })}
           onOpeningGreetingChange={(val) => updateData({ opening_greeting: val })}
@@ -234,353 +316,390 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
           onOpeningBrideNameChange={(val) => updateData({ opening_bride_name: val })}
           onNameGapChange={(val) => updateData({ opening_name_gap: val })}
         />
-      </div>
-
-      <div ref={el => { sectionRefs.current['musik'] = el }}>
+      )
+      case 'loading': return (
+        <LoadingForm
+          config={{ ...template.config.loading, ...(data.loading_config ?? {}) }}
+          onChange={(cfg) => updateData({ loading_config: cfg })}
+        />
+      )
+      case 'musik': return (
         <MusicForm
-          musicUrl={data.music_url || ''}
-          musicTitle={data.music_title || ''}
+          musicUrl={data.music_url || ''} musicTitle={data.music_title || ''}
           onMusicUrlChange={(val) => updateData({ music_url: val })}
           onMusicTitleChange={(val) => updateData({ music_title: val })}
         />
-      </div>
-
-      <div ref={el => { sectionRefs.current['quote'] = el }}>
+      )
+      case 'quote': return (
         <QuoteForm
-          quoteArabic={data.quote_arabic || ''}
-          quoteTranslation={data.quote_translation || ''}
+          quoteArabic={data.quote_arabic || ''} quoteTranslation={data.quote_translation || ''}
           quoteSource={data.quote_source || ''}
           onQuoteArabicChange={(val) => updateData({ quote_arabic: val })}
           onQuoteTranslationChange={(val) => updateData({ quote_translation: val })}
           onQuoteSourceChange={(val) => updateData({ quote_source: val })}
         />
-      </div>
-
-      <div ref={el => { sectionRefs.current['profil'] = el }}>
-        <ProfilesForm
-          groomParents={data.groom_parents}
-          groomPhotoUrl={data.groom_photo_url}
-          groomBio={data.groom_bio}
-          brideParents={data.bride_parents}
-          bridePhotoUrl={data.bride_photo_url}
-          brideBio={data.bride_bio}
-          onGroomParentsChange={(val) => updateData({ groom_parents: val })}
-          onGroomPhotoChange={(url) => updateData({ groom_photo_url: url })}
-          onGroomBioChange={(val) => updateData({ groom_bio: val })}
-          onBrideParentsChange={(val) => updateData({ bride_parents: val })}
-          onBridePhotoChange={(url) => updateData({ bride_photo_url: url })}
-          onBrideBioChange={(val) => updateData({ bride_bio: val })}
-        />
-      </div>
-
-      <div ref={el => { sectionRefs.current['cerita'] = el }} className="relative">
+      )
+      case 'cerita': return (
         <StoryForm
-          storyTitle={data.story_title ?? ''}
-          storyText={data.story_text ?? ''}
+          storyTitle={data.story_title ?? ''} storyText={data.story_text ?? ''}
           chapters={data.story_chapters ?? []}
           onStoryTitleChange={(val) => updateData({ story_title: val })}
           onStoryTextChange={(val) => updateData({ story_text: val })}
           onChaptersChange={(chapters) => updateData({ story_chapters: chapters })}
         />
-        {!gating.isSectionAllowed('cerita') && (
-          <LockedOverlay requiredTier={gating.getRequiredTier('cerita') ?? 'Popular'} />
-        )}
-      </div>
-
-      <div ref={el => { sectionRefs.current['galeri'] = el }}>
-        <GalleryManager invitation={invitation} />
-      </div>
-
-      <div ref={el => { sectionRefs.current['hadiah'] = el }} className="relative">
-        <GiftForm
-          accounts={data.gift_accounts ?? []}
-          onAccountsChange={(accounts) => updateData({ gift_accounts: accounts })}
+      )
+      case 'galeri': return <GalleryManager invitation={invitation} />
+      case 'hadiah': return (
+        <GiftForm accounts={data.gift_accounts ?? []} onAccountsChange={(accounts) => updateData({ gift_accounts: accounts })} />
+      )
+      case 'gift_registry': return (
+        <GiftRegistryForm items={data.gift_registry ?? []} onItemsChange={(items) => updateData({ gift_registry: items })} />
+      )
+      case 'video': return (
+        <VideoForm
+          embedUrl={data.video_embed_url ?? ''} caption={data.video_caption ?? ''}
+          onEmbedUrlChange={(val) => updateData({ video_embed_url: val })}
+          onCaptionChange={(val) => updateData({ video_caption: val })}
         />
-        {!gating.isSectionAllowed('hadiah') && (
-          <LockedOverlay requiredTier={gating.getRequiredTier('hadiah') ?? 'Popular'} />
-        )}
-      </div>
+      )
+      case 'livestream': return (
+        <LivestreamForm url={data.livestream_url ?? ''} onUrlChange={(val) => updateData({ livestream_url: val })} />
+      )
+      case 'ig_story': return (
+        <IGStoryForm imageUrl={data.ig_story_image_url ?? ''} onImageUrlChange={(val) => updateData({ ig_story_image_url: val })} />
+      )
+      case 'qrcode': return (
+        <QRCodeForm
+          targetUrl={data.qr_target_url ?? ''} label={data.qr_label ?? ''}
+          onTargetUrlChange={(val) => updateData({ qr_target_url: val })}
+          onLabelChange={(val) => updateData({ qr_label: val })}
+        />
+      )
+      case 'penutup': return (
+        <div className="space-y-3.5">
+          <SectionCard title="Penutup" icon={BookOpen} description="Pesan penutup dan ucapan terima kasih (opsional)">
+            <FormField label="Kalimat Penutup" hint="Ucapan terima kasih atau kalimat penutup undangan">
+              <textarea className={textareaClass} rows={3} value={data.closing_text}
+                onChange={(e) => updateData({ closing_text: e.target.value })}
+                placeholder="Merupakan suatu kehormatan dan kebahagiaan bagi kami..." />
+            </FormField>
+            <FormField label="Pesan Terima Kasih" hint="Pesan singkat terima kasih untuk para tamu">
+              <input type="text" className={textareaClass} value={data.thank_you_message}
+                onChange={(e) => updateData({ thank_you_message: e.target.value })}
+                placeholder="Terima kasih atas doa dan kehadiran Anda" />
+            </FormField>
+          </SectionCard>
+          <InfoCard title="Konfirmasi Kehadiran" icon={CheckSquare}
+            message="Form RSVP otomatis tampil di undangan. Lihat daftar tamu yang sudah konfirmasi di tab RSVP."
+            actionText="Lihat Daftar RSVP" actionHref="#" />
+          <InfoCard title="Buku Ucapan" icon={MessageSquare}
+            message="Buku ucapan otomatis tersedia di undangan. Tamu bisa menulis ucapan dan doa untuk Anda berdua." />
+        </div>
+      )
+      default: return null
+    }
+  }
 
-      <InfoCard
-        title="Konfirmasi Kehadiran"
-        icon={CheckSquare}
+  const forms = (
+    <div className="space-y-3.5">
+      <BasicInfoForm
+        groomName={data.groom_name} brideName={data.bride_name}
+        groomNickname={data.groom_nickname} brideNickname={data.bride_nickname}
+        groomFather={data.groom_father} groomMother={data.groom_mother}
+        brideFather={data.bride_father} brideMother={data.bride_mother}
+        couplePhotoUrl={data.couple_photo_url} tagline={data.tagline}
+        groomPhotoUrl={data.groom_photo_url} bridePhotoUrl={data.bride_photo_url}
+        groomBio={data.groom_bio} brideBio={data.bride_bio}
+        onGroomNameChange={(val) => updateData({ groom_name: val })}
+        onBrideNameChange={(val) => updateData({ bride_name: val })}
+        onGroomNicknameChange={(val) => updateData({ groom_nickname: val })}
+        onBrideNicknameChange={(val) => updateData({ bride_nickname: val })}
+        onGroomFatherChange={(val) => updateData({ groom_father: val })}
+        onGroomMotherChange={(val) => updateData({ groom_mother: val })}
+        onBrideFatherChange={(val) => updateData({ bride_father: val })}
+        onBrideMotherChange={(val) => updateData({ bride_mother: val })}
+        onCouplePhotoChange={(url) => updateData({ couple_photo_url: url })}
+        onTaglineChange={(val) => updateData({ tagline: val })}
+        onGroomPhotoChange={(url) => updateData({ groom_photo_url: url })}
+        onBridePhotoChange={(url) => updateData({ bride_photo_url: url })}
+        onGroomBioChange={(val) => updateData({ groom_bio: val })}
+        onBrideBioChange={(val) => updateData({ bride_bio: val })} />
+      <EventDetailsForm akad={data.akad} resepsi={data.resepsi}
+        onAkadChange={(patch) => updateData({ akad: { ...(data.akad ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['akad'] })}
+        onResepsiChange={(patch) => updateData({ resepsi: { ...(data.resepsi ?? { date: '', time: '', venue_name: '', venue_address: '' }), ...patch } as NewInvitationData['resepsi'] })} />
+      <OpeningForm
+        openingType={(data.opening_type as OpeningType) || 'fade-reveal'}
+        openingGreeting={data.opening_greeting || ''} openingSubtitle={data.opening_subtitle || ''}
+        openingGroomName={data.opening_groom_name || ''} openingBrideName={data.opening_bride_name || ''}
+        groomName={data.groom_name} brideName={data.bride_name}
+        nameGap={data.opening_name_gap ?? template.config.opening.couple_name_gap ?? 3}
+        onOpeningTypeChange={(val) => updateData({ opening_type: val })}
+        onOpeningGreetingChange={(val) => updateData({ opening_greeting: val })}
+        onOpeningSubtitleChange={(val) => updateData({ opening_subtitle: val })}
+        onOpeningGroomNameChange={(val) => updateData({ opening_groom_name: val })}
+        onOpeningBrideNameChange={(val) => updateData({ opening_bride_name: val })}
+        onNameGapChange={(val) => updateData({ opening_name_gap: val })} />
+      <MusicForm musicUrl={data.music_url || ''} musicTitle={data.music_title || ''}
+        onMusicUrlChange={(val) => updateData({ music_url: val })}
+        onMusicTitleChange={(val) => updateData({ music_title: val })} />
+      <QuoteForm quoteArabic={data.quote_arabic || ''} quoteTranslation={data.quote_translation || ''}
+        quoteSource={data.quote_source || ''}
+        onQuoteArabicChange={(val) => updateData({ quote_arabic: val })}
+        onQuoteTranslationChange={(val) => updateData({ quote_translation: val })}
+        onQuoteSourceChange={(val) => updateData({ quote_source: val })} />
+      <div className="relative">
+        <StoryForm storyTitle={data.story_title ?? ''} storyText={data.story_text ?? ''} chapters={data.story_chapters ?? []}
+          onStoryTitleChange={(val) => updateData({ story_title: val })}
+          onStoryTextChange={(val) => updateData({ story_text: val })}
+          onChaptersChange={(chapters) => updateData({ story_chapters: chapters })} />
+        {!gating.isSectionAllowed('cerita') && <LockedOverlay requiredTier={gating.getRequiredTier('cerita') ?? 'Popular'} />}
+      </div>
+      <GalleryManager invitation={invitation} />
+      <div className="relative">
+        <GiftForm accounts={data.gift_accounts ?? []} onAccountsChange={(accounts) => updateData({ gift_accounts: accounts })} />
+        {!gating.isSectionAllowed('hadiah') && <LockedOverlay requiredTier={gating.getRequiredTier('hadiah') ?? 'Popular'} />}
+      </div>
+      <InfoCard title="Konfirmasi Kehadiran" icon={CheckSquare}
         message="Form RSVP otomatis tampil di undangan. Lihat daftar tamu yang sudah konfirmasi di tab RSVP."
-        actionText="Lihat Daftar RSVP"
-        actionHref="#"
-      />
-
-      <InfoCard
-        title="Buku Ucapan"
-        icon={MessageSquare}
-        message="Buku ucapan otomatis tersedia di undangan. Tamu bisa menulis ucapan dan doa untuk Anda berdua."
-      />
-
-      <div ref={el => { sectionRefs.current['penutup'] = el }}>
-        <SectionCard title="Penutup" icon={BookOpen} description="Pesan penutup dan ucapan terima kasih (opsional)">
-          <FormField label="Kalimat Penutup" hint="Ucapan terima kasih atau kalimat penutup undangan">
-            <textarea
-              className={textareaClass}
-              rows={3}
-              value={data.closing_text}
-              onChange={(e) => updateData({ closing_text: e.target.value })}
-              placeholder="Merupakan suatu kehormatan dan kebahagiaan bagi kami..."
-            />
-          </FormField>
-          <FormField label="Pesan Terima Kasih" hint="Pesan singkat terima kasih untuk para tamu">
-            <input
-              type="text"
-              className={textareaClass}
-              value={data.thank_you_message}
-              onChange={(e) => updateData({ thank_you_message: e.target.value })}
-              placeholder="Terima kasih atas doa dan kehadiran Anda"
-            />
-          </FormField>
-        </SectionCard>
-      </div>
+        actionText="Lihat Daftar RSVP" actionHref="#" />
+      <InfoCard title="Buku Ucapan" icon={MessageSquare}
+        message="Buku ucapan otomatis tersedia di undangan. Tamu bisa menulis ucapan dan doa untuk Anda berdua." />
+      <SectionCard title="Penutup" icon={BookOpen} description="Pesan penutup dan ucapan terima kasih (opsional)">
+        <FormField label="Kalimat Penutup" hint="Ucapan terima kasih atau kalimat penutup undangan">
+          <textarea className={textareaClass} rows={3} value={data.closing_text}
+            onChange={(e) => updateData({ closing_text: e.target.value })}
+            placeholder="Merupakan suatu kehormatan dan kebahagiaan bagi kami..." />
+        </FormField>
+        <FormField label="Pesan Terima Kasih" hint="Pesan singkat terima kasih untuk para tamu">
+          <input type="text" className={textareaClass} value={data.thank_you_message}
+            onChange={(e) => updateData({ thank_you_message: e.target.value })}
+            placeholder="Terima kasih atas doa dan kehadiran Anda" />
+        </FormField>
+      </SectionCard>
     </div>
   )
 
-  //  Embedded mode (inside dashboard) 
+  //  Embedded mode (inside dashboard)
   if (embedded) {
-    return (
-      <div className="flex gap-6">
-        {/* Left column: sticky header + scrollable forms */}
-        <div className="flex-1 min-w-0">
-          {/* Sticky header */}
-          <div className="sticky top-0 z-10 -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 bg-[#f8f7f4]/95 backdrop-blur-xl border-b border-stone-200/60">
-            {/* Top row */}
-            <div className="flex items-center gap-3 pt-3 pb-2">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                {/* Progress ring */}
-                <div className="relative w-10 h-10 shrink-0">
-                  <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-                    <circle cx="20" cy="20" r="16" fill="none" stroke="#e7e5e4" strokeWidth="3" />
-                    <circle
-                      cx="20" cy="20" r="16" fill="none"
-                      stroke="url(#progress-gradient)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeDasharray={`${progress.percentage} ${100 - progress.percentage}`}
-                      pathLength="100"
-                      className="transition-all duration-700 ease-out"
-                    />
-                    <defs>
-                      <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f59e0b" />
-                        <stop offset="100%" stopColor="#f97316" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-stone-600">
-                    {progress.percentage}%
-                  </span>
-                </div>
+    const activeItem = SECTIONS.find(s => s.id === activeSection)
+    const ActiveIcon = activeItem?.icon ?? Sparkles
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-stone-800">Edit Undangan</p>
-                    {saveStatus === 'saving' && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">
-                        <Loader2 size={9} className="animate-spin" /> Menyimpan
-                      </span>
-                    )}
-                    {saveStatus === 'saved' && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        <Check size={9} /> Tersimpan
-                      </span>
-                    )}
-                  </div>
-                  {progress.missingFields.length > 0 && (
-                    <p className="text-[10px] text-stone-400 mt-0.5 truncate">
-                      Belum: {progress.missingFields.slice(0, 2).join(', ')}{progress.missingFields.length > 2 ? ` +${progress.missingFields.length - 2}` : ''}
-                    </p>
-                  )}
-                </div>
+    const sectionType = NAV_SECTION_TYPE[activeSection]
+    const previewPhase: 'opening' | 'loading' | 'main' =
+      activeSection === 'loading' ? 'loading'
+      : sectionType ? 'main'
+      : 'opening'
+    const previewScrollTo = sectionType
+      ? template.config.sections.find(s => s.type === sectionType)?.id
+      : undefined
+
+    const renderPhone = (pw: number) => {
+      const pad = 6
+      const sw = pw - pad * 2
+      const sh = Math.round(sw * 2.17)
+      const screenR = sw * 0.1
+      const z = sw / 390
+      return (
+        <div className="relative bg-[#1a1a1a] shadow-2xl" style={{ width: pw, borderRadius: pw * 0.12, padding: pad }}>
+          <div className="absolute left-1/2 -translate-x-1/2 bg-[#1a1a1a] rounded-full z-20" style={{ top: pad + 4, width: pw * 0.28, height: 14, borderRadius: 10 }} />
+          <div style={{ width: sw, height: sh, borderRadius: screenR, position: 'relative', overflow: 'hidden', background: '#000' }}>
+            <div style={{ width: 390, height: Math.round(sh / z), zoom: z, position: 'absolute', top: 0, left: 0, overflow: 'hidden' }}>
+              <div style={{ width: 390, height: Math.round(sh / z), position: 'relative' }}>
+                <InvitationRenderer
+                  key={`preview-${previewKey}-${activeSection}`}
+                  invitationId={`preview-${invitation.id}`}
+                  invitationData={debouncedData}
+                  template={previewTemplate}
+                  contained
+                  noMusic
+                  previewGuestName="Bapak & Ibu"
+                  initialPhase={previewPhase}
+                  scrollToSection={previewScrollTo}
+                />
               </div>
             </div>
-
-            {/* Section nav */}
-            <div className="flex gap-0.5 overflow-x-auto pb-2.5 scrollbar-hide -mx-1 px-1">
-              {SECTIONS.map(s => {
-                const active = activeSection === s.id
-                const SIcon = s.icon
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => scrollToSection(s.id)}
-                    className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                      active
-                        ? 'bg-[#1a1a1a] text-white shadow-sm'
-                        : 'text-stone-400 hover:bg-stone-200/60 hover:text-stone-600'
-                    }`}
-                  >
-                    <SIcon size={12} strokeWidth={active ? 2 : 1.5} />
-                    {s.label}
-                  </button>
-                )
-              })}
-            </div>
           </div>
+          <div className="mx-auto mt-1 rounded-full bg-stone-600" style={{ width: pw * 0.3, height: 3 }} />
+        </div>
+      )
+    }
 
-          {/* Forms */}
-          <div className="pt-4 space-y-4">
-            {forms}
+    return (
+      <div className="flex h-full">
+        {/* Left: vertical icon sidebar nav */}
+        <div className="hidden md:flex flex-col shrink-0 w-16 bg-white border-r border-stone-200/60 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex flex-col py-1.5">
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.label}>
+                {gi > 0 && <div className="mx-3 my-1 border-t border-stone-100" />}
+                <p className="text-[7px] font-bold text-stone-300 uppercase tracking-[0.2em] text-center py-1 select-none">{group.label}</p>
+                {group.items.map(s => {
+                  const active = activeSection === s.id
+                  const SIcon = s.icon
+                  return (
+                    <button key={s.id} onClick={() => setActiveSection(s.id)} title={s.locked ? `${s.label} (${s.requiredTier})` : s.label}
+                      className={`w-full flex flex-col items-center gap-0.5 py-1.5 px-1 transition-all relative group ${
+                        active ? 'text-stone-900' : s.locked ? 'text-stone-300' : 'text-stone-400 hover:text-stone-600'
+                      }`}
+                    >
+                      {active && <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-stone-900" />}
+                      <div className={`relative w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                        active ? 'bg-stone-900 text-white shadow-sm' : s.locked ? 'bg-stone-50' : 'group-hover:bg-stone-100'
+                      }`}>
+                        <SIcon size={14} strokeWidth={active ? 2.2 : 1.5} />
+                        {s.locked && !active && (
+                          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-400 flex items-center justify-center">
+                            <Lock size={6} className="text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <span className={`text-[8px] font-medium leading-tight ${active ? 'text-stone-800 font-semibold' : s.locked ? 'text-stone-300' : ''}`}>{s.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right column: sticky phone preview */}
-        <div className="hidden lg:block shrink-0 w-[300px]">
-          <div className="sticky top-0 pt-3">
-            {/* Preview mode tabs */}
-            <div className="flex items-center gap-1 mb-3">
-              <div className="flex bg-stone-200/60 rounded-xl p-0.5 gap-0.5 flex-1">
-                {([
-                  { mode: 'opening' as const, label: 'Opening' },
-                  { mode: 'loading' as const, label: 'Loading' },
-                  { mode: 'invitation' as const, label: 'Undangan' },
-                ]).map(pm => (
-                  <button
-                    key={pm.mode}
-                    onClick={() => { setPreviewMode(pm.mode); setPreviewKey(k => k + 1) }}
-                    className={`flex-1 py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
-                      previewMode === pm.mode
-                        ? 'bg-white text-stone-800 shadow-sm'
-                        : 'text-stone-400 hover:text-stone-600'
-                    }`}
-                  >
-                    {pm.label}
-                  </button>
-                ))}
+        {/* Mobile: horizontal section nav */}
+        <div className="md:hidden fixed bottom-[52px] left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-t border-stone-200/60">
+          <div className="flex overflow-x-auto px-2 py-1.5 gap-0.5" style={{ scrollbarWidth: 'none' }}>
+            {SECTIONS.map(s => {
+              const active = activeSection === s.id
+              const SIcon = s.icon
+              return (
+                <button key={s.id} onClick={() => setActiveSection(s.id)}
+                  className={`shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl transition-all relative ${
+                    active ? 'bg-stone-900 text-white' : s.locked ? 'text-stone-300' : 'text-stone-400'
+                  }`}
+                >
+                  <SIcon size={14} strokeWidth={active ? 2 : 1.5} />
+                  <span className="text-[9px] font-medium">{s.label}</span>
+                  {s.locked && !active && (
+                    <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-400 flex items-center justify-center">
+                      <Lock size={6} className="text-white" />
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Center: form content */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+          {/* Section header bar */}
+          <div className="shrink-0 bg-white/80 backdrop-blur-xl border-b border-stone-100 px-4 py-2.5 flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+              <ActiveIcon size={14} className="text-stone-600" strokeWidth={2} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-[13px] font-bold text-stone-800">{activeItem?.label ?? 'Editor'}</h2>
+                {saveStatus === 'saving' && (
+                  <span className="inline-flex items-center gap-1 text-[9px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">
+                    <Loader2 size={8} className="animate-spin" /> Menyimpan
+                  </span>
+                )}
+                {saveStatus === 'saved' && (
+                  <span className="inline-flex items-center gap-1 text-[9px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                    <Check size={8} /> Tersimpan
+                  </span>
+                )}
               </div>
-              <button
-                onClick={() => setPreviewKey(k => k + 1)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-500 hover:bg-stone-100 transition-all"
-                title="Refresh preview"
-              >
+              <div className="flex items-center gap-1 mt-0.5">
+                <div className="w-20 h-1 bg-stone-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress.percentage}%`, background: progress.percentage === 100 ? '#10b981' : '#f59e0b' }} />
+                </div>
+                <span className="text-[9px] font-bold text-stone-400">{progress.percentage}%</span>
+              </div>
+            </div>
+
+            <button onClick={() => setShowPreview(true)} className="xl:hidden flex items-center gap-1.5 bg-stone-900 text-white text-[11px] font-semibold px-3 py-2 rounded-xl hover:bg-stone-800 transition-colors">
+              <Eye size={13} /> Preview
+            </button>
+          </div>
+
+          {/* Active form */}
+          <div className="flex-1 overflow-y-auto min-h-0" style={{ scrollbarWidth: 'thin' }}>
+            <div className="px-4 py-4 max-w-xl mx-auto">
+              <div className="relative">
+                {renderActiveForm()}
+                {activeItem?.locked && activeItem.requiredTier && (
+                  <LockedOverlay requiredTier={activeItem.requiredTier} />
+                )}
+              </div>
+              <div className="h-16 md:h-4" />
+            </div>
+          </div>
+        </div>
+
+        {/* Right: phone preview panel (desktop xl+) */}
+        <div className="hidden xl:flex flex-col shrink-0 border-l border-stone-200/60 bg-gradient-to-b from-stone-100/80 to-stone-50/80" style={{ width: 360 }}>
+          <div className="flex items-center justify-between px-3 pt-2.5 pb-2 shrink-0">
+            <p className="text-[10px] font-semibold text-stone-400">Live Preview</p>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPreviewKey(k => k + 1)} className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-500 hover:bg-stone-100 transition-all" title="Refresh">
                 <RefreshCw size={12} />
               </button>
+              <button onClick={() => setShowFullscreen(true)} className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-300 hover:text-stone-500 hover:bg-stone-100 transition-all" title="Fullscreen">
+                <Maximize2 size={12} />
+              </button>
             </div>
+          </div>
 
-            {/* Phone frame */}
-            <div
-              className="relative bg-[#1a1a1a] rounded-[36px] shadow-2xl ring-1 ring-stone-300/20"
-              style={{ width: 300, padding: 7 }}
-            >
-              {/* Dynamic island */}
-              <div
-                className="absolute left-1/2 -translate-x-1/2 bg-[#1a1a1a] rounded-full z-20"
-                style={{ top: 10, width: 64, height: 18 }}
-              />
-
-              {/* Screen */}
-              <div
-                className="rounded-[30px] overflow-hidden bg-stone-950"
-                style={{ width: 286, height: 620, position: 'relative' }}
-              >
-                {/* Opening preview */}
-                <div
-                  key={`opening-${previewKey}`}
-                  style={{
-                    position: 'absolute', inset: 0, overflow: 'hidden',
-                    visibility: previewMode === 'opening' ? 'visible' : 'hidden',
-                    pointerEvents: previewMode === 'opening' ? 'auto' : 'none',
-                  }}
-                >
-                  <div style={{ width: 390, zoom: 286 / 390, height: 845 }}>
-                    <CoverPagePreview
-                      template={template}
-                      data={data}
-                      previewGuestName="Bapak & Ibu"
-                      containerHeight={845}
-                      onEnter={() => { setPreviewMode('invitation'); setPreviewKey(k => k + 1) }}
-                    />
-                  </div>
-                </div>
-
-                {/* Loading preview */}
-                <div
-                  key={`loading-${previewKey}`}
-                  style={{
-                    position: 'absolute', inset: 0, overflow: 'hidden',
-                    visibility: previewMode === 'loading' ? 'visible' : 'hidden',
-                    pointerEvents: previewMode === 'loading' ? 'auto' : 'none',
-                  }}
-                >
-                  <div style={{ width: 390, zoom: 286 / 390, height: 845, position: 'relative' }}>
-                    <LoadingScreen
-                      config={template.config.loading}
-                      onDone={() => {}}
-                      isPreview
-                    />
-                  </div>
-                </div>
-
-                {/* Invitation preview */}
-                <div
-                  key={`inv-${previewKey}`}
-                  style={{
-                    position: 'absolute', inset: 0,
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    scrollbarWidth: 'none',
-                    WebkitOverflowScrolling: 'touch',
-                    visibility: previewMode === 'invitation' ? 'visible' : 'hidden',
-                    pointerEvents: previewMode === 'invitation' ? 'auto' : 'none',
-                  }}
-                >
-                  <div style={{ width: 390, zoom: 286 / 390 }}>
-                    <InvitationPreview
-                      template={template}
-                      data={data}
-                      invitationId={invitation.id}
-                      isPreview
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-center text-[10px] text-stone-300 mt-3 tracking-wide font-medium">
-              Live Preview
-            </p>
+          <div className="flex-1 flex items-center justify-center overflow-hidden min-h-0 px-2 pb-2">
+            {renderPhone(310)}
           </div>
         </div>
 
-        {/* Mobile: floating preview button + modal */}
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          className="lg:hidden fixed bottom-20 right-4 z-40 w-12 h-12 bg-[#1a1a1a] text-white rounded-2xl shadow-xl shadow-stone-900/30 flex items-center justify-center hover:bg-stone-800 transition-all"
-        >
-          <Eye size={20} />
-        </button>
-        {showPreview && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowPreview(false)}>
-            <div className="relative w-full max-w-[300px]" onClick={e => e.stopPropagation()}>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-stone-500 hover:text-stone-700"
-              >
-                <X size={16} />
+        {/* Mobile preview overlay */}
+        {showPreview && !showFullscreen && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col">
+            <div className="flex items-center justify-end px-4 py-3 shrink-0 gap-2">
+              <button onClick={() => setPreviewKey(k => k + 1)} className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Refresh">
+                <RefreshCw size={14} />
               </button>
-              <div
-                className="bg-[#1a1a1a] rounded-[36px] shadow-xl ring-1 ring-stone-800/50"
-                style={{ padding: 7 }}
-              >
-                <div className="absolute left-1/2 -translate-x-1/2 bg-[#1a1a1a] rounded-full z-20" style={{ top: 10, width: 64, height: 18 }} />
-                <div className="rounded-[30px] overflow-hidden bg-stone-950" style={{ width: 286, height: 620, position: 'relative' }}>
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    scrollbarWidth: 'none',
-                    WebkitOverflowScrolling: 'touch',
-                  }}>
-                    <div style={{ width: 390, zoom: 286 / 390 }}>
-                      <InvitationPreview template={template} data={data} invitationId={invitation.id} isPreview />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <a href={`/invitation/${invitation.slug}`} target="_blank" rel="noopener noreferrer"
+                className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Buka di tab baru">
+                <ExternalLink size={14} />
+              </a>
+              <button onClick={() => setShowPreview(false)} className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center overflow-hidden p-4">
+              {renderPhone(Math.min(380, typeof window !== 'undefined' ? window.innerWidth - 48 : 380))}
+            </div>
+          </div>
+        )}
+
+        {/* Fullscreen preview — phone-width container like admin studio */}
+        {showFullscreen && (
+          <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+            <button
+              onClick={() => setShowFullscreen(false)}
+              className="absolute top-4 right-4 z-[110] bg-black/60 hover:bg-black/80 text-white rounded-full p-2.5 transition-colors backdrop-blur-sm"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div style={{
+              width: '100%',
+              maxWidth: 430,
+              height: '100dvh',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 0 80px rgba(0,0,0,0.5)',
+            }}>
+              <InvitationRenderer
+                key={`fs-${previewKey}`}
+                invitationId={`fullscreen-${invitation.id}`}
+                invitationData={debouncedData}
+                template={previewTemplate}
+                contained
+                previewGuestName="Bapak & Ibu"
+              />
             </div>
           </div>
         )}
@@ -614,7 +733,7 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
                 <div className="bg-white rounded-[2rem] overflow-hidden" style={{ aspectRatio: '9/19.5' }}>
                   <div className="h-full overflow-y-auto">
                     <InvitationPreview
-                      template={template}
+                      template={previewTemplate}
                       data={data}
                       invitationId={invitation.id}
                     />

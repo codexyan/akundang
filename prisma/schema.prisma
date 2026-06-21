@@ -314,6 +314,41 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+// ─── ORDERS (public order form → admin approval) ────────────
+model Order {
+  id            String    @id @default(cuid())
+  orderNumber   String    @unique @map("order_number")
+  email         String
+  phone         String    @default("")
+  groomName     String    @map("groom_name")
+  brideName     String    @map("bride_name")
+  groomNickname String    @default("") @map("groom_nickname")
+  brideNickname String    @default("") @map("bride_nickname")
+  groomFather   String    @default("") @map("groom_father")
+  groomMother   String    @default("") @map("groom_mother")
+  brideFather   String    @default("") @map("bride_father")
+  brideMother   String    @default("") @map("bride_mother")
+  groomProfession String  @default("") @map("groom_profession")
+  brideProfession String  @default("") @map("bride_profession")
+  subdomain     String
+  templateId    String    @map("template_id")
+  packageTier   String    @map("package_tier")
+  amount        Int
+  uniqueCode    Int       @default(0) @map("unique_code")
+  totalAmount   Int       @map("total_amount")
+  proofUrl      String    @default("") @map("proof_url")
+  notes         String    @default("")
+  status        String    @default("pending")
+  adminNotes    String    @default("") @map("admin_notes")
+  referredBy    String?   @map("referred_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  reviewedAt    DateTime? @map("reviewed_at")
+
+  @@index([email])
+  @@index([status])
+  @@map("orders")
+}
+
 // ─── APP SETTINGS (single row, key = "main") ─────────────────
 model AppSetting {
   key       String   @id

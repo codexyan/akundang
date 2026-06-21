@@ -271,7 +271,7 @@ export default function DemoEditorClient({ template, demoData, demoWishes }: Pro
             {hasEdited && (
               <div className="px-5 pb-4">
                 <a
-                  href={`/register?template=${template.id}`}
+                  href={`/order?template=${template.id}`}
                   className="block w-full text-center py-3 rounded-xl text-sm font-bold text-white bg-forest-500 hover:bg-forest-600 transition-colors shadow-sm"
                 >
                   Suka? Buat undangan sekarang →

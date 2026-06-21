@@ -29,7 +29,7 @@ export default function SectionCard({
   return (
     <div
       className={`
-        relative rounded-xl border p-5 transition-all
+        relative rounded-xl border p-4 transition-all
         ${locked ? 'border-stone-200/50 bg-stone-50/50' :
           isRequired
             ? 'border-gold-200/80 bg-white shadow-sm'
@@ -37,10 +37,10 @@ export default function SectionCard({
         }
       `}
     >
-      <div className="flex items-center gap-2.5 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <div
           className={`
-            w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+            w-7 h-7 rounded-lg flex items-center justify-center shrink-0
             ${locked ? 'bg-stone-100 text-stone-300' :
               isRequired
                 ? 'bg-gold-100 text-gold-700'
@@ -48,7 +48,7 @@ export default function SectionCard({
             }
           `}
         >
-          <Icon size={16} strokeWidth={2} />
+          <Icon size={14} strokeWidth={2} />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -69,7 +69,7 @@ export default function SectionCard({
         </div>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {children}
       </div>
 

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session-server'
+import { isAdmin } from '@/lib/auth'
 import { invitations, templateRecords } from '@/lib/db'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 
@@ -33,6 +34,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       invitation={invitation}
       selectedTemplateId={selectedTemplateId}
       allTemplates={allTemplates}
+      isAdmin={isAdmin(session)}
     />
   )
 }

@@ -26,7 +26,7 @@ export default function DemoShell({ templateName, children }: Props) {
             </span>
           </div>
           <Link
-            href="/register"
+            href="/order"
             className="flex items-center gap-1.5 bg-forest-500 hover:bg-forest-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors shadow-sm"
           >
             <Sparkles className="w-3 h-3" /> Buat Undangan
@@ -49,8 +49,8 @@ export default function DemoShell({ templateName, children }: Props) {
             <Link href="/templates" className="text-[11px] text-stone-400 hover:text-forest-500 transition-colors font-medium">
               Lihat Template
             </Link>
-            <Link href="/register" className="text-[11px] text-forest-600 hover:text-forest-700 transition-colors font-semibold">
-              Mulai Gratis
+            <Link href="/order" className="text-[11px] text-forest-600 hover:text-forest-700 transition-colors font-semibold">
+              Buat Undangan
             </Link>
           </div>
         </div>

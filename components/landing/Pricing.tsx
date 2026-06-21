@@ -113,7 +113,7 @@ function PricingCard({
       </div>
 
       <div className="px-6 pb-6">
-        <Link href="/templates">
+        <Link href="/order">
           <motion.span
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}

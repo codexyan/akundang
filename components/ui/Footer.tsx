@@ -68,7 +68,7 @@ export default function Footer() {
       ]
     : [
         { href: '/login', label: 'Masuk' },
-        { href: '/register', label: 'Daftar' },
+        { href: '/order', label: 'Buat Undangan' },
       ]
 
   return (
@@ -139,10 +139,10 @@ export default function Footer() {
               </li>
             </ul>
             <Link
-              href="/register"
+              href="/order"
               className="inline-flex items-center justify-center px-4 py-2 bg-forest-500 text-white text-[13px] font-semibold rounded-lg hover:bg-forest-600 transition-all shadow-sm"
             >
-              Mulai Gratis
+              Buat Undangan
             </Link>
           </div>
 

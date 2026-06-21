@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, Settings, LogOut,
   Globe, Music, Package, CreditCard, FlaskConical,
   PanelLeftClose, PanelLeftOpen, AlertTriangle, X, Megaphone,
-  FileText, PenLine, Home, ExternalLink,
+  FileText, PenLine, Home, ExternalLink, Copy,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -62,12 +62,26 @@ interface AdminInvitation {
 }
 
 interface AdminOrder {
-  id?: string
-  order_id?: string
-  amount?: number
-  status?: string
-  payment_type?: string
-  created_at?: string
+  id: string
+  order_number: string
+  email: string
+  phone: string
+  groom_name: string
+  bride_name: string
+  groom_nickname: string
+  bride_nickname: string
+  subdomain: string
+  template_id: string
+  package_tier: string
+  amount: number
+  unique_code: number
+  total_amount: number
+  proof_url: string
+  notes: string
+  status: string
+  admin_notes: string
+  created_at: string
+  reviewed_at: string | null
 }
 
 interface LocalAppSettings {
@@ -723,57 +737,186 @@ function Badge({ variant, children }: { variant: 'green' | 'yellow' | 'red' | 'g
 
 //  Orders Tab 
 
-function OrdersTab({ orders }: { orders: AdminOrder[] }) {
+function OrdersTab({ orders: initialOrders }: { orders: AdminOrder[] }) {
+  const [orderList, setOrderList] = useState(initialOrders)
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null)
+  const [adminNotes, setAdminNotes] = useState('')
+  const [processing, setProcessing] = useState(false)
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null)
+
+  const filtered = filter === 'all' ? orderList : orderList.filter(o => o.status === filter)
+  const pendingCount = orderList.filter(o => o.status === 'pending').length
+
+  async function handleAction(action: 'approve' | 'reject') {
+    if (!selectedOrder) return
+    setProcessing(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${selectedOrder.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, admin_notes: adminNotes }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || 'Gagal'); return }
+      const data = await res.json()
+      setOrderList(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: action === 'approve' ? 'approved' : 'rejected', admin_notes: adminNotes, reviewed_at: new Date().toISOString() } : o))
+      if (action === 'approve' && data.credentials) {
+        setCredentials(data.credentials)
+      } else {
+        setSelectedOrder(null)
+        setAdminNotes('')
+        toast.success(action === 'approve' ? 'Pesanan disetujui!' : 'Pesanan ditolak')
+      }
+    } catch { toast.error('Terjadi kesalahan') }
+    finally { setProcessing(false) }
+  }
+
+  function copyCredentials() {
+    if (!credentials || !selectedOrder) return
+    const text = `Halo! Undangan digital Anda sudah aktif 🎉\n\nLogin: ${credentials.email}\nPassword: ${credentials.password}\nDashboard: ${window.location.origin}/login\n\nSubdomain: ${selectedOrder.subdomain}.iaundang.id`
+    navigator.clipboard.writeText(text)
+    toast.success('Kredensial disalin! Kirim ke user via WA.')
+  }
+
   return (
     <div>
-      <PageHeader title="Pesanan" subtitle="Data transaksi pembayaran" />
+      <PageHeader title="Pesanan" subtitle={`${pendingCount} pesanan menunggu verifikasi`} />
       <div className="p-8">
+        {/* Filters */}
+        <div className="flex gap-2 mb-4">
+          {([['all', 'Semua'], ['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected']] as const).map(([key, label]) => (
+            <button key={key} onClick={() => setFilter(key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${filter === key ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}>
+              {label} {key === 'pending' && pendingCount > 0 && <span className="ml-1 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
+            </button>
+          ))}
+        </div>
+
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
               <tr>
-                <th className="text-left px-5 py-3 font-medium">Order ID</th>
-                <th className="text-left px-5 py-3 font-medium">Jumlah</th>
-                <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-left px-5 py-3 font-medium">Metode</th>
-                <th className="text-left px-5 py-3 font-medium">Tanggal</th>
+                <th className="text-left px-4 py-3 font-medium">No. Pesanan</th>
+                <th className="text-left px-4 py-3 font-medium">Mempelai</th>
+                <th className="text-left px-4 py-3 font-medium">Paket</th>
+                <th className="text-left px-4 py-3 font-medium">Total</th>
+                <th className="text-left px-4 py-3 font-medium">Status</th>
+                <th className="text-left px-4 py-3 font-medium">Tanggal</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {orders.map((o, i) => (
-                <tr key={o.order_id ?? i} className="hover:bg-gray-50">
-                  <td className="px-5 py-4 font-mono text-xs text-gray-600">{o.order_id ?? ''}</td>
-                  <td className="px-5 py-4 font-medium">{o.amount ? formatPrice(o.amount) : ''}</td>
-                  <td className="px-5 py-4">
-                    <Badge
-                      variant={
-                        o.status === 'success' ? 'green'
-                        : o.status === 'pending' ? 'yellow'
-                        : o.status === 'failed' ? 'red'
-                        : 'gray'
-                      }
-                    >
-                      {o.status ?? ''}
+              {filtered.map(o => (
+                <tr key={o.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-mono text-xs text-gray-600">{o.order_number}</td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-gray-800 text-xs">{o.groom_nickname} & {o.bride_nickname}</p>
+                    <p className="text-[11px] text-gray-400">{o.email}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={o.package_tier === 'eksklusif' ? 'yellow' : o.package_tier === 'popular' ? 'blue' : 'gray'}>
+                      {o.package_tier}
                     </Badge>
                   </td>
-                  <td className="px-5 py-4 text-gray-500">{o.payment_type ?? ''}</td>
-                  <td className="px-5 py-4 text-gray-500 text-xs">
-                    {o.created_at
-                      ? new Date(o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-                      : ''}
+                  <td className="px-4 py-3 font-medium text-gray-800">Rp {o.total_amount.toLocaleString('id-ID')}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={o.status === 'approved' ? 'green' : o.status === 'pending' ? 'yellow' : o.status === 'rejected' ? 'red' : 'gray'}>
+                      {o.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => { setSelectedOrder(o); setAdminNotes(''); setCredentials(null) }}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Detail</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {orders.length === 0 && (
+          {filtered.length === 0 && (
             <div className="text-center py-16">
               <ShoppingCart className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Belum ada pesanan</p>
-              <p className="text-gray-300 text-xs mt-1">Payment akan aktif di Minggu 4</p>
+              <p className="text-gray-400 text-sm">Belum ada pesanan{filter !== 'all' ? ` dengan status ${filter}` : ''}</p>
             </div>
           )}
         </div>
+
+        {/* Detail Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setSelectedOrder(null); setCredentials(null) }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">Detail Pesanan</h3>
+                  <Badge variant={selectedOrder.status === 'approved' ? 'green' : selectedOrder.status === 'pending' ? 'yellow' : 'red'}>
+                    {selectedOrder.status}
+                  </Badge>
+                </div>
+
+                <div className="space-y-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><p className="text-[11px] text-gray-400">No. Pesanan</p><p className="font-mono font-medium">{selectedOrder.order_number}</p></div>
+                    <div><p className="text-[11px] text-gray-400">Email</p><p className="font-medium">{selectedOrder.email}</p></div>
+                    <div><p className="text-[11px] text-gray-400">WhatsApp</p><p className="font-medium">{selectedOrder.phone || '-'}</p></div>
+                    <div><p className="text-[11px] text-gray-400">Subdomain</p><p className="font-mono font-medium">{selectedOrder.subdomain}.iaundang.id</p></div>
+                  </div>
+                  <div className="border-t pt-3 grid grid-cols-2 gap-3">
+                    <div><p className="text-[11px] text-gray-400">Mempelai Pria</p><p className="font-medium">{selectedOrder.groom_name}</p></div>
+                    <div><p className="text-[11px] text-gray-400">Mempelai Wanita</p><p className="font-medium">{selectedOrder.bride_name}</p></div>
+                  </div>
+                  <div className="border-t pt-3 grid grid-cols-3 gap-3">
+                    <div><p className="text-[11px] text-gray-400">Paket</p><p className="font-medium capitalize">{selectedOrder.package_tier}</p></div>
+                    <div><p className="text-[11px] text-gray-400">Harga</p><p className="font-medium">Rp {selectedOrder.amount.toLocaleString('id-ID')}</p></div>
+                    <div><p className="text-[11px] text-gray-400">Total (+ unik)</p><p className="font-bold text-indigo-700">Rp {selectedOrder.total_amount.toLocaleString('id-ID')}</p></div>
+                  </div>
+                </div>
+
+                {/* Credentials display after approval */}
+                {credentials && (
+                  <div className="mt-4 rounded-xl bg-green-50 border border-green-200 p-4">
+                    <p className="text-xs font-bold text-green-800 mb-2">✅ Akun berhasil dibuat! Kirim kredensial ke user:</p>
+                    <div className="bg-white rounded-lg p-3 font-mono text-xs space-y-1">
+                      <p>Email: <strong>{credentials.email}</strong></p>
+                      <p>Password: <strong>{credentials.password}</strong></p>
+                    </div>
+                    <button onClick={copyCredentials}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700 transition-colors">
+                      <Copy className="w-3.5 h-3.5" /> Salin Kredensial (untuk dikirim via WA)
+                    </button>
+                  </div>
+                )}
+
+                {/* Actions for pending orders */}
+                {selectedOrder.status === 'pending' && !credentials && (
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Catatan Admin</label>
+                      <textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} rows={2} placeholder="Opsional..."
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 resize-none" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAction('reject')} disabled={processing}
+                        className="flex-1 px-4 py-2.5 bg-red-50 text-red-700 text-xs font-bold rounded-xl hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50">
+                        Tolak
+                      </button>
+                      <button onClick={() => handleAction('approve')} disabled={processing}
+                        className="flex-1 px-4 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                        {processing ? 'Memproses...' : 'Approve & Buat Akun'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedOrder.status !== 'pending' && !credentials && (
+                  <button onClick={() => { setSelectedOrder(null); setCredentials(null) }}
+                    className="mt-4 w-full px-4 py-2.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-xl hover:bg-gray-200 transition-colors">
+                    Tutup
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

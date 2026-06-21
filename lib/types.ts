@@ -470,6 +470,7 @@ export interface TemplateCategory {
 /** Fitur yang bisa di-toggle per tier. */
 export interface TierFeatures {
   max_photos: number
+  max_guests: number
   music: boolean
   custom_music: boolean
   opening_animation: boolean
@@ -486,6 +487,7 @@ export interface TierFeatures {
   ig_story: boolean
   qrcode: boolean
   custom_domain: boolean
+  subdomain: boolean
   remove_watermark: boolean
   analytics: boolean
   priority_support: boolean
@@ -559,6 +561,36 @@ export interface MusicCategory {
   name: string
   sort_order: number
   created_at: string
+}
+
+export interface Order {
+  id: string
+  order_number: string
+  email: string
+  phone: string
+  groom_name: string
+  bride_name: string
+  groom_nickname: string
+  bride_nickname: string
+  groom_father: string
+  groom_mother: string
+  bride_father: string
+  bride_mother: string
+  groom_profession: string
+  bride_profession: string
+  subdomain: string
+  template_id: string
+  package_tier: string
+  amount: number
+  unique_code: number
+  total_amount: number
+  proof_url: string
+  notes: string
+  status: 'pending' | 'paid' | 'approved' | 'rejected'
+  admin_notes: string
+  referred_by: string | null
+  created_at: string
+  reviewed_at: string | null
 }
 
 /** Color palette preset untuk Studio Desain. */
@@ -638,8 +670,14 @@ export interface StoryChapter {
 export interface NewInvitationData {
   bride_name: string
   groom_name: string
+  groom_nickname?: string
+  bride_nickname?: string
   bride_parents?: string
   groom_parents?: string
+  groom_father?: string
+  groom_mother?: string
+  bride_father?: string
+  bride_mother?: string
   tagline?: string
   groom_photo_url?: string
   bride_photo_url?: string
@@ -689,6 +727,8 @@ export interface NewInvitationData {
   // QR Code Generator
   qr_target_url?: string
   qr_label?: string
+  // Loading screen overrides
+  loading_config?: Partial<LoadingConfig>
   // User decoration overrides
   opening_decoration_overrides?: DecorationAsset[]
   section_decoration_overrides?: Record<string, DecorationAsset[]>

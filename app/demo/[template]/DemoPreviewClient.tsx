@@ -71,7 +71,7 @@ export default function DemoPreviewClient({
           </div>
 
           <Link
-            href={`/register?template=${templateId}`}
+            href={`/order?template=${templateId}`}
             className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors shrink-0"
           >
             Pakai template ini →
@@ -142,7 +142,7 @@ export default function DemoPreviewClient({
               </div>
 
               <Link
-                href={`/register?template=${templateId}`}
+                href={`/order?template=${templateId}`}
                 className="mt-4 block w-full bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold text-center py-2.5 rounded-xl transition-colors"
               >
                 Suka? Buat yang aslinya →

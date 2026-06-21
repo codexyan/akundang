@@ -286,7 +286,7 @@ export default function HeroSection({ content, mockup }: { content?: HeroContent
               transition={{ duration: 0.7, delay: T.cta, ease: EASE_OUT_EXPO }}
               className="mt-8 sm:mt-9 flex flex-col sm:flex-row gap-3"
             >
-              <Link href="/templates" className="group">
+              <Link href="/order" className="group">
                 <motion.span
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

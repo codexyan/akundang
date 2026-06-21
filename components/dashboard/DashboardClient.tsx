@@ -40,6 +40,7 @@ interface Props {
   invitation: Invitation | null
   selectedTemplateId: string
   allTemplates: TemplateInfo[]
+  isAdmin?: boolean
 }
 
 type Tab = 'overview' | 'undangan' | 'guest' | 'rsvp' | 'transactions' | 'support' | 'settings'
@@ -49,7 +50,7 @@ const NAV: { id: Tab; label: string; icon: React.ElementType; badge?: string }[]
   { id: 'undangan',     label: 'Undangan',   icon: FileEdit },
   { id: 'guest',        label: 'Tamu',       icon: Send },
   { id: 'rsvp',         label: 'RSVP',       icon: Users },
-  { id: 'transactions', label: 'Transaksi',  icon: CreditCard },
+  { id: 'transactions', label: 'Pembayaran', icon: CreditCard },
   { id: 'support',      label: 'Bantuan',    icon: MessageSquare },
   { id: 'settings',     label: 'Settings',   icon: Settings },
 ]
@@ -63,7 +64,7 @@ function getDisplayNames(inv: Invitation): { groom: string; bride: string } {
   return { groom: d.groom_name || '', bride: d.bride_name || '' }
 }
 
-export default function DashboardClient({ user, invitation, selectedTemplateId, allTemplates }: Props) {
+export default function DashboardClient({ user, invitation, selectedTemplateId, allTemplates, isAdmin }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [inv, setInv] = useState<Invitation | null>(invitation)
@@ -277,46 +278,47 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
         </header>
 
         {/* Content area */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className={`${tab === 'undangan' ? 'max-w-[1200px]' : 'max-w-4xl'} mx-auto p-4 md:p-6 lg:p-8`}>
+        <main className={`flex-1 min-h-0 ${tab === 'undangan' ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'}`}>
+          {tab === 'undangan' && inv ? (
+            <TemplateModule
+              invitation={inv}
+              allTemplates={allTemplates}
+              onInvitationUpdate={(updated) => setInv(updated)}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <div className="max-w-4xl mx-auto p-4 md:p-6 lg:p-8">
+              {!inv && (
+                <OnboardingWizard
+                  invitation={null}
+                  onInvitationCreated={setInv}
+                  onSimulatePay={handleSimulatePay}
+                  allTemplates={allTemplates}
+                />
+              )}
 
-            {!inv && (
-              <OnboardingWizard
-                invitation={null}
-                onInvitationCreated={setInv}
-                onSimulatePay={handleSimulatePay}
-                allTemplates={allTemplates}
-              />
-            )}
+              {inv && (
+                <>
+                  {!isPaid && !isAdmin && tab === 'overview' && (
+                    <UpgradeBanner
+                      invitation={inv}
+                      onSimulatePay={handleSimulatePay}
+                      onGoToPayment={() => setTab('transactions')}
+                    />
+                  )}
 
-            {inv && (
-              <>
-                {!isPaid && tab === 'overview' && (
-                  <UpgradeBanner
-                    invitation={inv}
-                    onSimulatePay={handleSimulatePay}
-                    onGoToPayment={() => setTab('transactions')}
-                  />
-                )}
-
-                {tab === 'overview' && (
-                  <DashboardOverview invitation={inv} onNavigate={(t) => setTab(t as Tab)} onTogglePublish={togglePublish} />
-                )}
-                {tab === 'undangan' && (
-                  <TemplateModule
-                    invitation={inv}
-                    allTemplates={allTemplates}
-                    onInvitationUpdate={(updated) => setInv(updated)}
-                  />
-                )}
-                {tab === 'guest' && <GuestManager invitation={inv} />}
-                {tab === 'rsvp' && <RSVPList invitationId={inv.id} />}
-                {tab === 'transactions' && <TransactionHistory invitation={inv} />}
-                {tab === 'support' && <SupportTickets />}
-                {tab === 'settings' && <SettingsPanel invitation={inv} userEmail={user.email} onDeleted={() => { setInv(null); setTab('overview') }} />}
-              </>
-            )}
-          </div>
+                  {tab === 'overview' && (
+                    <DashboardOverview invitation={inv} onNavigate={(t) => setTab(t as Tab)} onTogglePublish={togglePublish} />
+                  )}
+                  {tab === 'guest' && <GuestManager invitation={inv} />}
+                  {tab === 'rsvp' && <RSVPList invitationId={inv.id} />}
+                  {tab === 'transactions' && <TransactionHistory invitation={inv} />}
+                  {tab === 'support' && <SupportTickets />}
+                  {tab === 'settings' && <SettingsPanel invitation={inv} userEmail={user.email} onDeleted={() => { setInv(null); setTab('overview') }} />}
+                </>
+              )}
+            </div>
+          )}
         </main>
 
         {/* Mobile bottom nav */}
@@ -410,16 +412,11 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
 
 //  Upgrade Banner 
 
-import { CreditCard as CreditCardIcon } from 'lucide-react'
-import { PACKAGES, formatPrice, type PackageTier } from '@/lib/packages'
-
-function UpgradeBanner({ invitation, onSimulatePay, onGoToPayment }: {
+function UpgradeBanner({ onGoToPayment }: {
   invitation: Invitation
   onSimulatePay: () => void
   onGoToPayment: () => void
 }) {
-  const pkg = PACKAGES[(invitation as unknown as Record<string, unknown>).package_tier as PackageTier] ?? PACKAGES.popular
-
   return (
     <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#2d2d2d] p-6 text-white">
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/4" />
@@ -433,15 +430,26 @@ function UpgradeBanner({ invitation, onSimulatePay, onGoToPayment }: {
             <p className="text-sm font-bold text-white/90">Mode Free Trial</p>
           </div>
           <p className="text-white/50 text-xs leading-relaxed max-w-md">
-            Upgrade ke {pkg.emoji} {pkg.name} ({formatPrice(pkg.price)}) untuk menghapus watermark dan unlock semua fitur premium.
+            Anda sedang dalam mode percobaan gratis. Upgrade untuk menghapus watermark, membuka semua fitur, dan mempublikasikan undangan Anda.
           </p>
+          <div className="flex items-center gap-4 mt-3">
+            <span className="text-[11px] text-white/40 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> Mulai Rp 79.000
+            </span>
+            <span className="text-[11px] text-white/40 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Transfer bank / QRIS
+            </span>
+            <span className="text-[11px] text-white/40 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Aktif dalam 1x24 jam
+            </span>
+          </div>
         </div>
         <button
           onClick={onGoToPayment}
           className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-5 py-3 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all shrink-0"
         >
           <Sparkles size={14} />
-          Upgrade Sekarang
+          Pilih Paket & Bayar
         </button>
       </div>
     </div>

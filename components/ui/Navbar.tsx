@@ -10,8 +10,8 @@ import Logo from './Logo'
 const NAV_LINKS = [
   { href: '/#fitur', label: 'Fitur' },
   { href: '/#templates', label: 'Template' },
+  { href: '/#cara-kerja', label: 'Cara Kerja' },
   { href: '/#harga', label: 'Harga' },
-  { href: '/blog', label: 'Blog' },
   { href: '/#faq', label: 'FAQ' },
 ]
 
@@ -187,14 +187,14 @@ export default function Navbar() {
                     Masuk
                   </Link>
                   <Link
-                    href="/register"
+                    href="/order"
                     className="group relative text-[13px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-forest-500/20"
                     style={{
                       background: 'linear-gradient(135deg, #2c4a34 0%, #3a5a40 100%)',
                     }}
                   >
                     <span className="relative z-10 flex items-center gap-1">
-                      Mulai Gratis
+                      Buat Undangan
                       <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200" />
                     </span>
                   </Link>
@@ -306,12 +306,12 @@ export default function Navbar() {
                         Masuk
                       </Link>
                       <Link
-                        href="/register"
+                        href="/order"
                         onClick={() => setMobileOpen(false)}
                         className="block text-sm font-semibold text-center text-white px-4 py-2.5 rounded-xl transition-all duration-200"
                         style={{ background: 'linear-gradient(135deg, #2c4a34 0%, #3a5a40 100%)' }}
                       >
-                        Mulai Gratis
+                        Buat Undangan
                       </Link>
                     </div>
                   )}

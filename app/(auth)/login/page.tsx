@@ -209,10 +209,10 @@ function LoginContent() {
               <p className="text-sm text-stone-600">
                 Belum punya akun?{' '}
                 <Link
-                  href={templateId ? `/register?template=${templateId}` : '/register'}
+                  href={templateId ? `/order?template=${templateId}` : '/order'}
                   className="font-semibold text-gold-600 hover:text-gold-600"
                 >
-                  Daftar gratis
+                  Buat undangan
                 </Link>
               </p>
 

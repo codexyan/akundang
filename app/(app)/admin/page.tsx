@@ -13,7 +13,7 @@ export default async function AdminPage() {
   const adminEmail = getAdminEmail()
   const allUsers = await users.findAll()
   const allInvitations = await invitations.findAll()
-  const allOrders = await orders.findAll() as unknown as Record<string, unknown>[]
+  const allOrders = await orders.findAll()
   const allProofs = await paymentProofs.findAll()
   const appSettings = await settings.get()
   const allTemplateRecords = await templateRecords.findAll()

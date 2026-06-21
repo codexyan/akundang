@@ -18,6 +18,7 @@ interface ColorPaletteFormProps {
   onAccentColorChange: (color: string) => void
   onTextColorChange: (color: string) => void
   onBackgroundColorChange: (color: string) => void
+  onPresetApply?: (colors: { primary: string; accent: string; text: string; background: string }) => void
 }
 
 // Preset palettes
@@ -81,12 +82,17 @@ export default function ColorPaletteForm({
   onAccentColorChange,
   onTextColorChange,
   onBackgroundColorChange,
+  onPresetApply,
 }: ColorPaletteFormProps) {
   function applyPreset(preset: typeof PRESETS[0]) {
-    onPrimaryColorChange(preset.primary)
-    onAccentColorChange(preset.accent)
-    onTextColorChange(preset.text)
-    onBackgroundColorChange(preset.background)
+    if (onPresetApply) {
+      onPresetApply({ primary: preset.primary, accent: preset.accent, text: preset.text, background: preset.background })
+    } else {
+      onPrimaryColorChange(preset.primary)
+      onAccentColorChange(preset.accent)
+      onTextColorChange(preset.text)
+      onBackgroundColorChange(preset.background)
+    }
   }
 
   return (

@@ -10,6 +10,11 @@ const SECTION_FEATURE_MAP: Record<string, keyof TierFeatures> = {
   musik: 'music',
   quote: 'countdown',
   dekorasi: 'decoration_editing',
+  video: 'video',
+  livestream: 'livestream',
+  ig_story: 'ig_story',
+  qrcode: 'qrcode',
+  gift_registry: 'gift_registry',
 }
 
 const TIER_LABELS: Record<string, string> = {
@@ -20,10 +25,11 @@ const TIER_LABELS: Record<string, string> = {
 
 export function usePackageGating(tier: PackageTier | null | undefined) {
   return useMemo(() => {
-    const features = getTierFeatures(tier)
+    const effectiveTier = tier ?? 'starter' as PackageTier
+    const features = getTierFeatures(effectiveTier)
     return {
-      tier: tier ?? 'starter' as PackageTier,
-      tierName: TIER_LABELS[tier ?? 'starter'] ?? 'Starter',
+      tier: effectiveTier,
+      tierName: TIER_LABELS[effectiveTier] ?? 'Starter',
       features,
       canEditDecorations: features.decoration_editing,
       canUseCustomAnimations: features.custom_animations,

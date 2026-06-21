@@ -6,12 +6,13 @@ import { ArrowRight } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-export default function ClosingCTA() {
+export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
+  const waNumber = whatsapp || '628123456789'
+
   return (
     <section className="py-20 sm:py-28 lg:py-36 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #0c1610 0%, #15241a 30%, #1d3526 60%, #15241a 100%)' }}>
 
-      {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full"
           style={{ background: 'radial-gradient(ellipse, rgba(201,169,97,0.08) 0%, transparent 60%)' }} />
@@ -19,7 +20,6 @@ export default function ClosingCTA() {
           style={{ background: 'radial-gradient(circle, rgba(111,168,138,0.05) 0%, transparent 60%)' }} />
       </div>
 
-      {/* Subtle dot pattern */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
           backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 0.8px, transparent 0.8px)',
@@ -74,7 +74,7 @@ export default function ClosingCTA() {
           transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
           className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center"
         >
-          <Link href="/templates">
+          <Link href="/order">
             <motion.span
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -84,11 +84,11 @@ export default function ClosingCTA() {
                 boxShadow: '0 12px 40px -8px rgba(201,169,97,0.3)',
               }}
             >
-              Pilih Template Sekarang
+              Mulai Buat Undangan
               <ArrowRight size={16} />
             </motion.span>
           </Link>
-          <a href="https://wa.me/628123456789" target="_blank" rel="noopener noreferrer">
+          <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer">
             <motion.span
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

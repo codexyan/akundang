@@ -18,6 +18,7 @@ interface PageData {
   priceTiers: PriceTier[]
   flashSales: FlashSale[]
   activeTemplates: TemplateRecord[]
+  whatsapp: string
 }
 
 const SECTION_MAP: Record<string, React.FC<PageData>> = {
@@ -29,8 +30,8 @@ const SECTION_MAP: Record<string, React.FC<PageData>> = {
   testimonials: ({ landing }) => <Testimonials reviews={landing.testimonials.items} />,
   pricing: ({ priceTiers, flashSales }) => <Pricing priceTiers={priceTiers} flashSales={flashSales} />,
   blogShowcase: () => <BlogShowcase />,
-  faq: ({ landing }) => <FAQ items={landing.faq.items} />,
-  closingCta: () => <ClosingCTA />,
+  faq: ({ landing, whatsapp }) => <FAQ items={landing.faq.items} whatsapp={whatsapp} />,
+  closingCta: ({ whatsapp }) => <ClosingCTA whatsapp={whatsapp} />,
 }
 
 export default async function LandingPage() {
@@ -44,6 +45,7 @@ export default async function LandingPage() {
   const priceTiers = appSettings.priceTiers
   const flashSales = appSettings.flashSales
   const activeTemplates = allTemplates.filter(t => t.status === 'active')
+  const whatsapp = appSettings.confirmationWhatsapp || '628123456789'
 
   const visibleSections = sections
     .filter(s => s.visible)
@@ -54,7 +56,7 @@ export default async function LandingPage() {
       {visibleSections.map(section => {
         const Component = SECTION_MAP[section.id]
         if (!Component) return null
-        return <Component key={section.id} landing={landing} priceTiers={priceTiers} flashSales={flashSales} activeTemplates={activeTemplates} />
+        return <Component key={section.id} landing={landing} priceTiers={priceTiers} flashSales={flashSales} activeTemplates={activeTemplates} whatsapp={whatsapp} />
       })}
     </>
   )

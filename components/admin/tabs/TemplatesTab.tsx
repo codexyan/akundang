@@ -228,12 +228,12 @@ export default function TemplatesTab({
   const [tierDraft, setTierDraft] = useState<Partial<PriceTier>>({})
 
   const DEFAULT_FEATURES: TierFeatures = {
-    max_photos: 6, music: true, custom_music: false,
+    max_photos: 6, max_guests: 100, music: true, custom_music: false,
     opening_animation: true, opening_styles: 'basic',
     rsvp: true, wishes: true, countdown: true, gallery: true,
     gift: false, gift_registry: false, story: false, video: false,
     livestream: false, ig_story: false, qrcode: false,
-    custom_domain: false, remove_watermark: false,
+    custom_domain: false, subdomain: true, remove_watermark: false,
     analytics: false, priority_support: false, validity_days: 90,
     decoration_editing: false, max_decoration_assets: 0, custom_animations: false,
   }
@@ -1190,6 +1190,26 @@ export default function TemplatesTab({
                       <label className="block text-xs font-semibold text-gray-600 mb-1.5">Maks Foto Galeri</label>
                       <input type="number" min={1} max={100} value={f.max_photos} onChange={e => setF({ max_photos: Number(e.target.value) || 6 })}
                         className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Maks Tamu Blast</label>
+                      <div className="flex items-center gap-2">
+                        <input type="number" min={-1} value={f.max_guests} onChange={e => setF({ max_guests: Number(e.target.value) })}
+                          className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                        <span className="text-[11px] text-gray-400 whitespace-nowrap">-1 = unlimited</span>
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <button onClick={() => setF({ subdomain: !f.subdomain })}
+                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${f.subdomain ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${f.subdomain ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Subdomain</span>
+                          <p className="text-[11px] text-gray-400">Izinkan user menggunakan subdomain custom</p>
+                        </div>
+                      </label>
                     </div>
                     <div className="mb-4">
                       <label className="block text-xs font-semibold text-gray-600 mb-2">Gaya Opening</label>

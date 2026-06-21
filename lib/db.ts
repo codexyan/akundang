@@ -4,7 +4,7 @@
  */
 
 import { prisma } from './prisma'
-import type { Invitation, Gallery, Guest, Wish, TemplateRecord, TemplatePackageRequirement, TemplateCategory, ColorPalette, PriceTier, TierFeatures, FlashSale, Coupon, MusicTrack, MusicCategory } from './types'
+import type { Invitation, Gallery, Guest, Wish, TemplateRecord, TemplatePackageRequirement, TemplateCategory, ColorPalette, PriceTier, TierFeatures, FlashSale, Coupon, MusicTrack, MusicCategory, Order } from './types'
 import JAVANESE_GOLD from './template-configs/javanese-gold'
 
 //  TYPE EXPORTS 
@@ -391,15 +391,7 @@ export const templateRecords = {
   },
 }
 
-//  ORDERS 
-
-export const orders = {
-  async findAll(): Promise<unknown[]> {
-    return []
-  },
-}
-
-//  SETTINGS 
+//  SETTINGS
 
 export const BUILT_IN_CATEGORIES: TemplateCategory[] = [
   { slug: 'modern',      label: 'Modern',      is_built_in: true },
@@ -410,34 +402,34 @@ export const BUILT_IN_CATEGORIES: TemplateCategory[] = [
 ]
 
 const STARTER_FEATURES: TierFeatures = {
-  max_photos: 6, music: true, custom_music: false,
+  max_photos: 6, max_guests: 100, music: true, custom_music: false,
   opening_animation: true, opening_styles: 'basic',
   rsvp: true, wishes: true, countdown: true, gallery: true,
   gift: false, gift_registry: false, story: false, video: false,
   livestream: false, ig_story: false, qrcode: false,
-  custom_domain: false, remove_watermark: false,
+  custom_domain: false, subdomain: true, remove_watermark: false,
   analytics: false, priority_support: false, validity_days: 30,
   decoration_editing: false, max_decoration_assets: 0, custom_animations: false,
 }
 
 const POPULAR_FEATURES: TierFeatures = {
-  max_photos: 20, music: true, custom_music: true,
+  max_photos: 20, max_guests: 500, music: true, custom_music: true,
   opening_animation: true, opening_styles: 'all',
   rsvp: true, wishes: true, countdown: true, gallery: true,
   gift: true, gift_registry: true, story: true, video: true,
   livestream: false, ig_story: true, qrcode: true,
-  custom_domain: false, remove_watermark: true,
+  custom_domain: false, subdomain: true, remove_watermark: true,
   analytics: true, priority_support: false, validity_days: 90,
   decoration_editing: true, max_decoration_assets: 3, custom_animations: false,
 }
 
 const EKSKLUSIF_FEATURES: TierFeatures = {
-  max_photos: 50, music: true, custom_music: true,
+  max_photos: 50, max_guests: -1, music: true, custom_music: true,
   opening_animation: true, opening_styles: 'all',
   rsvp: true, wishes: true, countdown: true, gallery: true,
   gift: true, gift_registry: true, story: true, video: true,
   livestream: true, ig_story: true, qrcode: true,
-  custom_domain: true, remove_watermark: true,
+  custom_domain: true, subdomain: true, remove_watermark: true,
   analytics: true, priority_support: true, validity_days: 180,
   decoration_editing: true, max_decoration_assets: -1, custom_animations: true,
 }
@@ -942,7 +934,84 @@ export const paymentProofs = {
   },
 }
 
-//  MUSIC LIBRARY 
+//  ORDERS
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function mapOrder(o: any): Order {
+  return {
+    id: o.id, order_number: o.orderNumber, email: o.email, phone: o.phone,
+    groom_name: o.groomName, bride_name: o.brideName,
+    groom_nickname: o.groomNickname, bride_nickname: o.brideNickname,
+    groom_father: o.groomFather, groom_mother: o.groomMother,
+    bride_father: o.brideFather, bride_mother: o.brideMother,
+    groom_profession: o.groomProfession, bride_profession: o.brideProfession,
+    subdomain: o.subdomain, template_id: o.templateId, package_tier: o.packageTier,
+    amount: o.amount, unique_code: o.uniqueCode, total_amount: o.totalAmount,
+    proof_url: o.proofUrl, notes: o.notes,
+    status: o.status as Order['status'], admin_notes: o.adminNotes,
+    referred_by: o.referredBy ?? null,
+    created_at: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
+    reviewed_at: o.reviewedAt instanceof Date ? o.reviewedAt.toISOString() : o.reviewedAt ?? null,
+  }
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+export const orders = {
+  async findAll(): Promise<Order[]> {
+    const all = await prisma.order.findMany({ orderBy: { createdAt: 'desc' } })
+    return all.map(mapOrder)
+  },
+  async findById(id: string): Promise<Order | null> {
+    const o = await prisma.order.findUnique({ where: { id } })
+    return o ? mapOrder(o) : null
+  },
+  async findByEmail(email: string): Promise<Order[]> {
+    const all = await prisma.order.findMany({ where: { email: email.toLowerCase() }, orderBy: { createdAt: 'desc' } })
+    return all.map(mapOrder)
+  },
+  async findByOrderNumber(orderNumber: string): Promise<Order | null> {
+    const o = await prisma.order.findUnique({ where: { orderNumber } })
+    return o ? mapOrder(o) : null
+  },
+  async create(data: Omit<Order, 'id' | 'created_at' | 'reviewed_at'>): Promise<Order> {
+    const o = await prisma.order.create({
+      data: {
+        orderNumber: data.order_number, email: data.email.toLowerCase(), phone: data.phone,
+        groomName: data.groom_name, brideName: data.bride_name,
+        groomNickname: data.groom_nickname, brideNickname: data.bride_nickname,
+        groomFather: data.groom_father, groomMother: data.groom_mother,
+        brideFather: data.bride_father, brideMother: data.bride_mother,
+        groomProfession: data.groom_profession, brideProfession: data.bride_profession,
+        subdomain: data.subdomain, templateId: data.template_id, packageTier: data.package_tier,
+        amount: data.amount, uniqueCode: data.unique_code, totalAmount: data.total_amount,
+        proofUrl: data.proof_url, notes: data.notes,
+        status: data.status, adminNotes: data.admin_notes,
+        referredBy: data.referred_by,
+      },
+    })
+    return mapOrder(o)
+  },
+  async update(id: string, data: Partial<Order>): Promise<Order | null> {
+    try {
+      const o = await prisma.order.update({
+        where: { id },
+        data: {
+          ...(data.status !== undefined && { status: data.status }),
+          ...(data.admin_notes !== undefined && { adminNotes: data.admin_notes }),
+          ...(data.proof_url !== undefined && { proofUrl: data.proof_url }),
+          ...(data.reviewed_at !== undefined && { reviewedAt: data.reviewed_at ? new Date(data.reviewed_at) : null }),
+        },
+      })
+      return mapOrder(o)
+    } catch { return null }
+  },
+  async subdomainExists(subdomain: string): Promise<boolean> {
+    const count = await prisma.order.count({ where: { subdomain, status: { in: ['pending', 'paid', 'approved'] } } })
+    return count > 0
+  },
+}
+
+//  MUSIC LIBRARY
 
 function mapMusicTrack(m: { id: string; title: string; artist: string; category: string; url: string; duration: number; fileSize: number; isActive: boolean; sortOrder: number; usageCount: number; createdAt: Date }): MusicTrack {
   return { id: m.id, title: m.title, artist: m.artist, category: m.category, url: m.url, duration: m.duration, file_size: m.fileSize, is_active: m.isActive, sort_order: m.sortOrder, usage_count: m.usageCount, created_at: m.createdAt.toISOString() }

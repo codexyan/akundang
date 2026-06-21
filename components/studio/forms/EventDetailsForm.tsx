@@ -1,14 +1,9 @@
-/**
- * EventDetailsForm - Event information (REQUIRED)
- * Akad & Resepsi details with improved UX
- * Removed: Venue photo upload (simplified)
- */
-
 'use client'
 
 import { MapPin } from 'lucide-react'
 import FormField, { inputClass, textareaClass } from '../ui/FormField'
 import SectionCard from '../ui/SectionCard'
+import ImageUploadField from '@/components/admin/ImageUploadField'
 
 interface EventData {
   date: string
@@ -16,6 +11,7 @@ interface EventData {
   venue_name: string
   venue_address: string
   maps_url?: string
+  venue_photo_url?: string
 }
 
 interface EventDetailsFormProps {
@@ -27,212 +23,81 @@ interface EventDetailsFormProps {
 
 const EMPTY_EVENT: EventData = { date: '', time: '', venue_name: '', venue_address: '' }
 
-export default function EventDetailsForm({
-  akad: akadProp,
-  resepsi: resepsiProp,
-  onAkadChange,
-  onResepsiChange,
-}: EventDetailsFormProps) {
-  const akad = akadProp ?? EMPTY_EVENT
-  const resepsi = resepsiProp ?? EMPTY_EVENT
+function EventBlock({
+  label, badge, badgeColor, event, onChange, showSameDate, onSameDate,
+}: {
+  label: string; badge: string; badgeColor: string; event: EventData
+  onChange: (d: Partial<EventData>) => void
+  showSameDate?: boolean; onSameDate?: () => void
+}) {
   return (
-    <SectionCard
-      title="Detail Acara"
-      icon={MapPin}
-      required
-      description="Informasi waktu dan lokasi acara pernikahan"
-    >
-      {/* Akad Nikah */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
-          <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-            <span className="text-sm font-bold text-amber-700">1</span>
-          </div>
-          <h4 className="font-bold text-stone-800">Akad Nikah</h4>
-        </div>
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-2">
+        <span className={`w-5 h-5 rounded text-[10px] font-bold text-white flex items-center justify-center ${badgeColor}`}>{badge}</span>
+        <p className="text-xs font-semibold text-stone-700">{label}</p>
+        {showSameDate && onSameDate && (
+          <label className="ml-auto flex items-center gap-1.5 text-[10px] text-stone-500 cursor-pointer hover:text-stone-700">
+            <input type="checkbox" className="w-3.5 h-3.5 accent-gold-500 cursor-pointer"
+              onChange={onSameDate} />
+            <span>Sama dengan Akad</span>
+          </label>
+        )}
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            label="Tanggal Akad"
-            hint="Pilih tanggal pelaksanaan akad nikah"
-            required
-            htmlFor="akad-date"
-          >
-            <input
-              id="akad-date"
-              type="date"
-              className={inputClass}
-              value={akad.date}
-              onChange={(e) => onAkadChange({ date: e.target.value })}
-            />
-          </FormField>
-
-          <FormField
-            label="Waktu Mulai"
-            hint="Contoh: 08:00 WIB"
-            required
-            htmlFor="akad-time"
-          >
-            <input
-              id="akad-time"
-              type="time"
-              className={inputClass}
-              value={akad.time}
-              onChange={(e) => onAkadChange({ time: e.target.value })}
-            />
-          </FormField>
-        </div>
-
-        <FormField
-          label="Nama Tempat"
-          hint="Contoh: Masjid Al-Ikhlas, Gedung Serbaguna"
-          required
-          htmlFor="akad-venue"
-        >
-          <input
-            id="akad-venue"
-            type="text"
-            className={inputClass}
-            value={akad.venue_name}
-            onChange={(e) => onAkadChange({ venue_name: e.target.value })}
-            placeholder="Nama masjid / gedung tempat akad"
-          />
+      <div className="grid grid-cols-2 gap-2.5">
+        <FormField label="Tanggal" required>
+          <input type="date" className={inputClass} value={event.date}
+            onChange={(e) => onChange({ date: e.target.value })} />
         </FormField>
-
-        <FormField
-          label="Alamat Lengkap"
-          hint="Tulis alamat selengkap mungkin agar tamu mudah menemukan lokasi"
-          required
-          htmlFor="akad-address"
-        >
-          <textarea
-            id="akad-address"
-            className={textareaClass}
-            rows={2}
-            value={akad.venue_address}
-            onChange={(e) => onAkadChange({ venue_address: e.target.value })}
-            placeholder="Jl. Contoh No. 123, Kelurahan, Kecamatan, Kota"
-          />
-        </FormField>
-
-        <FormField
-          label="Link Google Maps"
-          hint="Buka Google Maps, cari lokasi, lalu salin link-nya"
-          htmlFor="akad-maps"
-        >
-          <input
-            id="akad-maps"
-            type="url"
-            className={inputClass}
-            value={akad.maps_url || ''}
-            onChange={(e) => onAkadChange({ maps_url: e.target.value })}
-            placeholder="https://maps.app.goo.gl/..."
-          />
+        <FormField label="Waktu" required>
+          <input type="time" className={inputClass} value={event.time}
+            onChange={(e) => onChange({ time: e.target.value })} />
         </FormField>
       </div>
 
-      {/* Resepsi */}
-      <div className="space-y-4 pt-6 mt-6 border-t-2 border-stone-200">
-        <div className="flex items-center gap-2 pb-2 border-b border-stone-200">
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <span className="text-sm font-bold text-emerald-700">2</span>
-          </div>
-          <h4 className="font-bold text-stone-800">Resepsi</h4>
+      <FormField label="Nama Tempat" required>
+        <input type="text" className={inputClass} value={event.venue_name}
+          onChange={(e) => onChange({ venue_name: e.target.value })}
+          placeholder="Masjid / Gedung / Ballroom" />
+      </FormField>
 
-          {/* Same date shortcut */}
-          <label className="ml-auto flex items-center gap-2 text-xs text-stone-600 cursor-pointer hover:text-stone-800">
-            <input
-              type="checkbox"
-              className="w-4 h-4 accent-gold-500 cursor-pointer"
-              checked={resepsi.date === akad.date && !!akad.date}
-              onChange={(e) => {
-                if (e.target.checked && akad.date) {
-                  onResepsiChange({ date: akad.date })
-                }
-              }}
-            />
-            <span className="font-medium">Tanggal sama dengan Akad</span>
-          </label>
-        </div>
+      <FormField label="Alamat Lengkap" required>
+        <textarea className={textareaClass} rows={2} value={event.venue_address}
+          onChange={(e) => onChange({ venue_address: e.target.value })}
+          placeholder="Jl. Contoh No. 123, Kota" />
+      </FormField>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            label="Tanggal Resepsi"
-            hint="Bisa sama atau berbeda dengan tanggal akad"
-            required
-            htmlFor="resepsi-date"
-          >
-            <input
-              id="resepsi-date"
-              type="date"
-              className={inputClass}
-              value={resepsi.date}
-              onChange={(e) => onResepsiChange({ date: e.target.value })}
-            />
-          </FormField>
-
-          <FormField
-            label="Waktu Mulai"
-            hint="Contoh: 11:00 WIB"
-            required
-            htmlFor="resepsi-time"
-          >
-            <input
-              id="resepsi-time"
-              type="time"
-              className={inputClass}
-              value={resepsi.time}
-              onChange={(e) => onResepsiChange({ time: e.target.value })}
-            />
-          </FormField>
-        </div>
-
-        <FormField
-          label="Nama Tempat"
-          hint="Contoh: Ballroom Hotel Grand, Pendopo Keluarga"
-          required
-          htmlFor="resepsi-venue"
-        >
-          <input
-            id="resepsi-venue"
-            type="text"
-            className={inputClass}
-            value={resepsi.venue_name}
-            onChange={(e) => onResepsiChange({ venue_name: e.target.value })}
-            placeholder="Nama gedung / ballroom tempat resepsi"
-          />
+      <div className="grid grid-cols-2 gap-2.5">
+        <FormField label="Link Google Maps">
+          <input type="url" className={inputClass} value={event.maps_url || ''}
+            onChange={(e) => onChange({ maps_url: e.target.value })}
+            placeholder="https://maps.app.goo.gl/..." />
         </FormField>
-
-        <FormField
-          label="Alamat Lengkap"
-          hint="Tulis alamat selengkap mungkin agar tamu mudah menemukan lokasi"
-          required
-          htmlFor="resepsi-address"
-        >
-          <textarea
-            id="resepsi-address"
-            className={textareaClass}
-            rows={2}
-            value={resepsi.venue_address}
-            onChange={(e) => onResepsiChange({ venue_address: e.target.value })}
-            placeholder="Jl. Contoh No. 456, Kelurahan, Kecamatan, Kota"
-          />
+        <FormField label="Foto Tempat">
+          <ImageUploadField value={event.venue_photo_url}
+            onChange={(url) => onChange({ venue_photo_url: url || '' })} hint="Opsional" />
         </FormField>
+      </div>
+    </div>
+  )
+}
 
-        <FormField
-          label="Link Google Maps"
-          hint="Buka Google Maps, cari lokasi, lalu salin link-nya"
-          htmlFor="resepsi-maps"
-        >
-          <input
-            id="resepsi-maps"
-            type="url"
-            className={inputClass}
-            value={resepsi.maps_url || ''}
-            onChange={(e) => onResepsiChange({ maps_url: e.target.value })}
-            placeholder="https://maps.app.goo.gl/..."
-          />
-        </FormField>
+export default function EventDetailsForm({
+  akad: akadProp, resepsi: resepsiProp,
+  onAkadChange, onResepsiChange,
+}: EventDetailsFormProps) {
+  const akad = akadProp ?? EMPTY_EVENT
+  const resepsi = resepsiProp ?? EMPTY_EVENT
+
+  return (
+    <SectionCard title="Detail Acara" icon={MapPin} required description="Waktu dan lokasi pernikahan">
+      <EventBlock label="Akad Nikah" badge="1" badgeColor="bg-amber-500"
+        event={akad} onChange={onAkadChange} />
+
+      <div className="border-t border-stone-200 pt-3 mt-1">
+        <EventBlock label="Resepsi" badge="2" badgeColor="bg-emerald-500"
+          event={resepsi} onChange={onResepsiChange}
+          showSameDate onSameDate={() => { if (akad.date) onResepsiChange({ date: akad.date }) }} />
       </div>
     </SectionCard>
   )

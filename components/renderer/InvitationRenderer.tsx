@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TemplateRecord, NewInvitationData, Wish, SectionConfig } from '@/lib/types'
 import { mergeDecorationAssets } from '@/lib/decoration-utils'
@@ -17,6 +17,14 @@ interface Props {
   musicUrl?: string
   /** Contained mode   absolute positioning, untuk preview dalam container (demo/fullscreen) */
   contained?: boolean
+  /** Disable music player entirely (for editor preview) */
+  noMusic?: boolean
+  /** Guest name shown on opening cover (for preview) */
+  previewGuestName?: string
+  /** Start directly at a specific phase (for editor preview) */
+  initialPhase?: Phase
+  /** Auto-scroll to a section ID after entering main phase */
+  scrollToSection?: string
 }
 
 type Phase = 'opening' | 'loading' | 'main'
@@ -28,12 +36,16 @@ export default function InvitationRenderer({
   initialWishes = [],
   musicUrl,
   contained,
+  noMusic,
+  previewGuestName,
+  initialPhase,
+  scrollToSection,
 }: Props) {
   const config = template.config
   const { meta } = config
   const showOpening = config.opening.show_opening !== false
 
-  const [phase, setPhase] = useState<Phase>(showOpening ? 'opening' : 'loading')
+  const [phase, setPhase] = useState<Phase>(initialPhase ?? (showOpening ? 'opening' : 'loading'))
 
   useEffect(() => {
     const headingFont = meta.font.heading.replace(/ /g, '+')
@@ -93,8 +105,23 @@ export default function InvitationRenderer({
     ? { ...defaultMusicConfig, ...config.music, enabled: config.music.enabled && !!resolvedMusicUrl, url: resolvedMusicUrl }
     : defaultMusicConfig
 
+  const mainRef = useRef<HTMLElement>(null)
+
   const handleOpen = useCallback(() => setPhase('loading'), [])
   const handleLoadDone = useCallback(() => setPhase('main'), [])
+
+  useEffect(() => {
+    if (phase === 'main' && scrollToSection && mainRef.current) {
+      const timer = setTimeout(() => {
+        const container = mainRef.current
+        const el = container?.querySelector(`[data-section-id="${scrollToSection}"]`) as HTMLElement | null
+        if (el && container) {
+          container.scrollTo({ top: el.offsetTop, behavior: 'smooth' })
+        }
+      }, 700)
+      return () => clearTimeout(timer)
+    }
+  }, [phase, scrollToSection])
 
   const activeSections = [...config.sections]
     .filter((s) => s.enabled)
@@ -109,7 +136,7 @@ export default function InvitationRenderer({
       ...(contained ? { width: '100%', height: '100%' } : {}),
     }}>
       {/* Music player   tampil sejak opening */}
-      {resolvedMusicUrl && (
+      {resolvedMusicUrl && !noMusic && (
         <FloatingMusicPlayer
           config={{ ...musicConfig, autoplay: true }}
           colors={meta.color_scheme}
@@ -131,6 +158,7 @@ export default function InvitationRenderer({
               meta={meta}
               onOpen={handleOpen}
               positionMode={posMode}
+              previewGuestName={previewGuestName}
             />
           </motion.div>
         )}
@@ -155,6 +183,7 @@ export default function InvitationRenderer({
 
       {phase === 'main' && (
         <motion.main
+          ref={mainRef}
           key="main"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -176,14 +205,15 @@ export default function InvitationRenderer({
               ? { ...section, decoration_assets: mergeDecorationAssets(section.decoration_assets, userAssets) }
               : section
             return (
-              <SectionRenderer
-                key={section.id}
-                sectionConfig={merged}
-                invitationData={invitationData}
-                templateMeta={meta}
-                invitationId={invitationId}
-                initialWishes={section.type === 'wishes' ? initialWishes : undefined}
-              />
+              <div key={section.id} data-section-id={section.id}>
+                <SectionRenderer
+                  sectionConfig={merged}
+                  invitationData={invitationData}
+                  templateMeta={meta}
+                  invitationId={invitationId}
+                  initialWishes={section.type === 'wishes' ? initialWishes : undefined}
+                />
+              </div>
             )
           })}
         </motion.main>

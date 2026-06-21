@@ -15,8 +15,9 @@ const defaultFaqs = [
   { q: 'Kalau ada yang membingungkan, ada yang bisa dihubungi?', a: 'Tentu. Hubungi kami lewat WhatsApp dan kami akan bantu dengan senang hati. Kami balas dalam 1 hari kerja.' },
 ]
 
-export default function FAQ({ items }: { items?: { q: string; a: string }[] }) {
+export default function FAQ({ items, whatsapp }: { items?: { q: string; a: string }[]; whatsapp?: string }) {
   const faqs = items ?? defaultFaqs
+  const waNumber = whatsapp || '628123456789'
   const [open, setOpen] = useState<number | null>(null)
 
   return (
@@ -107,7 +108,7 @@ export default function FAQ({ items }: { items?: { q: string; a: string }[] }) {
           <p className="text-[14px] text-stone-800 font-semibold mb-1">Masih ada pertanyaan?</p>
           <p className="text-[13px] text-stone-400 mb-5">Kami senang membantu, balas cepat di hari kerja.</p>
           <a
-            href="https://wa.me/628123456789"
+            href={`https://wa.me/${waNumber}`}
             target="_blank"
             rel="noopener noreferrer"
           >
