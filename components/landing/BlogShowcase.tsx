@@ -16,20 +16,18 @@ export default async function BlogShowcase() {
   return (
     <section className="py-20 sm:py-28 lg:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
-        {/* Header */}
         <div className="text-center mb-14 sm:mb-16">
           <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-forest-600 bg-forest-50/80 border border-forest-100 px-3.5 py-1.5 rounded-full mb-5">
             Blog
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-            Artikel Terbaru
+            Inspirasi &amp; Tips
           </h2>
           <p className="mt-3 text-stone-400 text-[15px] max-w-lg mx-auto">
-            Tips persiapan pernikahan, inspirasi undangan digital, dan cerita dari pasangan nyata.
+            Panduan persiapan pernikahan, inspirasi undangan, dan tips untuk hari spesial kalian.
           </p>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-12">
           {latest.map(article => (
             <Link
@@ -71,7 +69,7 @@ export default async function BlogShowcase() {
                   </div>
                   <span className="flex items-center gap-1 text-[11px] text-stone-400">
                     <Clock className="w-3 h-3" />
-                    {Math.max(1, Math.ceil(article.content.split(/\s+/).length / 200))} mnt
+                    {Math.max(1, Math.ceil((article.content?.split(/\s+/).length ?? 0) / 200))} mnt
                   </span>
                 </div>
               </div>
@@ -79,7 +77,6 @@ export default async function BlogShowcase() {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="text-center">
           <Link
             href="/blog"

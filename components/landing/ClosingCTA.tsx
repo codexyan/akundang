@@ -14,17 +14,11 @@ export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
       style={{ background: 'linear-gradient(160deg, #0c1610 0%, #15241a 30%, #1d3526 60%, #15241a 100%)' }}>
 
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full"
-          style={{ background: 'radial-gradient(ellipse, rgba(201,169,97,0.08) 0%, transparent 60%)' }} />
-        <div className="absolute bottom-[-10%] left-[20%] w-[400px] h-[400px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(111,168,138,0.05) 0%, transparent 60%)' }} />
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full"
+          style={{ background: 'radial-gradient(ellipse, rgba(201,169,97,0.06) 0%, transparent 60%)' }} />
+        <div className="absolute bottom-[-10%] left-[20%] w-[300px] h-[300px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(111,168,138,0.04) 0%, transparent 60%)' }} />
       </div>
-
-      <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 0.8px, transparent 0.8px)',
-          backgroundSize: '28px 28px',
-        }} />
 
       <div className="relative z-10 max-w-2xl mx-auto px-5 sm:px-8 text-center">
 
@@ -47,13 +41,13 @@ export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
           className="font-serif font-bold text-white leading-[1.1] tracking-[-0.01em]"
           style={{ fontSize: 'clamp(28px, 5vw, 48px)' }}
         >
-          Hari spesial kalian layak
+          Buat undangan yang
           <br />
           <span style={{
             background: 'linear-gradient(135deg, #b8954d 0%, #c9a961 40%, #d9c89a 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-          }}>dirayakan dengan indah</span>
+          }}>tamu kalian akan ingat</span>
         </motion.h2>
 
         <motion.p
@@ -64,7 +58,7 @@ export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
           className="mt-5 text-[15px] leading-relaxed max-w-md mx-auto"
           style={{ color: 'rgba(255,255,255,0.4)' }}
         >
-          Coba dulu gratis, lihat hasilnya dengan nama kalian sendiri. Bayar hanya kalau sudah benar-benar cocok.
+          Coba gratis sekarang — lihat hasilnya dengan nama kalian sendiri. Bayar hanya saat sudah cocok.
         </motion.p>
 
         <motion.div
@@ -112,7 +106,7 @@ export default function ClosingCTA({ whatsapp }: { whatsapp?: string }) {
           className="mt-7 text-[11px]"
           style={{ color: 'rgba(255,255,255,0.18)' }}
         >
-          Tidak perlu kartu kredit · Coba gratis dulu · Bayar saat siap publish
+          Tanpa kartu kredit · Coba gratis · Bayar saat siap publish
         </motion.p>
 
       </div>

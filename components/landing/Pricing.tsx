@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, ArrowRight, ShieldCheck, MessageCircle, QrCode } from 'lucide-react'
+import { Check, ArrowRight, ShieldCheck, MessageCircle } from 'lucide-react'
 import { PRICING_CONFIG } from '@/lib/pricing-config'
 import type { PriceTier, FlashSale } from '@/lib/types'
 
@@ -136,7 +136,7 @@ function PricingCard({
 const TIER_VARIANTS: Record<string, CardVariant> = { starter: 'light', popular: 'dark', eksklusif: 'gold' }
 const TIER_CTA: Record<string, { label: string; hint: string }> = {
   starter: { label: 'Mulai Gratis', hint: 'Coba dulu, bayar kalau cocok' },
-  popular: { label: 'Pilih Popular', hint: 'Pilihan terpopuler pasangan' },
+  popular: { label: 'Pilih Popular', hint: 'Fitur lengkap untuk acara kalian' },
   eksklusif: { label: 'Pilih Eksklusif', hint: 'Untuk acara besar & eksklusif' },
 }
 
@@ -148,7 +148,7 @@ function buildFeatureList(tier: PriceTier): string[] {
   else if (tier.id === 'eksklusif') list.push('Semua fitur Popular')
   else {
     if (f.music) list.push('Musik pengiring')
-    if (f.rsvp) list.push(`RSVP online`)
+    if (f.rsvp) list.push('RSVP online')
     if (f.gallery) list.push('Galeri foto')
     if (f.countdown) list.push('Countdown hari H')
     if (f.wishes) list.push('Ucapan & doa dari tamu')
@@ -189,10 +189,10 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
             Harga
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-            Pilih paket yang pas untuk kalian
+            Harga transparan, tanpa kejutan
           </h2>
           <p className="mt-3 text-stone-400 text-[15px] max-w-md mx-auto">
-            Bayar sekali saja, tidak ada biaya bulanan.
+            Sekali bayar, langsung aktif. Tidak ada biaya bulanan atau biaya tersembunyi.
           </p>
         </motion.div>
 
@@ -241,7 +241,7 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
                 name="Paket Popular" badge={PRICING_CONFIG.popular.badge}
                 price={PRICING_CONFIG.popular.priceFormatted} duration={PRICING_CONFIG.popular.durationLabel}
                 features={PRICING_CONFIG.popular.features} highlightedFeature={PRICING_CONFIG.popular.highlightedFeature}
-                ctaLabel="Pilih Popular" ctaHint="Pilihan terpopuler pasangan" variant="dark" popular delay={0.08}
+                ctaLabel="Pilih Popular" ctaHint="Fitur lengkap untuk acara kalian" variant="dark" popular delay={0.08}
               />
               <PricingCard
                 name="Paket Eksklusif" badge={PRICING_CONFIG.eksklusif.badge}
@@ -252,17 +252,6 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
             </>
           )}
         </div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="mt-8 text-center text-[11px] text-stone-400 max-w-md mx-auto"
-        >
-          <QrCode size={12} className="inline mr-1 text-amber-600" />
-          Fitur scan barcode (Eksklusif): tamu menerima QR code saat dikirimi undangan via WhatsApp, lalu dipindai saat hadir untuk konfirmasi kehadiran otomatis.
-        </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}

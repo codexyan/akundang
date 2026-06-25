@@ -14,7 +14,7 @@ const productLinks = [
 
 const companyLinks = [
   { href: '/#cara-kerja', label: 'Cara Kerja' },
-  { href: '/#testimoni', label: 'Testimoni' },
+  { href: '/#testimoni', label: 'Kenapa Kami' },
   { href: '/blog', label: 'Blog' },
   { href: '/#faq', label: 'FAQ' },
 ]
@@ -52,7 +52,7 @@ export default function Footer() {
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then(({ user }) => setUser(user ?? null))
-      .catch(() => {})
+      .catch(() => setUser(null))
   }, [])
 
   const accountLinks = user
@@ -76,8 +76,6 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8">
-
-          {/* Brand */}
           <div className="lg:col-span-4">
             <Link href="/" className="inline-block mb-4">
               <Image
@@ -90,7 +88,7 @@ export default function Footer() {
               />
             </Link>
             <p className="text-stone-400 text-[13px] leading-relaxed mb-5 max-w-[280px]">
-              Platform undangan digital premium untuk pasangan modern Indonesia.
+              Platform undangan digital premium — personal untuk setiap tamu, elegan di setiap layar.
             </p>
             <div className="flex items-center gap-2">
               {socials.map(({ href, icon: Icon, label }) => (
@@ -108,14 +106,12 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links */}
           <div className="lg:col-span-6 grid grid-cols-3 gap-6 sm:gap-8">
             <FooterLinkGroup title="Produk" links={productLinks} />
             <FooterLinkGroup title="Perusahaan" links={companyLinks} />
             <FooterLinkGroup title="Akun" links={accountLinks} />
           </div>
 
-          {/* Contact */}
           <div className="lg:col-span-2">
             <h4 className="text-stone-800 font-semibold text-[13px] mb-4">Kontak</h4>
             <ul className="space-y-2.5 mb-5">
@@ -145,10 +141,8 @@ export default function Footer() {
               Buat Undangan
             </Link>
           </div>
-
         </div>
 
-        {/* Bottom */}
         <div className="mt-12 pt-6 border-t border-stone-200/50">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-stone-400 text-[12px]">

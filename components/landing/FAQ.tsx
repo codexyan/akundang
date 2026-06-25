@@ -7,12 +7,13 @@ import { ChevronDown, MessageCircle } from 'lucide-react'
 const EASE = [0.16, 1, 0.3, 1] as const
 
 const defaultFaqs = [
-  { q: 'Bisa dilihat dulu hasilnya sebelum bayar?', a: 'Bisa. Pilih gaya yang kalian suka, masukkan nama kalian berdua, dan lihat sendiri hasilnya. Bayar hanya kalau sudah benar-benar cocok dan mau dipublish.' },
-  { q: 'Tamu perlu download atau install sesuatu?', a: 'Tidak perlu sama sekali. Tamu cukup tap link yang kalian kirim lewat WhatsApp, dan undangan langsung terbuka di browser HP mereka.' },
-  { q: 'Berapa lama undangan bisa diakses setelah bayar?', a: '6 bulan penuh sejak tanggal pembelian. Lebih dari cukup untuk sebelum hari H, saat hari H, dan beberapa bulan setelahnya.' },
-  { q: 'Bisa ganti foto atau detail acara setelah dipublish?', a: 'Bisa, kapan saja dan sebanyak yang kalian mau. Edit info acara, ganti foto, ganti musik, bahkan ganti gaya tampilan tanpa biaya tambahan.' },
-  { q: 'Bagaimana cara tamu menerima undangan?', a: 'Setelah undangan kalian publish, kalian dapat link unik seperti ikhwal-fani.iaundang.id. Salin dan kirim ke tamu lewat WhatsApp, Line, atau media apapun.' },
-  { q: 'Kalau ada yang membingungkan, ada yang bisa dihubungi?', a: 'Tentu. Hubungi kami lewat WhatsApp dan kami akan bantu dengan senang hati. Kami balas dalam 1 hari kerja.' },
+  { q: 'Bisa lihat hasilnya sebelum bayar?', a: 'Bisa. Pilih template, masukkan nama kalian, dan langsung lihat preview-nya. Bayar hanya saat kalian sudah cocok dan siap publish.' },
+  { q: 'Apa tamu perlu install aplikasi?', a: 'Tidak. Tamu cukup tap link yang kalian kirim via WhatsApp — undangan langsung terbuka di browser HP mereka.' },
+  { q: 'Berapa lama undangan tetap aktif?', a: 'Tergantung paket yang dipilih. Mulai dari 30 hari hingga 180 hari. Cukup untuk persiapan, hari H, dan beberapa bulan setelahnya sebagai kenangan.' },
+  { q: 'Bisa edit setelah dipublish?', a: 'Bisa, kapan saja. Ganti foto, ubah detail acara, ganti musik — semua tanpa biaya tambahan.' },
+  { q: 'Bagaimana cara kirim undangan ke tamu?', a: 'Setelah publish, kalian dapat link unik (contoh: rizky-aulia.iaundang.id). Salin dan kirim ke tamu lewat WhatsApp atau media lainnya.' },
+  { q: 'iaundang baru diluncurkan, apakah bisa dipercaya?', a: 'Kami membangun iaundang dengan standar kualitas tinggi — teknologi modern, desain premium, dan tim yang responsif via WhatsApp. Kalian bisa coba gratis dulu dan lihat sendiri kualitasnya sebelum memutuskan.' },
+  { q: 'Bagaimana kalau butuh bantuan?', a: 'Hubungi kami via WhatsApp — tim kami siap membantu dan membalas dalam 1 hari kerja.' },
 ]
 
 export default function FAQ({ items, whatsapp }: { items?: { q: string; a: string }[]; whatsapp?: string }) {
@@ -35,10 +36,10 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
             FAQ
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900">
-            Pertanyaan umum
+            Pertanyaan yang sering ditanyakan
           </h2>
           <p className="mt-3 text-stone-400 text-[15px]">
-            Masih ada yang mengganjal? Chat langsung ke kami.
+            Belum menemukan jawabannya? Chat kami via WhatsApp.
           </p>
         </motion.div>
 
@@ -47,7 +48,7 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
             const isOpen = open === i
             return (
               <motion.div
-                key={i}
+                key={faq.q}
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-16px' }}

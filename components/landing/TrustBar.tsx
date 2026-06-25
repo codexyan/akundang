@@ -2,61 +2,61 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Users, Star, Zap, Shield } from 'lucide-react'
+import { Shield, Clock, CreditCard, Smartphone } from 'lucide-react'
 
-const defaultStats = [
-  { value: '500+', label: 'Pasangan memilih kami' },
-  { value: '4.9', label: 'Rating pengguna' },
-  { value: '< 5 mnt', label: 'Waktu setup' },
-  { value: '6 bln', label: 'Masa aktif' },
+const EASE = [0.16, 1, 0.3, 1] as const
+
+const defaultItems = [
+  { icon: Shield, value: 'Gratis Preview', label: 'Coba sebelum bayar' },
+  { icon: Clock, value: '< 5 menit', label: 'Setup cepat' },
+  { icon: CreditCard, value: 'Sekali Bayar', label: 'Tanpa langganan' },
+  { icon: Smartphone, value: 'Tanpa Install', label: 'Buka di browser' },
 ]
-
-const ICONS = [Users, Star, Zap, Shield]
-const COLORS = ['#2c4a34', '#c9a961', '#4a6355', '#8fa99a']
 
 export default function TrustBar({ items }: { items?: { value: string; label: string }[] }) {
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.5 })
-  const stats = (items ?? defaultStats).map((s, i) => ({
-    ...s,
-    icon: ICONS[i] ?? Shield,
-    color: COLORS[i] ?? '#2c4a34',
-  }))
+
+  const stats = items
+    ? items.map((item, i) => ({ ...item, icon: defaultItems[i]?.icon ?? Shield }))
+    : defaultItems
 
   return (
-    <section ref={ref} className="relative py-6 sm:py-0 bg-white">
-      <div className="max-w-5xl mx-auto px-5 sm:px-8">
-        <div className="relative bg-white rounded-2xl sm:rounded-3xl border border-stone-100 shadow-[0_2px_24px_-4px_rgba(0,0,0,0.06)] sm:-mt-10 z-20">
-          <div className="grid grid-cols-2 sm:grid-cols-4">
+    <section ref={ref} className="relative bg-white pt-6 pb-2 sm:pt-0 sm:pb-0">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="relative sm:-mt-8 z-20 bg-white rounded-2xl border border-stone-100 shadow-[0_4px_32px_-8px_rgba(0,0,0,0.08)]"
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-0">
             {stats.map((s, i) => {
               const Icon = s.icon
               return (
                 <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0, y: 16 }}
+                  key={s.label ?? i}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  className={`flex flex-col items-center justify-center py-6 sm:py-7 px-4 gap-2 ${
-                    i < stats.length - 1 ? 'border-r border-stone-100' : ''
-                  } ${i < 2 ? 'sm:border-r border-b sm:border-b-0 border-stone-100' : ''}`}
+                  transition={{ duration: 0.4, delay: 0.1 + i * 0.07, ease: EASE }}
+                  className={`flex flex-col items-center text-center px-4 py-5 sm:py-6 ${
+                    i < stats.length - 1 ? 'border-r border-stone-50 sm:border-stone-100' : ''
+                  } ${i === 1 ? 'max-sm:border-r-0' : ''} ${i >= 2 ? 'max-sm:border-t max-sm:border-stone-50' : ''}`}
                 >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center mb-0.5"
-                    style={{ backgroundColor: `${s.color}08` }}
-                  >
-                    <Icon size={15} style={{ color: s.color }} />
+                  <div className="w-9 h-9 rounded-xl bg-forest-50 flex items-center justify-center mb-2.5">
+                    <Icon size={16} className="text-forest-500" />
                   </div>
-                  <span className="font-serif text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
+                  <span className="font-semibold text-sm sm:text-[15px] text-stone-900 leading-none">
                     {s.value}
                   </span>
-                  <span className="text-[11px] text-stone-400 font-medium text-center leading-tight">
+                  <span className="text-[10px] sm:text-[11px] text-stone-400 font-medium mt-1.5">
                     {s.label}
                   </span>
                 </motion.div>
               )
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

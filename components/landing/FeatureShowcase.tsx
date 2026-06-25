@@ -4,44 +4,24 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 
-//  Mini visual components 
-
 function VisualPersonal({ guestName = 'Bapak Andi & Keluarga', groomName = 'Rizky', brideName = 'Aulia' }: { guestName?: string; groomName?: string; brideName?: string }) {
-  const p = '#0f2d0f', a = '#d4af37', t = '#ffffff'
+  const a = '#d4af37', t = '#ffffff'
   return (
     <div className="relative w-full max-w-[280px] mx-auto">
-      {/* Phone shell   slim bezel */}
-      <div
-        className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-2xl shadow-stone-200/80"
-        style={{
-          padding: 4,
-          background: 'linear-gradient(145deg, #1c1c1e 0%, #111 50%, #000 100%)',
-          boxShadow: '0 40px 80px rgba(0,0,0,0.3), inset 0 0 0 0.5px rgba(255,255,255,0.12)',
-        }}
-      >
-        {/* Dynamic Island */}
+      <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-2xl shadow-stone-200/80" style={{ padding: 4, background: 'linear-gradient(145deg, #1c1c1e 0%, #111 50%, #000 100%)', boxShadow: '0 40px 80px rgba(0,0,0,0.3), inset 0 0 0 0.5px rgba(255,255,255,0.12)' }}>
         <div className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full" style={{ top: 7, width: 60, height: 16, backgroundColor: '#000' }} />
-
-        {/* Screen */}
         <div className="rounded-[21px] sm:rounded-[25px] overflow-hidden relative" style={{ aspectRatio: '9/19.5', backgroundColor: '#0a1a0a' }}>
           <Image src="/images/templates/wedding-bg.jpg" alt="Preview undangan personalisasi" fill className="object-cover" sizes="280px" quality={90} style={{ opacity: 0.5 }} />
           <div className="absolute inset-0 z-[2]" style={{ background: 'radial-gradient(ellipse at center 40%, rgba(10,20,10,0.25) 0%, rgba(10,20,10,0.8) 100%)' }} />
-
-          {/* Content   vertically distributed */}
           <div className="absolute inset-0 z-20 flex flex-col text-center">
-            {/* Top section   "The Wedding of" */}
             <div className="pt-14 px-5">
               <p className="text-[10px] tracking-[0.35em] uppercase" style={{ color: a }}>The Wedding of</p>
             </div>
-
-            {/* Center   couple names */}
             <div className="flex-1 flex flex-col items-center justify-center px-5">
               <h3 className="text-[34px] font-bold leading-[0.85]" style={{ color: t, fontFamily: "var(--font-playfair), 'Playfair Display', serif", textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{groomName}</h3>
               <p className="text-[20px] my-1" style={{ color: a, fontFamily: "var(--font-playfair), 'Playfair Display', serif", fontStyle: 'italic', fontWeight: 300 }}>&amp;</p>
               <h3 className="text-[34px] font-bold leading-[0.85]" style={{ color: t, fontFamily: "var(--font-playfair), 'Playfair Display', serif", textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{brideName}</h3>
             </div>
-
-            {/* Bottom   personalized guest card */}
             <div className="pb-8 px-5">
               <div className="inline-block px-5 py-3 rounded-xl" style={{ backgroundColor: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)', backdropFilter: 'blur(8px)' }}>
                 <p className="text-[8px] tracking-[0.3em] uppercase mb-0.5" style={{ color: `${a}aa` }}>Kepada Yth.</p>
@@ -51,7 +31,6 @@ function VisualPersonal({ guestName = 'Bapak Andi & Keluarga', groomName = 'Rizk
           </div>
         </div>
       </div>
-
     </div>
   )
 }
@@ -61,7 +40,6 @@ function VisualRSVP() {
     <div className="relative w-full max-w-[300px] mx-auto">
       <div className="bg-white rounded-3xl shadow-2xl shadow-stone-200/80 border border-stone-100 p-5">
         <p className="text-[11px] font-bold text-stone-800 mb-4">Konfirmasi Kehadiran</p>
-        {/* Form mock */}
         <div className="space-y-2.5">
           <div className="bg-stone-50 rounded-xl px-3 py-2.5 border border-stone-100">
             <p className="text-[8px] text-stone-400 mb-0.5">Nama lengkap</p>
@@ -72,7 +50,7 @@ function VisualRSVP() {
             <p className="text-[10px] text-stone-700 font-medium">2 orang</p>
           </div>
           <div className="flex gap-2">
-            {['Hadir ✓', 'Tidak Hadir'].map((opt, i) => (
+            {['Hadir', 'Tidak Hadir'].map((opt, i) => (
               <button key={opt}
                 className="flex-1 py-2 rounded-xl text-[9px] font-semibold transition-all"
                 style={i === 0
@@ -83,10 +61,9 @@ function VisualRSVP() {
             ))}
           </div>
         </div>
-        {/* RSVP list */}
         <div className="mt-4 space-y-1.5">
-          <p className="text-[8px] font-semibold text-stone-400 uppercase tracking-wide">Sudah konfirmasi</p>
-          {['Andi S. · Hadir · 2', 'Sinta R. · Hadir · 3', 'Hendra W. · Tidak hadir'].map((g, i) => (
+          <p className="text-[8px] font-semibold text-stone-400 uppercase tracking-wide">Rekap otomatis</p>
+          {['Andi S. · Hadir · 2 orang', 'Sinta R. · Hadir · 3 orang', 'Hendra W. · Tidak hadir'].map((g) => (
             <div key={g} className="flex items-center justify-between bg-stone-50 rounded-lg px-2.5 py-1.5">
               <p className="text-[9px] text-stone-600">{g.split(' · ')[0]}</p>
               <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full ${
@@ -96,13 +73,6 @@ function VisualRSVP() {
           ))}
         </div>
       </div>
-      <motion.div
-        animate={{ y: [0, -5, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute left-0 sm:-left-4 bottom-8 bg-white rounded-2xl px-3 py-2 shadow-xl shadow-stone-200 border border-stone-100 max-sm:scale-90"
-      >
-        <p className="text-[9px] font-bold text-stone-800">500 tamu</p>
-        <p className="text-[8px] text-stone-400">bisa ditambahkan</p>
-      </motion.div>
     </div>
   )
 }
@@ -111,7 +81,6 @@ function VisualMusic() {
   return (
     <div className="relative w-full max-w-[300px] mx-auto">
       <div className="bg-stone-900 rounded-3xl shadow-2xl shadow-stone-300/50 p-5 border border-stone-800">
-        {/* Album art area */}
         <div className="rounded-2xl mb-4 flex items-center justify-center"
           style={{ height: 120, background: 'linear-gradient(135deg, #1a3320 0%, #2d5a3d 50%, #1a4a2e 100%)' }}>
           <div className="text-center">
@@ -125,7 +94,6 @@ function VisualMusic() {
             <p className="text-white/40 text-[9px]">Christina Perri</p>
           </div>
         </div>
-        {/* Progress bar */}
         <div className="flex items-center gap-2 mb-3">
           <span className="text-[8px] text-stone-500">1:24</span>
           <div className="flex-1 h-1 bg-stone-700 rounded-full overflow-hidden">
@@ -135,14 +103,12 @@ function VisualMusic() {
           </div>
           <span className="text-[8px] text-stone-500">4:45</span>
         </div>
-        {/* Controls */}
         <div className="flex items-center justify-center gap-5">
           {['⏮', '⏸', '⏭'].map(c => (
             <button key={c} className="text-white/60 hover:text-white text-sm">{c}</button>
           ))}
         </div>
       </div>
-      {/* Song options */}
       <div className="mt-3 bg-white rounded-2xl shadow-lg shadow-stone-200 border border-stone-100 p-3 space-y-1.5">
         <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wide px-1">Pilih lagu lain</p>
         {['Perfect · Ed Sheeran', 'All of Me · John Legend', 'Upload lagumu sendiri'].map((s, i) => (
@@ -161,16 +127,13 @@ function VisualMusic() {
 function VisualDomain() {
   return (
     <div className="relative w-full max-w-[320px] mx-auto">
-      {/* Browser mockup */}
       <div className="bg-stone-100 rounded-2xl overflow-hidden shadow-2xl shadow-stone-200/80 border border-stone-200">
-        {/* Browser chrome */}
         <div className="bg-stone-200/80 px-4 py-2.5 flex items-center gap-2">
           <div className="flex gap-1.5">
             {['#ff5f57','#febc2e','#28c840'].map(c => (
               <div key={c} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
             ))}
           </div>
-          {/* URL bar */}
           <div className="flex-1 bg-white rounded-md px-3 py-1 flex items-center gap-1.5 shadow-sm">
             <svg className="w-2.5 h-2.5 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
@@ -180,7 +143,6 @@ function VisualDomain() {
             </span>
           </div>
         </div>
-        {/* Page preview */}
         <div className="bg-white p-4" style={{ minHeight: 140 }}>
           <div className="flex items-start gap-3">
             <div className="w-12 h-16 rounded-lg bg-gradient-to-b from-stone-200 to-stone-300 shrink-0" />
@@ -198,7 +160,6 @@ function VisualDomain() {
           </div>
         </div>
       </div>
-      {/* Share via WA mock */}
       <motion.div
         animate={{ y: [0, -6, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -bottom-4 right-0 sm:-right-2 bg-white rounded-2xl px-3.5 py-2.5 shadow-xl shadow-stone-200 border border-stone-100 max-w-[160px] max-sm:scale-90"
@@ -229,7 +190,6 @@ function VisualGallery() {
           <p className="text-[11px] font-bold text-stone-800">Galeri Foto</p>
           <span className="text-[8px] text-stone-400 bg-stone-50 px-2 py-0.5 rounded-full">24 foto</span>
         </div>
-        {/* Photo grid */}
         <div className="grid grid-cols-3 gap-1.5">
           {colors.flatMap(row => row).map((c, i) => (
             <motion.div
@@ -251,96 +211,14 @@ function VisualGallery() {
             </motion.div>
           ))}
         </div>
-        {/* Lightbox hint */}
         <div className="mt-3 flex items-center gap-2 bg-stone-50 rounded-xl px-3 py-2">
-          <span className="text-xs">🖼️</span>
+          <span className="text-[10px]">🖼</span>
           <p className="text-[9px] text-stone-500">Tap foto untuk tampilan penuh</p>
         </div>
       </div>
-      <motion.div
-        animate={{ y: [0, -5, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute left-0 sm:-left-3 top-1/3 bg-white rounded-2xl px-3 py-2 shadow-xl border border-stone-100 max-sm:scale-90"
-      >
-        <p className="text-[9px] font-bold text-stone-800">Lightbox</p>
-        <p className="text-[8px] text-stone-400">foto full screen</p>
-      </motion.div>
     </div>
   )
 }
-
-//  Feature data 
-
-function getFeatures(personalisasi?: PersonalisasiData) {
-  return [
-  {
-    tag: 'Personalisasi',
-    title: 'Nama tamu tampil\nlangsung di undangan',
-    desc: 'Kirim satu link tapi setiap tamu disambut dengan namanya sendiri. Berasa lebih personal, bukan sekadar broadcast.',
-    bullets: [
-      'Import daftar tamu via spreadsheet',
-      'Nama muncul di halaman pembuka',
-      'Tidak bisa forward ke orang lain',
-    ],
-    visual: <VisualPersonal guestName={personalisasi?.guestName} groomName={personalisasi?.groomName} brideName={personalisasi?.brideName} />,
-    bg: 'bg-white',
-    reverse: false,
-  },
-  {
-    tag: 'RSVP Digital',
-    title: 'Kelola konfirmasi\ntamu tanpa ribet',
-    desc: 'Tamu isi nama dan konfirmasi hadir atau tidak hanya dalam 10 detik. Kalian pantau semua dari dashboard secara real-time.',
-    bullets: [
-      'Hingga 500 tamu bisa dikonfirmasi',
-      'Rekap otomatis di dashboard',
-      'Export ke spreadsheet kapan saja',
-    ],
-    visual: <VisualRSVP />,
-    bg: 'bg-stone-50/60',
-    reverse: true,
-  },
-  {
-    tag: 'Musik Pengiring',
-    title: 'Sambut tamu dengan\nlagu favorit kalian',
-    desc: 'Pilih dari ratusan lagu atau upload sendiri. Musik mulai mengalun otomatis begitu tamu membuka undangan.',
-    bullets: [
-      'Upload file MP3 milik sendiri',
-      'Pilih dari koleksi lagu populer',
-      'Volume bisa diatur oleh tamu',
-    ],
-    visual: <VisualMusic />,
-    bg: 'bg-white',
-    reverse: false,
-  },
-  {
-    tag: 'Link Undangan',
-    title: 'Link pribadi atas\nnama kalian berdua',
-    desc: 'Bukan link random yang susah diingat. Undangan kalian punya alamat sendiri yang mudah dibagikan lewat WhatsApp.',
-    bullets: [
-      'Format: nama-pasangan.iaundang.id',
-      'Langsung bisa dibagikan via WA',
-      'Bisa diakses 6 bulan penuh',
-    ],
-    visual: <VisualDomain />,
-    bg: 'bg-stone-50/60',
-    reverse: true,
-  },
-  {
-    tag: 'Galeri Foto',
-    title: 'Tampilkan momen\nterbaik kalian',
-    desc: 'Upload foto prewedding atau foto bersama keluarga. Tamu bisa lihat seluruh galeri dalam tampilan penuh yang memukau.',
-    bullets: [
-      'Tampilan grid yang rapi dan elegan',
-      'Lightbox fullscreen saat ditap',
-      'Upload hingga 20 foto',
-    ],
-    visual: <VisualGallery />,
-    bg: 'bg-white',
-    reverse: false,
-  },
-]
-}
-
-//  Section 
 
 interface PersonalisasiData {
   guestName: string
@@ -348,38 +226,106 @@ interface PersonalisasiData {
   brideName: string
 }
 
+function getFeatures(personalisasi?: PersonalisasiData) {
+  return [
+    {
+      tag: 'Personalisasi',
+      title: 'Satu link, setiap\ntamu disambut namanya',
+      desc: 'Setiap tamu melihat namanya sendiri di halaman pembuka. Terasa eksklusif, bukan broadcast massal.',
+      bullets: [
+        'Import daftar tamu via spreadsheet',
+        'Nama tampil otomatis di halaman pembuka',
+        'Link unik per tamu, tidak bisa di-forward',
+      ],
+      visual: <VisualPersonal guestName={personalisasi?.guestName} groomName={personalisasi?.groomName} brideName={personalisasi?.brideName} />,
+      bg: 'bg-white',
+      reverse: false,
+    },
+    {
+      tag: 'RSVP Digital',
+      title: 'Konfirmasi kehadiran\ndalam 10 detik',
+      desc: 'Tamu isi nama dan pilih hadir — selesai. Kalian pantau rekap kehadiran langsung dari dashboard.',
+      bullets: [
+        'Hingga 500 tamu per undangan',
+        'Rekap otomatis hadir & tidak hadir',
+        'Export ke spreadsheet kapan saja',
+      ],
+      visual: <VisualRSVP />,
+      bg: 'bg-stone-50/50',
+      reverse: true,
+    },
+    {
+      tag: 'Musik Pengiring',
+      title: 'Lagu favorit kalian\nmenyambut setiap tamu',
+      desc: 'Musik mengalun otomatis begitu undangan dibuka. Pilih dari koleksi kami atau upload lagu sendiri.',
+      bullets: [
+        'Upload file MP3 milik sendiri',
+        'Pilih dari koleksi lagu populer',
+        'Volume bisa diatur oleh tamu',
+      ],
+      visual: <VisualMusic />,
+      bg: 'bg-white',
+      reverse: false,
+    },
+    {
+      tag: 'Link Undangan',
+      title: 'Alamat undangan\natas nama kalian',
+      desc: 'Bukan link random — undangan kalian punya subdomain sendiri yang mudah diingat dan dibagikan via WhatsApp.',
+      bullets: [
+        'Format: nama-pasangan.iaundang.id',
+        'Langsung bisa dibagikan via WhatsApp',
+        'Aktif selama 6 bulan penuh',
+      ],
+      visual: <VisualDomain />,
+      bg: 'bg-stone-50/50',
+      reverse: true,
+    },
+    {
+      tag: 'Galeri Foto',
+      title: 'Ceritakan kisah kalian\nlewat galeri foto',
+      desc: 'Upload foto prewedding atau momen bersama keluarga. Tamu bisa menikmati galeri dalam tampilan fullscreen.',
+      bullets: [
+        'Layout grid yang rapi dan elegan',
+        'Lightbox fullscreen saat di-tap',
+        'Upload hingga 20 foto',
+      ],
+      visual: <VisualGallery />,
+      bg: 'bg-white',
+      reverse: false,
+    },
+  ]
+}
+
 export default function FeatureShowcase({ personalisasi }: { personalisasi?: PersonalisasiData }) {
   const features = getFeatures(personalisasi)
 
   return (
     <section id="fitur" className="overflow-hidden">
-      {/* Section header */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center">
+      <div className="py-14 sm:py-20 lg:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-xs font-semibold tracking-[.18em] uppercase text-forest-400 mb-3">Fitur lengkap</p>
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-forest-600 bg-forest-50/80 border border-forest-100 px-3.5 py-1.5 rounded-full mb-5">
+              Fitur Unggulan
+            </span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 leading-snug">
-              Semua yang kalian butuhkan<br className="hidden sm:block" /> ada di sini
+              Setiap detail, kami pikirkan<br className="hidden sm:block" /> untuk kalian
             </h2>
-            <p className="mt-3 text-stone-400 text-sm max-w-sm mx-auto">
-              Bukan sekadar halaman undangan, tapi pengalaman digital yang bikin tamu terkesan.
+            <p className="mt-3 text-stone-400 text-[15px] max-w-md mx-auto leading-relaxed">
+              Dari personalisasi nama tamu hingga RSVP otomatis — semua dalam satu undangan yang elegan.
             </p>
           </motion.div>
         </div>
       </div>
 
-      {/* Feature rows */}
-      {features.map((f, i) => (
-        <div key={f.tag} className={`py-12 sm:py-16 lg:py-20 ${f.bg}`}>
-          <div className="max-w-6xl mx-auto px-4 sm:px-8">
-            <div className={`flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-8 sm:gap-12 lg:gap-20`}>
-
-              {/* Text side */}
+      {features.map((f) => (
+        <div key={f.tag} className={`py-14 sm:py-20 lg:py-24 ${f.bg}`}>
+          <div className="max-w-6xl mx-auto px-5 sm:px-8">
+            <div className={`flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-10 sm:gap-14 lg:gap-20`}>
               <motion.div
                 className="flex-1 max-w-xl"
                 initial={{ opacity: 0, x: f.reverse ? 32 : -32 }}
@@ -410,8 +356,6 @@ export default function FeatureShowcase({ personalisasi }: { personalisasi?: Per
                   ))}
                 </ul>
               </motion.div>
-
-              {/* Visual side */}
               <motion.div
                 className="flex-1 w-full flex justify-center"
                 initial={{ opacity: 0, x: f.reverse ? -32 : 32 }}
@@ -421,15 +365,13 @@ export default function FeatureShowcase({ personalisasi }: { personalisasi?: Per
               >
                 {f.visual}
               </motion.div>
-
             </div>
           </div>
         </div>
       ))}
 
-      {/* Bottom CTA */}
-      <div className="py-10 sm:py-14 bg-white border-t border-stone-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center">
+      <div className="py-12 sm:py-16 bg-white border-t border-stone-100">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -437,10 +379,10 @@ export default function FeatureShowcase({ personalisasi }: { personalisasi?: Per
             transition={{ duration: 0.5 }}
           >
             <p className="text-sm text-stone-400 mb-5">
-              Fitur lengkap tersedia mulai dari paket Starter. Pilih yang sesuai kebutuhan kalian.
+              Semua fitur tersedia mulai paket Starter — pilih yang sesuai kebutuhan kalian.
             </p>
             <Link href="/templates"
-              className="inline-flex items-center gap-2 bg-forest-500 hover:bg-forest-600 text-white font-semibold px-8 py-3.5 rounded-2xl text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forest-200">
+              className="inline-flex items-center gap-2 bg-forest-500 hover:bg-forest-600 text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forest-200">
               Lihat semua template
             </Link>
           </motion.div>
