@@ -1,14 +1,20 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Users, ClipboardCheck, Music2, Globe, ImageIcon, ChevronRight } from 'lucide-react'
+
+const EASE = [0.16, 1, 0.3, 1] as const
+
+/* ─── Visual Components ─── */
 
 function VisualPersonal({ guestName = 'Bapak Andi & Keluarga', groomName = 'Rizky', brideName = 'Aulia' }: { guestName?: string; groomName?: string; brideName?: string }) {
   const a = '#d4af37', t = '#ffffff'
   return (
     <div className="relative w-full max-w-[280px] mx-auto">
-      <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-2xl shadow-stone-200/80" style={{ padding: 4, background: 'linear-gradient(145deg, #1c1c1e 0%, #111 50%, #000 100%)', boxShadow: '0 40px 80px rgba(0,0,0,0.3), inset 0 0 0 0.5px rgba(255,255,255,0.12)' }}>
+      <div className="relative rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-2xl" style={{ padding: 4, background: 'linear-gradient(145deg, #1c1c1e 0%, #111 50%, #000 100%)', boxShadow: '0 40px 80px rgba(0,0,0,0.3), inset 0 0 0 0.5px rgba(255,255,255,0.12)' }}>
         <div className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full" style={{ top: 7, width: 60, height: 16, backgroundColor: '#000' }} />
         <div className="rounded-[21px] sm:rounded-[25px] overflow-hidden relative" style={{ aspectRatio: '9/19.5', backgroundColor: '#0a1a0a' }}>
           <Image src="/images/templates/wedding-bg.jpg" alt="Preview undangan personalisasi" fill className="object-cover" sizes="280px" quality={90} style={{ opacity: 0.5 }} />
@@ -113,7 +119,7 @@ function VisualMusic() {
         <p className="text-[8px] font-bold text-stone-400 uppercase tracking-wide px-1">Pilih lagu lain</p>
         {['Perfect · Ed Sheeran', 'All of Me · John Legend', 'Upload lagumu sendiri'].map((s, i) => (
           <div key={s} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${i === 2 ? 'border border-dashed border-stone-200' : 'hover:bg-stone-50'}`}>
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] ${i === 2 ? 'bg-gold-50' : 'bg-stone-100'}`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] ${i === 2 ? 'bg-amber-50' : 'bg-stone-100'}`}>
               {i === 2 ? '＋' : '♪'}
             </div>
             <p className="text-[9px] text-stone-600 font-medium">{s}</p>
@@ -193,7 +199,7 @@ function VisualGallery() {
         <div className="grid grid-cols-3 gap-1.5">
           {colors.flatMap(row => row).map((c, i) => (
             <motion.div
-              key={i}
+              key={c}
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -220,173 +226,282 @@ function VisualGallery() {
   )
 }
 
+/* ─── Feature Data ─── */
+
 interface PersonalisasiData {
   guestName: string
   groomName: string
   brideName: string
 }
 
-function getFeatures(personalisasi?: PersonalisasiData) {
+interface FeatureItem {
+  id: string
+  icon: typeof Users
+  tag: string
+  title: string
+  desc: string
+  bullets: string[]
+  color: string
+  visual: React.ReactNode
+}
+
+function getFeatures(personalisasi?: PersonalisasiData): FeatureItem[] {
   return [
     {
+      id: 'personal',
+      icon: Users,
       tag: 'Personalisasi',
-      title: 'Satu link, setiap\ntamu disambut namanya',
+      title: 'Satu link, setiap tamu disambut namanya',
       desc: 'Setiap tamu melihat namanya sendiri di halaman pembuka. Terasa eksklusif, bukan broadcast massal.',
       bullets: [
         'Import daftar tamu via spreadsheet',
         'Nama tampil otomatis di halaman pembuka',
         'Link unik per tamu, tidak bisa di-forward',
       ],
+      color: '#2c4a34',
       visual: <VisualPersonal guestName={personalisasi?.guestName} groomName={personalisasi?.groomName} brideName={personalisasi?.brideName} />,
-      bg: 'bg-white',
-      reverse: false,
     },
     {
+      id: 'rsvp',
+      icon: ClipboardCheck,
       tag: 'RSVP Digital',
-      title: 'Konfirmasi kehadiran\ndalam 10 detik',
+      title: 'Konfirmasi kehadiran dalam 10 detik',
       desc: 'Tamu isi nama dan pilih hadir — selesai. Kalian pantau rekap kehadiran langsung dari dashboard.',
       bullets: [
         'Hingga 500 tamu per undangan',
         'Rekap otomatis hadir & tidak hadir',
         'Export ke spreadsheet kapan saja',
       ],
+      color: '#4a6355',
       visual: <VisualRSVP />,
-      bg: 'bg-stone-50/50',
-      reverse: true,
     },
     {
+      id: 'music',
+      icon: Music2,
       tag: 'Musik Pengiring',
-      title: 'Lagu favorit kalian\nmenyambut setiap tamu',
+      title: 'Lagu favorit kalian menyambut setiap tamu',
       desc: 'Musik mengalun otomatis begitu undangan dibuka. Pilih dari koleksi kami atau upload lagu sendiri.',
       bullets: [
         'Upload file MP3 milik sendiri',
         'Pilih dari koleksi lagu populer',
         'Volume bisa diatur oleh tamu',
       ],
+      color: '#c9a961',
       visual: <VisualMusic />,
-      bg: 'bg-white',
-      reverse: false,
     },
     {
+      id: 'domain',
+      icon: Globe,
       tag: 'Link Undangan',
-      title: 'Alamat undangan\natas nama kalian',
+      title: 'Alamat undangan atas nama kalian',
       desc: 'Bukan link random — undangan kalian punya subdomain sendiri yang mudah diingat dan dibagikan via WhatsApp.',
       bullets: [
         'Format: nama-pasangan.iaundang.id',
         'Langsung bisa dibagikan via WhatsApp',
         'Aktif selama 6 bulan penuh',
       ],
+      color: '#8fa99a',
       visual: <VisualDomain />,
-      bg: 'bg-stone-50/50',
-      reverse: true,
     },
     {
+      id: 'gallery',
+      icon: ImageIcon,
       tag: 'Galeri Foto',
-      title: 'Ceritakan kisah kalian\nlewat galeri foto',
+      title: 'Ceritakan kisah kalian lewat galeri foto',
       desc: 'Upload foto prewedding atau momen bersama keluarga. Tamu bisa menikmati galeri dalam tampilan fullscreen.',
       bullets: [
         'Layout grid yang rapi dan elegan',
         'Lightbox fullscreen saat di-tap',
         'Upload hingga 20 foto',
       ],
+      color: '#b8954d',
       visual: <VisualGallery />,
-      bg: 'bg-white',
-      reverse: false,
     },
   ]
 }
 
+/* ─── Main Component ─── */
+
 export default function FeatureShowcase({ personalisasi }: { personalisasi?: PersonalisasiData }) {
   const features = getFeatures(personalisasi)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const active = features[activeIdx]
 
   return (
-    <section id="fitur" className="overflow-hidden">
-      <div className="py-14 sm:py-20 lg:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
+    <section id="fitur" className="py-20 sm:py-28 lg:py-32 bg-[#fafaf9] overflow-hidden">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="text-center mb-12 sm:mb-14"
+        >
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-forest-600 bg-forest-50/80 border border-forest-100 px-3.5 py-1.5 rounded-full mb-5">
+            Fitur Unggulan
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 leading-snug">
+            Setiap detail, kami pikirkan<br className="hidden sm:block" /> untuk kalian
+          </h2>
+          <p className="mt-3 text-stone-400 text-[15px] max-w-md mx-auto leading-relaxed">
+            Dari personalisasi nama tamu hingga RSVP otomatis — semua dalam satu undangan yang elegan.
+          </p>
+        </motion.div>
+
+        {/* Feature Tab Pills */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
+          className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mb-12 sm:mb-16"
+        >
+          {features.map((f, i) => {
+            const Icon = f.icon
+            const isActive = i === activeIdx
+            return (
+              <button
+                key={f.id}
+                onClick={() => setActiveIdx(i)}
+                className={`group relative flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[13px] font-semibold transition-all duration-300 ${
+                  isActive
+                    ? 'text-white shadow-lg'
+                    : 'text-stone-500 bg-white border border-stone-200/60 hover:border-stone-300 hover:text-stone-700 hover:shadow-sm'
+                }`}
+                style={isActive ? {
+                  background: `linear-gradient(135deg, ${f.color}, ${f.color}cc)`,
+                  boxShadow: `0 8px 24px -4px ${f.color}30`,
+                } : undefined}
+              >
+                <Icon size={15} className={isActive ? 'text-white/80' : 'text-stone-400 group-hover:text-stone-500'} />
+                <span className="hidden sm:inline">{f.tag}</span>
+                <span className="sm:hidden">{f.tag.split(' ')[0]}</span>
+              </button>
+            )
+          })}
+        </motion.div>
+
+        {/* Active Feature — content + visual */}
+        <AnimatePresence mode="wait">
           <motion.div
+            key={active.id}
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.45, ease: EASE }}
           >
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-forest-600 bg-forest-50/80 border border-forest-100 px-3.5 py-1.5 rounded-full mb-5">
-              Fitur Unggulan
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 leading-snug">
-              Setiap detail, kami pikirkan<br className="hidden sm:block" /> untuk kalian
-            </h2>
-            <p className="mt-3 text-stone-400 text-[15px] max-w-md mx-auto leading-relaxed">
-              Dari personalisasi nama tamu hingga RSVP otomatis — semua dalam satu undangan yang elegan.
-            </p>
-          </motion.div>
-        </div>
-      </div>
+            <div className="relative rounded-3xl border border-stone-200/60 bg-white overflow-hidden shadow-xl shadow-stone-100/60">
+              {/* Accent top bar */}
+              <div className="h-1" style={{ background: `linear-gradient(90deg, ${active.color}, ${active.color}88, transparent)` }} />
 
-      {features.map((f) => (
-        <div key={f.tag} className={`py-14 sm:py-20 lg:py-24 ${f.bg}`}>
-          <div className="max-w-6xl mx-auto px-5 sm:px-8">
-            <div className={`flex flex-col ${f.reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-10 sm:gap-14 lg:gap-20`}>
-              <motion.div
-                className="flex-1 max-w-xl"
-                initial={{ opacity: 0, x: f.reverse ? 32 : -32 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-forest-500 bg-forest-50 px-3 py-1 rounded-full mb-5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-forest-400 inline-block" />
-                  {f.tag}
-                </span>
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 leading-tight mb-4" style={{ whiteSpace: 'pre-line' }}>
-                  {f.title}
-                </h3>
-                <p className="text-stone-500 text-[15px] leading-relaxed mb-6">
-                  {f.desc}
-                </p>
-                <ul className="space-y-2.5">
-                  {f.bullets.map(b => (
-                    <li key={b} className="flex items-start gap-2.5">
-                      <div className="w-5 h-5 rounded-full bg-forest-500 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                        </svg>
-                      </div>
-                      <span className="text-[14px] text-stone-600">{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-              <motion.div
-                className="flex-1 w-full flex justify-center"
-                initial={{ opacity: 0, x: f.reverse ? -32 : 32 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {f.visual}
-              </motion.div>
+              <div className="flex flex-col lg:flex-row">
+                {/* Left — Copy */}
+                <div className="flex-1 p-7 sm:p-10 lg:p-12 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+                      style={{ background: `linear-gradient(135deg, ${active.color}15, ${active.color}08)`, border: `1px solid ${active.color}18` }}
+                    >
+                      <active.icon size={20} style={{ color: active.color }} />
+                    </div>
+                    <span
+                      className="text-[11px] font-semibold tracking-[0.06em] uppercase px-3 py-1 rounded-full"
+                      style={{ color: active.color, background: `${active.color}0a`, border: `1px solid ${active.color}15` }}
+                    >
+                      {active.tag}
+                    </span>
+                  </div>
+
+                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 leading-tight mb-4">
+                    {active.title}
+                  </h3>
+                  <p className="text-stone-500 text-[15px] leading-relaxed mb-7">
+                    {active.desc}
+                  </p>
+
+                  <ul className="space-y-3">
+                    {active.bullets.map(b => (
+                      <li key={b} className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ background: `${active.color}12` }}>
+                          <svg className="w-3 h-3" style={{ color: active.color }} fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                        </div>
+                        <span className="text-[14px] text-stone-600 leading-snug">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Nav hint */}
+                  <div className="mt-8 flex items-center gap-4">
+                    <div className="flex gap-1.5">
+                      {features.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveIdx(i)}
+                          className="transition-all duration-300"
+                          aria-label={`Fitur ${i + 1}`}
+                        >
+                          <div
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              i === activeIdx ? 'w-6' : 'w-1.5 bg-stone-200 hover:bg-stone-300'
+                            }`}
+                            style={i === activeIdx ? { backgroundColor: active.color } : undefined}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    {activeIdx < features.length - 1 && (
+                      <button
+                        onClick={() => setActiveIdx(activeIdx + 1)}
+                        className="flex items-center gap-1 text-[12px] font-medium text-stone-400 hover:text-stone-600 transition-colors"
+                      >
+                        Fitur berikutnya
+                        <ChevronRight size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right — Visual */}
+                <div
+                  className="flex-1 flex items-center justify-center p-7 sm:p-10 lg:p-12 lg:border-l border-t lg:border-t-0 border-stone-100"
+                  style={{ background: `linear-gradient(135deg, ${active.color}04, ${active.color}08)` }}
+                >
+                  <motion.div
+                    key={active.id + '-visual'}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
+                  >
+                    {active.visual}
+                  </motion.div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      ))}
-
-      <div className="py-12 sm:py-16 bg-white border-t border-stone-100">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <p className="text-sm text-stone-400 mb-5">
-              Semua fitur tersedia mulai paket Starter — pilih yang sesuai kebutuhan kalian.
-            </p>
-            <Link href="/templates"
-              className="inline-flex items-center gap-2 bg-forest-500 hover:bg-forest-600 text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forest-200">
-              Lihat semua template
-            </Link>
           </motion.div>
-        </div>
+        </AnimatePresence>
+
+        {/* Bottom CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-12 sm:mt-14 text-center"
+        >
+          <p className="text-sm text-stone-400 mb-5">
+            Semua fitur tersedia mulai paket Starter — pilih yang sesuai kebutuhan kalian.
+          </p>
+          <Link href="/templates"
+            className="inline-flex items-center gap-2 bg-forest-500 hover:bg-forest-600 text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-forest-200">
+            Lihat semua template
+          </Link>
+        </motion.div>
+
       </div>
     </section>
   )
