@@ -1599,10 +1599,6 @@ function HeroEditor({ hero, onChange }: { hero: HeroContent; onChange: (v: HeroC
         <div><FieldLabel>Tombol CTA Utama</FieldLabel><TextInput value={hero.ctaPrimary} onChange={v => set('ctaPrimary', v)} /></div>
         <div><FieldLabel>Tombol CTA Sekunder</FieldLabel><TextInput value={hero.ctaSecondary} onChange={v => set('ctaSecondary', v)} /></div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div><FieldLabel>Jumlah Pasangan</FieldLabel><TextInput value={hero.socialProofCount} onChange={v => set('socialProofCount', v)} placeholder="500+" /></div>
-        <div><FieldLabel>Rating</FieldLabel><TextInput value={hero.socialProofRating} onChange={v => set('socialProofRating', v)} placeholder="4.9" /></div>
-      </div>
     </div>
   )
 }

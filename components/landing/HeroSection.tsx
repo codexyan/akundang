@@ -14,8 +14,6 @@ interface HeroContent {
   subheadline: string;
   ctaPrimary: string;
   ctaSecondary: string;
-  socialProofCount: string;
-  socialProofRating: string;
 }
 
 interface MockupData {

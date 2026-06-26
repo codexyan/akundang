@@ -599,8 +599,8 @@ const DEFAULT_LANDING: LandingPageSettings = {
     subheadline: 'Tamu klik link → musik langsung mengalir → nama mereka muncul personal → animasi memukau terbuka. Terpukau sejak detik pertama, tanpa ribet scroll atau cari tombol.',
     ctaPrimary: 'Mulai Buat Undangan',
     ctaSecondary: 'Lihat Demo Live',
-    socialProofCount: '500+',
-    socialProofRating: '4.9',
+    socialProofCount: '',
+    socialProofRating: '',
   },
   heroMockup: {
     groomName: 'Rizky',
@@ -629,10 +629,10 @@ const DEFAULT_LANDING: LandingPageSettings = {
   },
   trustBar: {
     items: [
-      { value: '500+', label: 'Pasangan dipercaya' },
-      { value: '4.9', label: 'Rating rata-rata' },
-      { value: '< 5 mnt', label: 'Rata-rata setup' },
-      { value: '6 bln', label: 'Masa aktif undangan' },
+      { value: 'Gratis Preview', label: 'Coba sebelum bayar' },
+      { value: '< 5 mnt', label: 'Setup cepat' },
+      { value: 'Sekali Bayar', label: 'Tanpa langganan' },
+      { value: 'Tanpa Install', label: 'Buka di browser' },
     ],
   },
   testimonials: {
