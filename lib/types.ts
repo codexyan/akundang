@@ -477,17 +477,22 @@ export interface TierFeatures {
   custom_music: boolean
   opening_animation: boolean
   opening_styles: 'basic' | 'all'
-  rsvp: boolean
-  wishes: boolean
+  hero: boolean
+  profiles: boolean
+  events: boolean
+  quote: boolean
   countdown: boolean
   gallery: boolean
-  gift: boolean
-  gift_registry: boolean
+  rsvp: boolean
+  wishes: boolean
   story: boolean
   video: boolean
+  gift: boolean
+  gift_registry: boolean
   livestream: boolean
   ig_story: boolean
   qrcode: boolean
+  closing: boolean
   custom_domain: boolean
   subdomain: boolean
   remove_watermark: boolean

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, Settings, LogOut,
   Globe, Music, Package, CreditCard, FlaskConical,
   PanelLeftClose, PanelLeftOpen, AlertTriangle, X, Megaphone,
-  FileText, PenLine, Home, ExternalLink, Copy,
+  FileText, PenLine, Home, ExternalLink, Copy, Save,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -151,6 +151,7 @@ export default function AdminPanel({
   const [templateRecords, setTemplateRecords] = useState<TemplateRecord[]>(initialTemplateRecords)
   const [labEditRecord, setLabEditRecord] = useState<TemplateRecord | null>(null)
   const [labDirty, setLabDirty] = useState(false)
+  const labSaveDraftRef = useRef<(() => void) | null>(null)
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard')
   const [pendingTab, setPendingTab] = useState<NavTab | null>(null)
   const [transitioning, setTransitioning] = useState(false)
@@ -201,6 +202,15 @@ export default function AdminPanel({
     const tab = pendingTab!
     setPendingTab(null)
     applyTabChange(tab)
+  }
+
+  function saveAndLeaveStudio() {
+    labSaveDraftRef.current?.()
+    setLabDirty(false)
+    const tab = pendingTab!
+    setPendingTab(null)
+    applyTabChange(tab)
+    toast.success('Draf tersimpan')
   }
   const [users, setUsers] = useState(initialUsers)
   const [invitations, setInvitations] = useState(initialInvitations)
@@ -351,10 +361,10 @@ export default function AdminPanel({
         logoVerticalUrl={appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png'}
       />
 
-      <main className={`flex-1 min-h-0 ${activeTab === 'lab' || activeTab === 'settings' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
+      <main className={`flex-1 min-h-0 ${activeTab === 'lab' || activeTab === 'settings' || activeTab === 'template' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto scrollbar-hide'}`}>
         <div
           ref={contentRef}
-          className={`${activeTab === 'lab' || activeTab === 'settings' ? 'flex-1 min-h-0' : 'h-full'} transition-opacity duration-150 ease-in-out ${transitioning ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'}`}
+          className={`${activeTab === 'lab' || activeTab === 'settings' || activeTab === 'template' ? 'flex-1 min-h-0' : 'h-full'} transition-opacity duration-150 ease-in-out ${transitioning ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'}`}
           style={{ transition: 'opacity 150ms ease, transform 150ms ease' }}
         >
         {activeTab === 'dashboard' && (
@@ -403,6 +413,7 @@ export default function AdminPanel({
               toast.success('Template berhasil disimpan!', { duration: 4000, icon: '��' })
             }}
             onDirtyChange={setLabDirty}
+            onSaveDraftRef={labSaveDraftRef}
             categories={appSettings.categories}
             palettes={appSettings.colorPalettes}
           />
@@ -466,28 +477,28 @@ export default function AdminPanel({
         {/* Unsaved changes confirmation modal */}
         {pendingTab && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-                <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[360px] mx-4 overflow-hidden">
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
                   <AlertTriangle className="w-5 h-5 text-amber-500" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900">Perubahan Belum Disimpan</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Perubahan di Studio Desain akan hilang jika kamu pergi.</p>
-                </div>
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Ada perubahan yang belum disimpan</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">Simpan sebagai draf agar bisa dilanjutkan nanti, atau tinggalkan tanpa menyimpan.</p>
               </div>
-              <div className="flex items-center gap-2 px-5 pb-5 pt-3 justify-end">
-                <button
-                  onClick={() => setPendingTab(null)}
-                  className="px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Kembali
+              <div className="px-5 pb-5 space-y-2">
+                {labSaveDraftRef.current && (
+                  <button onClick={saveAndLeaveStudio}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors">
+                    <Save className="w-4 h-4" /> Simpan Draf & Pergi
+                  </button>
+                )}
+                <button onClick={confirmLeaveStudio}
+                  className="w-full py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors">
+                  Tinggalkan tanpa menyimpan
                 </button>
-                <button
-                  onClick={confirmLeaveStudio}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                >
-                  Tinggalkan
+                <button onClick={() => setPendingTab(null)}
+                  className="w-full py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors">
+                  Batal, tetap di sini
                 </button>
               </div>
             </div>

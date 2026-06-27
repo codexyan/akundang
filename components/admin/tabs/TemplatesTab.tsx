@@ -7,12 +7,14 @@ import {
   Crown, Archive, Package, CheckCircle2, Clock, Upload, ImageIcon, Tag,
   X, Plus, Zap, Ticket, Calendar, Pencil, Check, Settings2,
   ToggleLeft, ToggleRight, Copy, ChevronRight, ChevronLeft,
-  Rocket, Gem, Music, Image as ImageLucide, Video, Heart, MessageSquare,
-  QrCode, Globe, BarChart3, Headphones, Timer, Gift, BookOpen, Radio, Camera,
-  Layers, Search,
+  Rocket, Gem, Music, Image as ImageLucide, Video, MessageSquare,
+  QrCode, Headphones, Timer, Gift, BookOpen, Radio, Camera,
+  Layers, Search, Users, CalendarDays, Quote, Heart,
 } from 'lucide-react'
-import type { TemplateRecord, TemplatePackageRequirement, TemplateCategory, PriceTier, TierFeatures, FlashSale, Coupon, PromoScope } from '@/lib/types'
+import type { TemplateRecord, TemplateCategory, PriceTier, TierFeatures, FlashSale, Coupon, PromoScope } from '@/lib/types'
 import { BUILT_IN_CATEGORIES, BUILT_IN_PRICE_TIERS } from '@/lib/db'
+import { countActiveSections } from '@/lib/packages'
+import type { PackageTier } from '@/lib/packages'
 
 interface Props {
   records: TemplateRecord[]
@@ -34,12 +36,6 @@ interface Props {
 type MainTab = 'tema' | 'kategori' | 'harga' | 'promo'
 type Filter = 'all' | 'draft' | 'active' | 'archived'
 
-const PACKAGE_OPTIONS: { value: TemplatePackageRequirement; label: string }[] = [
-  { value: 'all',       label: 'Semua User' },
-  { value: 'starter',   label: 'Starter+' },
-  { value: 'popular',   label: 'Popular+' },
-  { value: 'eksklusif', label: 'Eksklusif saja' },
-]
 
 function formatRp(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
@@ -231,9 +227,10 @@ export default function TemplatesTab({
   const DEFAULT_FEATURES: TierFeatures = {
     max_photos: 6, max_guests: 100, music: true, custom_music: false,
     opening_animation: true, opening_styles: 'basic',
-    rsvp: true, wishes: true, countdown: true, gallery: true,
-    gift: false, gift_registry: false, story: false, video: false,
-    livestream: false, ig_story: false, qrcode: false,
+    hero: true, profiles: true, events: true, quote: true,
+    countdown: true, gallery: true, rsvp: true, wishes: true,
+    story: false, video: false, gift: false, gift_registry: false,
+    livestream: false, ig_story: false, qrcode: false, closing: true,
     custom_domain: false, subdomain: true, remove_watermark: false,
     analytics: false, priority_support: false, validity_days: 90,
     decoration_editing: false, max_decoration_assets: 0, custom_animations: false,
@@ -390,59 +387,60 @@ export default function TemplatesTab({
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="h-full flex overflow-hidden">
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200/60 sticky top-0 z-10">
-        <div className="px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Layers className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">Manajemen Tema</h1>
-                <p className="text-xs text-gray-400">Kelola template, harga, dan promosi</p>
-              </div>
+      {/* Sidebar */}
+      <div className="w-[240px] shrink-0 bg-white border-r border-gray-200/60 flex flex-col overflow-hidden">
+        <div className="px-5 py-5 shrink-0 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center">
+              <Layers className="w-5 h-5 text-white" />
             </div>
-            {onGoToLab && (
-              <button onClick={onGoToLab}
-                className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all">
-                <FlaskConical className="w-4 h-4" /> Studio Desain
-              </button>
-            )}
-          </div>
-
-          {/* Main navigation tabs: pill style */}
-          <div className="flex items-center gap-1 bg-gray-100/80 rounded-xl p-1 w-fit mb-3">
-            {MAIN_TABS.map(tab => (
-              <button key={tab.id} onClick={() => setMainTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                  mainTab === tab.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}>
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-                {tab.count != null && tab.count > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                    mainTab === tab.id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200/80 text-gray-400'
-                  }`}>{tab.count}</span>
-                )}
-              </button>
-            ))}
+            <div>
+              <h1 className="text-sm font-bold text-gray-900">Manajemen</h1>
+              <p className="text-[11px] text-gray-400">Template & promosi</p>
+            </div>
           </div>
         </div>
+
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto scrollbar-hide">
+          {MAIN_TABS.map(tab => (
+            <button key={tab.id} onClick={() => setMainTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                mainTab === tab.id
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+              }`}>
+              <tab.icon className={`w-4 h-4 shrink-0 ${mainTab === tab.id ? 'text-white' : 'text-gray-400'}`} />
+              <span className="text-sm font-medium flex-1">{tab.label}</span>
+              {tab.count != null && tab.count > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                  mainTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'
+                }`}>{tab.count}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {onGoToLab && (
+          <div className="px-3 pb-4 pt-2 shrink-0 border-t border-gray-100">
+            <button onClick={onGoToLab}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all">
+              <FlaskConical className="w-4 h-4" /> Studio Desain
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Content area */}
-      <div className="px-6 lg:px-8 py-6">
+      {/* Content panel */}
+      <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-gray-50/50">
+        <div className="p-6 lg:p-8">
 
         {/* TEMA TAB */}
         {mainTab === 'tema' && (
           <div>
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               {([
                 { label: 'Total', count: counts.all, color: 'text-gray-700', bg: 'bg-white' },
                 { label: 'Aktif', count: counts.active, color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
@@ -550,7 +548,7 @@ export default function TemplatesTab({
                                   <div className="min-w-0 flex-1">
                                     <h4 className="font-bold text-gray-900 text-sm truncate">{rec.name}</h4>
                                     <p className="text-[11px] text-gray-400 mt-0.5">
-                                      {rec.config.sections.filter(s => s.enabled).length} section aktif
+                                      {countActiveSections(rec.config.sections, (rec.required_package === 'all' ? 'starter' : rec.required_package) as PackageTier)} section aktif
                                     </p>
                                   </div>
                                   <a href={`/demo/renderer?id=${rec.id}`} target="_blank" rel="noopener noreferrer" title="Preview"
@@ -586,73 +584,85 @@ export default function TemplatesTab({
 
         {/* KATEGORI TAB */}
         {mainTab === 'kategori' && (
-          <div className="max-w-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <div>
+          <div>
+            <div className="flex items-start gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
+                <Tag className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
                 <h2 className="text-base font-bold text-gray-900">Kategori Tema</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Kelompokkan tema berdasarkan gaya</p>
+                <p className="text-sm text-gray-400 mt-0.5">Kelompokkan tema berdasarkan gaya visual</p>
               </div>
-              <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">{allCategories.length} kategori</span>
+              <span className="text-[11px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">{allCategories.length}</span>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-              <div className="divide-y divide-gray-100">
-                {allCategories.map(c => {
-                  const count = records.filter(r => r.category === c.slug).length
-                  const isEd = editingCatSlug === c.slug
-                  return isEd ? (
-                    <div key={c.slug} className="flex items-center gap-2 bg-indigo-50/50 px-5 py-3.5">
-                      <input value={editingCatLabel} onChange={e => setEditingCatLabel(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') saveEditCategory(); if (e.key === 'Escape') setEditingCatSlug(null) }}
-                        autoFocus className="flex-1 px-3 py-1.5 text-sm bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
-                      <button onClick={saveEditCategory} className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg"><Check className="w-4 h-4" /></button>
-                      <button onClick={() => setEditingCatSlug(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4" /></button>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+              {allCategories.map(c => {
+                const count = records.filter(r => r.category === c.slug).length
+                const isEd = editingCatSlug === c.slug
+                return isEd ? (
+                  <div key={c.slug} className="bg-indigo-50/50 border border-indigo-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <input value={editingCatLabel} onChange={e => setEditingCatLabel(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEditCategory(); if (e.key === 'Escape') setEditingCatSlug(null) }}
+                      autoFocus className="flex-1 px-3 py-1.5 text-sm bg-white border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+                    <button onClick={saveEditCategory} className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg"><Check className="w-4 h-4" /></button>
+                    <button onClick={() => setEditingCatSlug(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4" /></button>
+                  </div>
+                ) : (
+                  <div key={c.slug} className="bg-white rounded-xl border border-gray-200/60 px-4 py-3.5 flex items-center gap-3 hover:shadow-md hover:-translate-y-px transition-all group">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${count > 0 ? 'bg-indigo-50' : 'bg-gray-50'}`}>
+                      <Tag className={`w-4 h-4 ${count > 0 ? 'text-indigo-500' : 'text-gray-300'}`} />
                     </div>
-                  ) : (
-                    <div key={c.slug} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors group">
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${count > 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
-                      <span className="text-sm font-medium text-gray-800 flex-1">{c.label}</span>
-                      <span className="text-[11px] text-gray-400 tabular-nums bg-gray-50 px-2 py-0.5 rounded-md">{count} tema</span>
-                      {c.is_built_in && <span className="text-[9px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full font-semibold shrink-0">bawaan</span>}
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEditCategory(c)} className="p-1.5 text-gray-300 hover:text-indigo-500 rounded-lg hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
-                          className="p-1.5 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-800">{c.label}</span>
+                        {c.is_built_in && <span className="text-[9px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full font-bold">bawaan</span>}
                       </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{count} tema menggunakan kategori ini</p>
                     </div>
-                  )
-                })}
-              </div>
-              <div className="px-5 py-4 bg-gray-50/50 border-t border-gray-100">
-                <div className="flex gap-2">
-                  <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') addCategory() }}
-                    placeholder="Nama kategori baru..."
-                    className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
-                  <button onClick={addCategory} disabled={!newCatLabel.trim()}
-                    className="flex items-center gap-1.5 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-40 transition-colors">
-                    <Plus className="w-3.5 h-3.5" /> Tambah
-                  </button>
-                </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEditCategory(c)} className="p-1.5 text-gray-300 hover:text-indigo-500 rounded-lg hover:bg-indigo-50"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => removeCategory(c.slug)} disabled={count > 0}
+                        className="p-1.5 text-gray-300 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200/60 px-4 py-3.5">
+              <div className="flex gap-2">
+                <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') addCategory() }}
+                  placeholder="Nama kategori baru..."
+                  className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
+                <button onClick={addCategory} disabled={!newCatLabel.trim()}
+                  className="flex items-center gap-1.5 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-40 transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> Tambah
+                </button>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-3 ml-1">Kategori yang masih dipakai oleh tema tidak bisa dihapus.</p>
+            <p className="text-[11px] text-gray-400 mt-2.5 ml-1">Kategori yang masih dipakai oleh tema tidak bisa dihapus.</p>
           </div>
         )}
 
         {/* PAKET HARGA TAB */}
         {mainTab === 'harga' && (
-          <div className="max-w-3xl">
-            <div className="flex items-center justify-between mb-5">
-              <div>
+          <div>
+            <div className="flex items-start gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
                 <h2 className="text-base font-bold text-gray-900">Paket Harga</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Kelola tier harga dan fitur per paket</p>
               </div>
               <button onClick={() => openTierEditor()}
-                className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors shadow-sm">
+                className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors">
                 <Plus className="w-4 h-4" /> Buat Paket
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {allTiers.sort((a, b) => a.price - b.price).map(t => {
                 const used = records.filter(r => r.price === t.price).length
                 const f = t.features
@@ -723,11 +733,18 @@ export default function TemplatesTab({
 
         {/* PROMOSI TAB */}
         {mainTab === 'promo' && (
-          <div className="max-w-3xl space-y-6">
-            <div>
-              <h2 className="text-base font-bold text-gray-900">Promosi</h2>
-              <p className="text-sm text-gray-400 mt-0.5">Flash sale dan kupon diskon</p>
+          <div className="space-y-6">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Promosi</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Flash sale dan kupon diskon</p>
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
             {/* Flash Sale */}
             <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
@@ -750,9 +767,9 @@ export default function TemplatesTab({
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-4">
                 {showAddFlashSale && (
-                  <div className="bg-amber-50/50 rounded-xl border border-amber-100 p-5 space-y-3 mb-5">
+                  <div className="bg-amber-50/50 rounded-xl border border-amber-100 p-4 space-y-3 mb-4">
                     <input value={fsForm.label} onChange={e => setFsForm({ ...fsForm, label: e.target.value })} placeholder="Nama promo"
                       className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400" />
                     <div className="flex gap-2">
@@ -845,9 +862,9 @@ export default function TemplatesTab({
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-4">
                 {showAddCoupon && (
-                  <div className="bg-violet-50/50 rounded-xl border border-violet-100 p-5 space-y-3 mb-5">
+                  <div className="bg-violet-50/50 rounded-xl border border-violet-100 p-4 space-y-3 mb-4">
                     <div className="grid grid-cols-2 gap-2">
                       <input value={cpForm.code} onChange={e => setCpForm({ ...cpForm, code: e.target.value.toUpperCase() })} placeholder="KODE"
                         className="px-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
@@ -929,175 +946,178 @@ export default function TemplatesTab({
                 )}
               </div>
             </div>
+            </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* EDIT DRAWER */}
-      <Drawer open={!!editingId} onClose={() => setEditingId(null)} title="Pengaturan Tema" width="max-w-lg">
-        {editingRec && (
+      <Drawer open={!!editingId} onClose={() => setEditingId(null)} title="Pengaturan Tema" width="max-w-md">
+        {editingRec && (() => {
+          const isActive = editingRec.status === 'active'
+          const selectedTier = allTiers.find(t => t.price === (editData.price ?? editingRec.price))
+          const selectedCat = allCategories.find(c => c.slug === (editData.category ?? editingRec.category))
+
+          return (
           <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto">
-              {/* Hero card */}
-              <div className="p-5 pb-0">
-                <div className="rounded-2xl overflow-hidden border border-gray-200/60 bg-gradient-to-br from-gray-50 to-white">
-                  <div className="flex gap-4 p-4">
-                    <div className="w-[72px] h-[96px] rounded-xl overflow-hidden border border-gray-200/60 shrink-0 shadow-md">
-                      <TemplateThumbnail rec={editingRec} />
-                    </div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <div className="flex items-center gap-2 mb-1">
-                        <StatusBadge status={editingRec.status} />
-                        {editingRec.price > 0 && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                            {findTierLabel(editingRec.price) ?? formatRp(editingRec.price)}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-gray-900 text-base truncate">{editingRec.name}</h3>
-                      <div className="flex items-center gap-1.5 mt-2">
-                        {[editingRec.config.meta.color_scheme.primary, editingRec.config.meta.color_scheme.accent, editingRec.config.meta.color_scheme.text, editingRec.config.meta.color_scheme.background].map((c, i) => (
-                          <div key={i} className="w-3.5 h-3.5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
-                        ))}
-                        <span className="text-[10px] text-gray-400 ml-0.5">{editingRec.config.sections.filter(s => s.enabled).length} section</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex border-t border-gray-200/60 divide-x divide-gray-200/60 bg-white/80">
-                    <button onClick={() => toggleStatus(editingRec)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                      {editingRec.status === 'active' ? <Eye className="w-3.5 h-3.5 text-emerald-500" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      {editingRec.status === 'active' ? 'Aktif' : 'Draft'}
-                    </button>
-                    <a href={`/demo/renderer?id=${editingRec.id}`} target="_blank" rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                      <ExternalLink className="w-3.5 h-3.5" /> Preview
-                    </a>
-                    {editingRec.status !== 'archived' ? (
-                      <button onClick={() => requestArchive(editingRec)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-amber-600 hover:bg-amber-50/50 transition-colors">
-                        <Archive className="w-3.5 h-3.5" /> Arsip
-                      </button>
-                    ) : (
-                      <button onClick={() => requestDelete(editingRec)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/50 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
 
-              {/* Settings sections */}
-              <div className="px-5 py-5 space-y-6">
-                <div className="grid grid-cols-[1fr_auto] gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nama Tampilan</label>
-                    <input value={editData.name ?? ''} onChange={e => setEditData({ ...editData, name: e.target.value })}
-                      className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white" />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Urutan</label>
-                    <input type="number" min={0} value={editData.sort_order ?? 0} onChange={e => setEditData({ ...editData, sort_order: Number(e.target.value) })}
-                      className="w-20 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white text-center" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Kategori</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {allCategories.map(c => (
-                      <button key={c.slug} onClick={() => setEditData({ ...editData, category: c.slug })}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                          (editData.category ?? editingRec.category) === c.slug
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
-                        }`}>{c.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Thumbnail</label>
-                  <input ref={thumbInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleThumbUpload(f) }} />
-                  <div className="flex gap-3 items-center">
-                    <div className="h-16 w-12 rounded-xl overflow-hidden border border-gray-200 shrink-0 shadow-sm">
+              {/* 1. Thumbnail + Nama */}
+              <div className="p-5 pb-4">
+                <div className="flex gap-4 items-start">
+                  <div className="shrink-0">
+                    <input ref={thumbInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleThumbUpload(f) }} />
+                    <button type="button" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb}
+                      className="w-[64px] h-[86px] rounded-xl overflow-hidden border-2 border-gray-200 relative group focus:outline-none focus:border-indigo-400">
                       {editData.thumbnail_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={editData.thumbnail_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <TemplateThumbnail rec={editingRec} />
                       )}
-                    </div>
-                    <button type="button" onClick={() => thumbInputRef.current?.click()} disabled={uploadingThumb}
-                      className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium border border-gray-200 rounded-xl hover:border-indigo-400 hover:text-indigo-600 transition-colors bg-white disabled:opacity-50">
-                      <Upload className="w-3.5 h-3.5" /> {uploadingThumb ? 'Mengupload...' : 'Ganti Thumbnail'}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                        <Upload className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </button>
+                    <p className="text-[9px] text-gray-400 text-center mt-1">Klik ganti</p>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Paket Harga</label>
-                  <div className="space-y-1.5">
-                    {allTiers.sort((a, b) => a.price - b.price).map(t => {
-                      const sel = (editData.price ?? editingRec.price) === t.price
-                      const TierIcon = t.icon === 'crown' ? Crown : t.icon === 'gem' ? Gem : Rocket
-                      return (
-                        <button key={t.id} onClick={() => setEditData({ ...editData, price: t.price })}
-                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-all ${
-                            sel ? 'border-indigo-400 bg-indigo-50/50 ring-1 ring-indigo-200' : 'border-gray-100 bg-white hover:border-gray-200'
-                          }`}>
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${t.color || '#6366f1'}15` }}>
-                            <TierIcon className="w-4 h-4" style={{ color: t.color || '#6366f1' }} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm font-semibold text-gray-900">{t.label}</span>
-                            {t.description && <p className="text-[10px] text-gray-400 truncate">{t.description}</p>}
-                          </div>
-                          <span className="text-sm font-bold shrink-0" style={{ color: t.color || '#6366f1' }}>
-                            {t.price === 0 ? 'Gratis' : formatRp(t.price)}
-                          </span>
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            sel ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'
-                          }`}>
-                            {sel && <Check className="w-2.5 h-2.5 text-white" />}
-                          </div>
-                        </button>
-                      )
-                    })}
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Tema</label>
+                    <input value={editData.name ?? ''} onChange={e => setEditData({ ...editData, name: e.target.value })}
+                      className="w-full px-3.5 py-2.5 text-sm font-medium border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white"
+                      placeholder="Nama tema" />
+                    <div className="flex items-center gap-3 mt-2.5">
+                      <div className="flex items-center gap-1">
+                        {[editingRec.config.meta.color_scheme.primary, editingRec.config.meta.color_scheme.accent, editingRec.config.meta.color_scheme.text, editingRec.config.meta.color_scheme.background].map((c, i) => (
+                          <div key={i} className="w-3 h-3 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                      <span className="text-[10px] text-gray-400">{countActiveSections(editingRec.config.sections, (editingRec.required_package === 'all' ? 'starter' : editingRec.required_package) as PackageTier)} section</span>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Akses Minimum</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {PACKAGE_OPTIONS.map(o => (
-                      <button key={o.value} onClick={() => setEditData({ ...editData, required_package: o.value })}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                          (editData.required_package ?? editingRec.required_package ?? 'all') === o.value
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300'
-                        }`}>{o.label}</button>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-gray-400 mt-1.5">Paket minimum yang diperlukan user untuk menggunakan tema ini</p>
                 </div>
               </div>
+
+              <div className="mx-5 border-t border-gray-100" />
+
+              {/* 2. Status Publikasi — toggle switch */}
+              <div className="px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Tampilkan ke pengguna</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {isActive ? 'Tema ini terlihat di katalog pengguna' : 'Tema ini tersembunyi dari pengguna'}
+                    </p>
+                  </div>
+                  <button onClick={() => toggleStatus(editingRec)}
+                    className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                      isActive ? 'bg-emerald-500' : 'bg-gray-200'
+                    }`}>
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                      isActive ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mx-5 border-t border-gray-100" />
+
+              {/* 3. Kategori */}
+              <div className="px-5 py-4">
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-sm font-semibold text-gray-800">Kategori</p>
+                  {selectedCat && <span className="text-[10px] text-indigo-600 font-semibold">{selectedCat.label}</span>}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {allCategories.map(c => {
+                    const sel = (editData.category ?? editingRec.category) === c.slug
+                    const count = records.filter(r => r.category === c.slug).length
+                    return (
+                      <button key={c.slug} onClick={() => setEditData({ ...editData, category: c.slug })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          sel
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:text-gray-700'
+                        }`}>
+                        {c.label}
+                        {!sel && count > 0 && <span className="ml-1 text-gray-300">{count}</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="mx-5 border-t border-gray-100" />
+
+              {/* 4. Paket Harga */}
+              <div className="px-5 py-4">
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-sm font-semibold text-gray-800">Paket Harga</p>
+                  {selectedTier && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: `${selectedTier.color || '#6366f1'}15`, color: selectedTier.color || '#6366f1' }}>
+                      {selectedTier.price === 0 ? 'Gratis' : formatRp(selectedTier.price)}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {allTiers.sort((a, b) => a.price - b.price).map(t => {
+                    const sel = (editData.price ?? editingRec.price) === t.price
+                    return (
+                      <button key={t.id} onClick={() => setEditData({ ...editData, price: t.price })}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                          sel ? 'bg-gray-900' : 'hover:bg-gray-50'
+                        }`}>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          sel ? 'bg-white border-white' : 'border-gray-300'
+                        }`}>
+                          {sel && <div className="w-2 h-2 rounded-full bg-gray-900" />}
+                        </div>
+                        <span className={`text-sm font-medium flex-1 ${sel ? 'text-white' : 'text-gray-700'}`}>{t.label}</span>
+                        <span className={`text-xs font-semibold ${sel ? 'text-white/70' : 'text-gray-400'}`}>
+                          {t.price === 0 ? 'Gratis' : formatRp(t.price)}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="mx-5 border-t border-gray-100" />
+
+              {/* 5. Aksi */}
+              <div className="px-5 py-4">
+                <div className="flex gap-2">
+                  <a href={`/demo/renderer?id=${editingRec.id}`} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors">
+                    <ExternalLink className="w-3.5 h-3.5" /> Lihat Preview
+                  </a>
+                  {editingRec.status !== 'archived' ? (
+                    <button onClick={() => requestArchive(editingRec)}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 text-amber-600 bg-white hover:bg-amber-50 hover:border-amber-200 transition-colors">
+                      <Archive className="w-3.5 h-3.5" /> Arsipkan
+                    </button>
+                  ) : (
+                    <button onClick={() => requestDelete(editingRec)}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold border border-gray-200 text-red-500 bg-white hover:bg-red-50 hover:border-red-200 transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  )}
+                </div>
+              </div>
+
             </div>
 
-            <div className="p-5 border-t border-gray-200/60 bg-gray-50/80 shrink-0">
-              <div className="flex items-center gap-3">
-                <button onClick={saveEdit} disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors">
-                  <Save className="w-4 h-4" /> {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
-                </button>
-                <button onClick={() => setEditingId(null)} className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors">
-                  Batal
-                </button>
-              </div>
+            {/* Footer simpan */}
+            <div className="p-4 border-t border-gray-200/60 bg-white shrink-0">
+              <button onClick={saveEdit} disabled={saving}
+                className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors">
+                <Save className="w-4 h-4" /> {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
             </div>
           </div>
-        )}
+          )
+        })()}
       </Drawer>
 
       {/* TIER EDITOR DRAWER */}
@@ -1109,32 +1129,26 @@ export default function TemplatesTab({
 
           const STEPS = [
             { label: 'Info Paket', icon: Package },
-            { label: 'Section & Fitur', icon: Settings2 },
-            { label: 'Fitur Premium', icon: Crown },
+            { label: 'Section Aktif', icon: Settings2 },
           ]
 
           const SECTION_FEATURES: { key: keyof TierFeatures; label: string; desc: string; icon: React.ElementType }[] = [
-            { key: 'music', label: 'Musik Latar', desc: 'Musik otomatis saat undangan dibuka', icon: Music },
-            { key: 'custom_music', label: 'Upload Musik', desc: 'User bisa upload musik sendiri', icon: Headphones },
-            { key: 'opening_animation', label: 'Animasi Opening', desc: 'Tampilan opening animasi', icon: BookOpen },
+            { key: 'hero', label: 'Hero (Cover)', desc: 'Halaman utama dengan nama pasangan', icon: ImageIcon },
+            { key: 'quote', label: 'Kutipan / Ayat', desc: 'Ayat suci atau kutipan romantis', icon: Quote },
+            { key: 'profiles', label: 'Profil Pasangan', desc: 'Info mempelai & orang tua', icon: Users },
             { key: 'countdown', label: 'Countdown', desc: 'Hitung mundur ke hari H', icon: Timer },
-            { key: 'gallery', label: 'Galeri Foto', desc: `Galeri foto (maks ${f.max_photos})`, icon: ImageLucide },
+            { key: 'events', label: 'Detail Acara', desc: 'Waktu & lokasi akad/resepsi', icon: CalendarDays },
             { key: 'story', label: 'Kisah Cinta', desc: 'Timeline perjalanan cinta', icon: BookOpen },
-            { key: 'rsvp', label: 'RSVP', desc: 'Konfirmasi kehadiran tamu', icon: CheckCircle2 },
-            { key: 'wishes', label: 'Ucapan & Doa', desc: 'Kolom ucapan dari tamu', icon: MessageSquare },
+            { key: 'video', label: 'Video', desc: 'Embed video prewedding', icon: Video },
+            { key: 'gallery', label: 'Galeri Foto', desc: 'Section galeri foto di undangan', icon: ImageLucide },
             { key: 'gift', label: 'Amplop Digital', desc: 'Transfer hadiah/angpao', icon: Gift },
             { key: 'gift_registry', label: 'Gift Registry', desc: 'Wishlist hadiah dari marketplace', icon: Gift },
-            { key: 'video', label: 'Video', desc: 'Embed video prewedding', icon: Video },
+            { key: 'rsvp', label: 'RSVP', desc: 'Konfirmasi kehadiran tamu', icon: CheckCircle2 },
+            { key: 'wishes', label: 'Ucapan & Doa', desc: 'Kolom ucapan dari tamu', icon: MessageSquare },
             { key: 'livestream', label: 'Livestream', desc: 'Link streaming acara', icon: Radio },
             { key: 'ig_story', label: 'IG Story Filter', desc: 'Filter foto ala Instagram', icon: Camera },
             { key: 'qrcode', label: 'QR Code', desc: 'QR untuk share undangan', icon: QrCode },
-          ]
-
-          const PREMIUM_FEATURES: { key: keyof TierFeatures; label: string; desc: string; icon: React.ElementType }[] = [
-            { key: 'remove_watermark', label: 'Hapus Watermark', desc: 'Tidak ada branding iaundang', icon: Eye },
-            { key: 'custom_domain', label: 'Custom Domain', desc: 'Pakai domain sendiri (misal: nikahan.com)', icon: Globe },
-            { key: 'analytics', label: 'Analytics', desc: 'Statistik views, RSVP, dll', icon: BarChart3 },
-            { key: 'priority_support', label: 'Priority Support', desc: 'Bantuan prioritas via WhatsApp', icon: Headphones },
+            { key: 'closing', label: 'Penutup', desc: 'Ucapan terima kasih & penutup', icon: Heart },
           ]
 
           return (
@@ -1192,44 +1206,6 @@ export default function TemplatesTab({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Ikon</label>
-                      <div className="flex gap-2">
-                        {[
-                          { id: 'rocket', icon: Rocket, label: 'Rocket' },
-                          { id: 'crown', icon: Crown, label: 'Crown' },
-                          { id: 'gem', icon: Gem, label: 'Gem' },
-                        ].map(o => (
-                          <button key={o.id} onClick={() => setTierDraft({ ...d, icon: o.id })}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                              d.icon === o.id ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                            }`}>
-                            <o.icon className="w-4 h-4" /> {o.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <button onClick={() => setTierDraft({ ...d, highlight: !d.highlight })}
-                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${d.highlight ? 'bg-purple-600' : 'bg-gray-200'}`}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${d.highlight ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Tandai sebagai populer</span>
-                        <p className="text-[11px] text-gray-400">Tampil dengan badge &quot;POPULER&quot; di landing</p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {tierStep === 1 && (
-                  <div className="p-6">
-                    <p className="text-xs text-gray-400 mb-4">Pilih section dan fitur yang tersedia untuk paket ini</p>
-                    <div className="mb-4">
-                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">Maks Foto Galeri</label>
-                      <input type="number" min={1} max={100} value={f.max_photos} onChange={e => setF({ max_photos: Number(e.target.value) || 6 })}
-                        className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
-                    </div>
-                    <div className="mb-4">
                       <label className="block text-xs font-semibold text-gray-600 mb-1.5">Maks Tamu Blast</label>
                       <div className="flex items-center gap-2">
                         <input type="number" min={-1} value={f.max_guests} onChange={e => setF({ max_guests: Number(e.target.value) })}
@@ -1237,32 +1213,12 @@ export default function TemplatesTab({
                         <span className="text-[11px] text-gray-400 whitespace-nowrap">-1 = unlimited</span>
                       </div>
                     </div>
-                    <div className="mb-4">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <button onClick={() => setF({ subdomain: !f.subdomain })}
-                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${f.subdomain ? 'bg-indigo-600' : 'bg-gray-200'}`}>
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${f.subdomain ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">Subdomain</span>
-                          <p className="text-[11px] text-gray-400">Izinkan user menggunakan subdomain custom</p>
-                        </div>
-                      </label>
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-xs font-semibold text-gray-600 mb-2">Gaya Opening</label>
-                      <div className="flex gap-2">
-                        {[
-                          { v: 'basic' as const, l: 'Basic (3 gaya)' },
-                          { v: 'all' as const, l: 'Semua (12 gaya)' },
-                        ].map(o => (
-                          <button key={o.v} onClick={() => setF({ opening_styles: o.v })}
-                            className={`px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
-                              f.opening_styles === o.v ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-200 text-gray-500'
-                            }`}>{o.l}</button>
-                        ))}
-                      </div>
-                    </div>
+                  </div>
+                )}
+
+                {tierStep === 1 && (
+                  <div className="p-6">
+                    <p className="text-xs text-gray-400 mb-4">Pilih section yang aktif untuk paket ini</p>
                     <div className="space-y-1.5">
                       {SECTION_FEATURES.map(sf => {
                         const on = !!f[sf.key]
@@ -1290,35 +1246,6 @@ export default function TemplatesTab({
                   </div>
                 )}
 
-                {tierStep === 2 && (
-                  <div className="p-6">
-                    <p className="text-xs text-gray-400 mb-4">Fitur ekstra yang membedakan paket ini</p>
-                    <div className="space-y-1.5">
-                      {PREMIUM_FEATURES.map(pf => {
-                        const on = !!f[pf.key]
-                        return (
-                          <button key={pf.key} onClick={() => setF({ [pf.key]: !on } as Partial<TierFeatures>)}
-                            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
-                              on ? 'bg-purple-50/50 border-purple-200' : 'bg-white border-gray-100 hover:border-gray-200'
-                            }`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${on ? 'bg-purple-100' : 'bg-gray-100'}`}>
-                              <pf.icon className={`w-4 h-4 ${on ? 'text-purple-600' : 'text-gray-400'}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium ${on ? 'text-gray-900' : 'text-gray-500'}`}>{pf.label}</p>
-                              <p className="text-[11px] text-gray-400">{pf.desc}</p>
-                            </div>
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                              on ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
-                            }`}>
-                              {on && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="p-4 border-t border-gray-100 bg-gray-50/80 shrink-0">

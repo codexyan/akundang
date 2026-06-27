@@ -4,17 +4,22 @@ import { getTierFeatures } from '@/lib/packages'
 import type { TierFeatures } from '@/lib/types'
 
 const SECTION_FEATURE_MAP: Record<string, keyof TierFeatures> = {
+  hero: 'hero',
+  profil: 'profiles',
+  acara: 'events',
   cerita: 'story',
   hadiah: 'gift',
   galeri: 'gallery',
   musik: 'music',
-  quote: 'countdown',
+  quote: 'quote',
+  countdown: 'countdown',
   dekorasi: 'decoration_editing',
   video: 'video',
   livestream: 'livestream',
   ig_story: 'ig_story',
   qrcode: 'qrcode',
   gift_registry: 'gift_registry',
+  penutup: 'closing',
 }
 
 const TIER_LABELS: Record<string, string> = {

@@ -807,6 +807,7 @@ interface TemplateLabProps {
   palettes?: ColorPalette[]
   templateRecords?: TemplateRecord[]
   onDirtyChange?: (dirty: boolean) => void
+  onSaveDraftRef?: React.MutableRefObject<(() => void) | null>
 }
 
 const DEFAULT_MUSIC_CFG: MusicConfig = {
@@ -815,7 +816,7 @@ const DEFAULT_MUSIC_CFG: MusicConfig = {
   player_animation: 'fade-slide', show_title: true, player_size: 'md',
 }
 
-export default function TemplateLab({ onGoToManagement, onTemplateReleased, editRecord, categories: categoriesProp, palettes: palettesProp, templateRecords = [], onDirtyChange }: TemplateLabProps) {
+export default function TemplateLab({ onGoToManagement, onTemplateReleased, editRecord, categories: categoriesProp, palettes: palettesProp, templateRecords = [], onDirtyChange, onSaveDraftRef }: TemplateLabProps) {
   const [config, setConfig] = useState<TemplateRecord>(() => {
     if (editRecord) return deepClone(editRecord)
     return {
@@ -919,6 +920,28 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
   const [deleteLabConfirm, setDeleteLabConfirm] = useState<{ id: string; name: string } | null>(null)
   const [changeCount, setChangeCount] = useState(0)
   useEffect(() => { onDirtyChange?.(changeCount > 0) }, [changeCount, onDirtyChange])
+
+  useEffect(() => {
+    if (!onSaveDraftRef) return
+    onSaveDraftRef.current = () => {
+      if (changeCount === 0 || !config.name.trim()) return
+      if (isEditMode) return
+      const now = new Date()
+      const existing = savedLabs.find(l => l.name === config.name)
+      if (existing) {
+        const updated = savedLabs.map(l => l.id === existing.id ? { ...l, config, savedAt: now.toISOString() } : l)
+        setSavedLabs(updated)
+        localStorage.setItem('iaundang-labs', JSON.stringify(updated))
+      } else {
+        const entry = { id: makeId(), name: config.name, config, status: 'draft' as const, savedAt: now.toISOString(), description: templateDesc }
+        const updated = [...savedLabs, entry]
+        setSavedLabs(updated)
+        localStorage.setItem('iaundang-labs', JSON.stringify(updated))
+      }
+      setChangeCount(0)
+    }
+    return () => { onSaveDraftRef.current = null }
+  })
 
   useEffect(() => {
     const allFonts = Array.from(new Set([...HEADING_FONTS, ...BODY_FONTS]))
@@ -1458,56 +1481,46 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
     return (
       <div className="flex h-full overflow-hidden">
-        <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20 overflow-y-auto scrollbar-hide">
+        <div className="flex-1 flex flex-col bg-gray-50/50 overflow-y-auto scrollbar-hide">
 
           {/*  Header  */}
-          <div className="px-8 pt-8 pb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
-                <FlaskConical className="w-6 h-6 text-indigo-600" />
-                Studio Desain
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">Kelola dan buat template undangan digital</p>
+          <div className="bg-white border-b border-gray-200/60 shrink-0">
+            <div className="px-8 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center">
+                  <FlaskConical className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-base font-bold text-gray-900">Studio Desain</h1>
+                  <p className="text-[11px] text-gray-400">Kelola dan buat template undangan digital</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {!isEmpty && (
+                  <span className="text-[11px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">{allCards.length} template</span>
+                )}
+                <button
+                  onClick={() => { setSetupName(''); setSetupDesc(''); setShowCreateModal(true) }}
+                  className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
+                >
+                  <Plus className="w-4 h-4" /> Buat Baru
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => { setSetupName(''); setSetupDesc(''); setShowCreateModal(true) }}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" /> Buat Template Baru
-            </button>
           </div>
 
           {/*  Empty State  */}
           {isEmpty && (
             <div className="flex-1 flex items-center justify-center px-8">
               <div className="text-center max-w-sm">
-                <svg viewBox="0 0 200 160" className="w-48 h-40 mx-auto mb-6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Palette body */}
-                  <ellipse cx="100" cy="130" rx="70" ry="8" fill="#e0e7ff" opacity="0.6" />
-                  <rect x="50" y="40" rx="16" ry="16" width="100" height="80" fill="#eef2ff" stroke="#a5b4fc" strokeWidth="2" />
-                  {/* Color dots on palette */}
-                  <circle cx="72" cy="65" r="8" fill="#818cf8" />
-                  <circle cx="95" cy="65" r="8" fill="#a78bfa" />
-                  <circle cx="118" cy="65" r="8" fill="#c4b5fd" />
-                  {/* Brush handle */}
-                  <rect x="130" y="28" width="8" height="50" rx="4" fill="#6366f1" transform="rotate(25 134 53)" />
-                  <rect x="124" y="22" width="20" height="12" rx="4" fill="#4f46e5" transform="rotate(25 134 28)" />
-                  {/* Sparkle top-left */}
-                  <path d="M38 30 L40 24 L42 30 L48 32 L42 34 L40 40 L38 34 L32 32 Z" fill="#a5b4fc" />
-                  {/* Sparkle top-right */}
-                  <path d="M158 20 L160 16 L162 20 L166 22 L162 24 L160 28 L158 24 L154 22 Z" fill="#c4b5fd" />
-                  {/* Sparkle small */}
-                  <path d="M165 55 L166 52 L167 55 L170 56 L167 57 L166 60 L165 57 L162 56 Z" fill="#818cf8" opacity="0.6" />
-                  {/* Lines on palette */}
-                  <rect x="68" y="85" width="30" height="3" rx="1.5" fill="#c7d2fe" />
-                  <rect x="68" y="93" width="50" height="3" rx="1.5" fill="#c7d2fe" />
-                  <rect x="68" y="101" width="40" height="3" rx="1.5" fill="#c7d2fe" />
-                </svg>
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+                  <FlaskConical className="w-7 h-7 text-gray-300" />
+                </div>
                 <h2 className="text-lg font-bold text-gray-900 mb-2">Belum ada template</h2>
-                <p className="text-sm text-gray-500 mb-6">Mulai buat desain pertama untuk undangan digital kamu</p>
+                <p className="text-sm text-gray-400 mb-6">Mulai buat desain pertama untuk undangan digital</p>
                 <button
                   onClick={() => { setSetupName(''); setSetupDesc(''); setShowCreateModal(true) }}
-                  className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
                 >
                   <Sparkles className="w-4 h-4" /> Buat Template Pertama
                 </button>
@@ -1517,14 +1530,14 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
           {/*  Template Cards Grid  */}
           {!isEmpty && (
-            <div className="px-8 pb-8 pt-2">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="px-8 pb-8 pt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {allCards.map(card => {
-                  const statusMap: Record<string, { label: string; dot: string; text: string }> = {
-                    active:   { label: 'Aktif',   dot: 'bg-emerald-500', text: 'text-emerald-700 bg-emerald-50' },
-                    draft:    { label: 'Draft',   dot: 'bg-amber-400',   text: 'text-amber-700 bg-amber-50' },
-                    archived: { label: 'Arsip',   dot: 'bg-red-400',     text: 'text-red-600 bg-red-50' },
-                    released: { label: 'Dirilis', dot: 'bg-emerald-500', text: 'text-emerald-700 bg-emerald-50' },
+                  const statusMap: Record<string, { label: string; dot: string; bg: string }> = {
+                    active:   { label: 'Aktif',   dot: 'bg-emerald-500', bg: 'bg-emerald-50 text-emerald-700' },
+                    draft:    { label: 'Draft',   dot: 'bg-amber-400',   bg: 'bg-amber-50 text-amber-700' },
+                    archived: { label: 'Arsip',   dot: 'bg-gray-400',    bg: 'bg-gray-100 text-gray-500' },
+                    released: { label: 'Dirilis', dot: 'bg-emerald-500', bg: 'bg-emerald-50 text-emerald-700' },
                   }
                   const st = statusMap[card.status] ?? statusMap.draft
                   const cs = card.colorScheme
@@ -1535,7 +1548,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                   return (
                     <div
                       key={`${card.type}-${card.id}`}
-                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer relative"
+                      className="group bg-white rounded-2xl overflow-hidden border border-gray-200/60 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer relative"
                       onClick={() => {
                         if (card.type === 'record') {
                           const rec = templateRecords.find(r => r.id === card.id)
@@ -1545,7 +1558,6 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         }
                       }}
                     >
-                      {/* Full-card cover   opening style as thumbnail */}
                       <div className="aspect-[9/16] w-full relative overflow-hidden" style={{ background: primaryColor }}>
                         {card.coverPhoto ? (
                           <>
@@ -1558,7 +1570,6 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                           <img src={card.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                         ) : null}
 
-                        {/* Opening-style overlay text */}
                         <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 px-4">
                           <p className="text-[8px] tracking-[0.2em] uppercase opacity-70" style={{ color: textColor }}>Undangan Pernikahan</p>
                           <p className="text-base font-bold text-center mt-1 leading-tight" style={{ color: textColor }}>{card.name}</p>
@@ -1567,34 +1578,36 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                           </div>
                         </div>
 
-                        {/* Status badge */}
                         <div className="absolute top-2.5 left-2.5">
-                          <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold backdrop-blur-md ${st.text}`}>
+                          <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold backdrop-blur-md ${st.bg}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
                             {st.label}
                           </span>
                         </div>
 
-                        {/* Hover overlay */}
+                        {card.type === 'lab' && (
+                          <div className="absolute top-2.5 right-2.5">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-500/80 text-white backdrop-blur-sm">LAB</span>
+                          </div>
+                        )}
+
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <span className="text-white text-xs font-semibold bg-black/50 px-4 py-2 rounded-xl backdrop-blur-sm opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all">
                             Edit Desain
                           </span>
                         </div>
 
-                        {/* Delete button for labs only */}
                         {card.type === 'lab' && (
                           <button
                             onClick={e => { e.stopPropagation(); setDeleteLabConfirm({ id: card.id, name: card.name }) }}
-                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/30 text-white/80 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+                            className="absolute bottom-2.5 right-2.5 p-1.5 rounded-lg bg-black/30 text-white/80 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
 
-                      {/* Minimal info bar */}
-                      <div className="bg-white px-3 py-2.5 border-t border-gray-100">
+                      <div className="px-3 py-2.5">
                         <h3 className="text-xs font-bold text-gray-900 truncate">{card.name}</h3>
                         <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
                           <span>{card.sectionCount} seksi</span>
@@ -1695,7 +1708,7 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 bg-white shrink-0">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2.5 mb-3">
             <button onClick={() => {
               if (changeCount > 0 && config.name.trim() && !isEditMode) {
                 const now = new Date()
@@ -1714,15 +1727,19 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
               }
               setShowSetup(true)
               setIsEditMode(false)
-            }} className="p-1.5 -ml-1 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Kembali ke Studio">
+            }} className="p-1.5 -ml-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Kembali ke Studio">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <FlaskConical className="w-5 h-5 text-indigo-600" />
-            <h2 className="font-bold text-gray-900">{isEditMode ? 'Edit Template' : 'Template Lab'}</h2>
+            <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
+              <FlaskConical className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-sm font-bold text-gray-900 truncate">{isEditMode ? 'Edit Template' : 'Template Lab'}</h2>
+            </div>
             {isEditMode ? (
-              <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold ml-1">EDITING</span>
+              <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">EDITING</span>
             ) : (
-              <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold ml-1">BETA</span>
+              <span className="text-[9px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold shrink-0">LAB</span>
             )}
           </div>
           <input

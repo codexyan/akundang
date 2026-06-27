@@ -1,5 +1,5 @@
 import { BUILT_IN_PRICE_TIERS } from './db'
-import type { TierFeatures } from './types'
+import type { TierFeatures, SectionConfig } from './types'
 
 export type PackageTier = 'starter' | 'popular' | 'eksklusif'
 
@@ -99,4 +99,21 @@ export function getTierFeatures(tier?: PackageTier | null): TierFeatures {
   const id = tier ?? 'popular'
   const found = BUILT_IN_PRICE_TIERS.find(t => t.id === id)
   return found?.features as TierFeatures
+}
+
+const SECTION_TIER_KEY: Record<string, keyof TierFeatures> = {
+  hero: 'hero', profiles: 'profiles', events: 'events', quote: 'quote',
+  countdown: 'countdown', gallery: 'gallery', rsvp: 'rsvp', wishes: 'wishes',
+  story: 'story', video: 'video', gift: 'gift', 'gift-registry': 'gift_registry',
+  livestream: 'livestream', 'ig-story': 'ig_story', qrcode: 'qrcode', closing: 'closing',
+}
+
+export function isSectionActiveForTier(section: SectionConfig, tier: PackageTier): boolean {
+  const key = SECTION_TIER_KEY[section.type]
+  if (!key) return true
+  return !!getTierFeatures(tier)[key]
+}
+
+export function countActiveSections(sections: SectionConfig[], tier: PackageTier): number {
+  return sections.filter(s => isSectionActiveForTier(s, tier)).length
 }

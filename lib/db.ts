@@ -6,6 +6,8 @@
 import { prisma } from './prisma'
 import type { Invitation, Gallery, Guest, Wish, TemplateRecord, TemplatePackageRequirement, TemplateCategory, ColorPalette, PriceTier, TierFeatures, FlashSale, Coupon, MusicTrack, MusicCategory, Order } from './types'
 import JAVANESE_GOLD from './template-configs/javanese-gold'
+import ROSE_GARDEN from './template-configs/rose-garden'
+import MIDNIGHT_LUXE from './template-configs/midnight-luxe'
 
 //  TYPE EXPORTS 
 
@@ -338,7 +340,7 @@ export const giftProofs = {
 
 //  TEMPLATE RECORDS 
 
-const BUILT_IN_TEMPLATE_RECORDS: TemplateRecord[] = [JAVANESE_GOLD]
+const BUILT_IN_TEMPLATE_RECORDS: TemplateRecord[] = [JAVANESE_GOLD, ROSE_GARDEN, MIDNIGHT_LUXE]
 
 export const templateRecords = {
   async findAll(): Promise<TemplateRecord[]> {
@@ -404,9 +406,10 @@ export const BUILT_IN_CATEGORIES: TemplateCategory[] = [
 const STARTER_FEATURES: TierFeatures = {
   max_photos: 6, max_guests: 100, music: true, custom_music: false,
   opening_animation: true, opening_styles: 'basic',
-  rsvp: true, wishes: true, countdown: true, gallery: true,
-  gift: false, gift_registry: false, story: false, video: false,
-  livestream: false, ig_story: false, qrcode: false,
+  hero: true, profiles: true, events: true, quote: true,
+  countdown: true, gallery: true, rsvp: true, wishes: true,
+  story: false, video: false, gift: false, gift_registry: false,
+  livestream: false, ig_story: false, qrcode: false, closing: true,
   custom_domain: false, subdomain: true, remove_watermark: false,
   analytics: false, priority_support: false, validity_days: 30,
   decoration_editing: false, max_decoration_assets: 0, custom_animations: false,
@@ -415,9 +418,10 @@ const STARTER_FEATURES: TierFeatures = {
 const POPULAR_FEATURES: TierFeatures = {
   max_photos: 20, max_guests: 500, music: true, custom_music: true,
   opening_animation: true, opening_styles: 'all',
-  rsvp: true, wishes: true, countdown: true, gallery: true,
-  gift: true, gift_registry: true, story: true, video: true,
-  livestream: false, ig_story: true, qrcode: true,
+  hero: true, profiles: true, events: true, quote: true,
+  countdown: true, gallery: true, rsvp: true, wishes: true,
+  story: true, video: true, gift: true, gift_registry: true,
+  livestream: false, ig_story: true, qrcode: true, closing: true,
   custom_domain: false, subdomain: true, remove_watermark: true,
   analytics: true, priority_support: false, validity_days: 90,
   decoration_editing: true, max_decoration_assets: 3, custom_animations: false,
@@ -426,9 +430,10 @@ const POPULAR_FEATURES: TierFeatures = {
 const EKSKLUSIF_FEATURES: TierFeatures = {
   max_photos: 50, max_guests: -1, music: true, custom_music: true,
   opening_animation: true, opening_styles: 'all',
-  rsvp: true, wishes: true, countdown: true, gallery: true,
-  gift: true, gift_registry: true, story: true, video: true,
-  livestream: true, ig_story: true, qrcode: true,
+  hero: true, profiles: true, events: true, quote: true,
+  countdown: true, gallery: true, rsvp: true, wishes: true,
+  story: true, video: true, gift: true, gift_registry: true,
+  livestream: true, ig_story: true, qrcode: true, closing: true,
   custom_domain: true, subdomain: true, remove_watermark: true,
   analytics: true, priority_support: true, validity_days: 180,
   decoration_editing: true, max_decoration_assets: -1, custom_animations: true,

@@ -268,9 +268,10 @@ function StaticSectionItem({ section, active, onClick }: { section: NavItem; act
 }
 
 const SECTION_TYPE_FEATURE: Record<string, keyof TierFeatures> = {
-  story: 'story', gift: 'gift', gallery: 'gallery', countdown: 'countdown',
-  video: 'video', livestream: 'livestream', 'ig-story': 'ig_story',
-  qrcode: 'qrcode', 'gift-registry': 'gift_registry', wishes: 'wishes', rsvp: 'rsvp',
+  hero: 'hero', profiles: 'profiles', events: 'events', quote: 'quote',
+  countdown: 'countdown', gallery: 'gallery', rsvp: 'rsvp', wishes: 'wishes',
+  story: 'story', video: 'video', gift: 'gift', 'gift-registry': 'gift_registry',
+  livestream: 'livestream', 'ig-story': 'ig_story', qrcode: 'qrcode', closing: 'closing',
 }
 
 export default function InvitationStudio({ invitation, template, onSaved, embedded, isAdmin }: Props) {
