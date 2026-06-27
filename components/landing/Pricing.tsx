@@ -6,7 +6,7 @@ import { Check, ArrowRight, ShieldCheck, MessageCircle } from 'lucide-react'
 import { PRICING_CONFIG } from '@/lib/pricing-config'
 import type { PriceTier, FlashSale } from '@/lib/types'
 
-const EASE = [0.16, 1, 0.3, 1] as const
+const EASE = [0.22, 1, 0.36, 1] as const
 
 type CardVariant = 'light' | 'dark' | 'gold'
 
@@ -43,41 +43,42 @@ function PricingCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.55, delay, ease: EASE }}
+      transition={{ duration: 0.6, delay, ease: EASE }}
+      whileHover={{ y: -4 }}
       className={`relative rounded-2xl h-full flex flex-col overflow-hidden transition-all duration-300 ${
         isDark
-          ? 'bg-graphite text-white ring-1 ring-white/10'
+          ? 'bg-forest-deep text-white ring-1 ring-forest-light/20'
           : isGold
-            ? 'bg-mist border border-hairline hover:border-smoke'
-            : 'bg-chalk border border-hairline hover:border-smoke'
-      }`}
+            ? 'bg-gold-50 border border-gold/20 hover:border-gold/40'
+            : 'bg-chalk border border-forest-100 hover:border-forest-light/40'
+      } ${popular ? 'sm:scale-[1.03] sm:z-10' : ''}`}
     >
       {popular && (
-        <div className="absolute top-0 inset-x-0 h-px bg-graphite" />
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-gold" />
       )}
 
       {discountLabel && (
         <div className={`absolute top-3 right-3 text-[9px] font-bold px-2 py-1 rounded-lg ${
-          isDark ? 'bg-chalk text-graphite' : 'bg-graphite text-chalk'
+          isDark ? 'bg-gold text-forest-deep' : 'bg-forest text-chalk'
         }`}>
           {discountLabel}
         </div>
       )}
 
-      <div className={`px-6 pt-6 pb-5 ${isDark ? 'border-b border-white/8' : 'border-b border-hairline'}`}>
+      <div className={`px-6 pt-6 pb-5 ${isDark ? 'border-b border-white/8' : 'border-b border-forest-100'}`}>
         <span className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-lg mb-4 ${
-          isDark ? 'bg-chalk/10 text-chalk/70'
-            : isGold ? 'bg-hairline text-graphite'
-              : 'bg-mist text-concrete'
+          isDark ? 'bg-gold/15 text-gold/80'
+            : isGold ? 'bg-gold/15 text-gold-dark'
+              : 'bg-forest-50 text-forest'
         }`}>
           {badge}
         </span>
         <p className={`text-[13px] font-medium mb-2 ${isDark ? 'text-white/60' : 'text-concrete'}`}>{name}</p>
         <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-graphite'}`}>{price}</span>
+          <span className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-forest-deep'}`}>{price}</span>
           {originalPrice && (
             <span className={`text-sm line-through ${isDark ? 'text-white/30' : 'text-ash'}`}>{originalPrice}</span>
           )}
@@ -93,15 +94,15 @@ function PricingCard({
             const isHL = feature === highlightedFeature
             return (
               <li key={feature} className={`flex items-start gap-2.5 ${
-                isHL ? `rounded-lg px-2.5 py-1.5 -mx-2.5 ${isDark ? 'bg-chalk/[0.06]' : 'bg-mist'}` : ''
+                isHL ? `rounded-lg px-2.5 py-1.5 -mx-2.5 ${isDark ? 'bg-gold/[0.08]' : 'bg-forest-50'}` : ''
               }`}>
                 <div className={`shrink-0 mt-0.5 w-4 h-4 rounded-full flex items-center justify-center ${
-                  isDark ? 'bg-chalk/10' : 'bg-mist'
+                  isDark ? 'bg-gold/15' : 'bg-forest-50'
                 }`}>
-                  <Check size={10} strokeWidth={3} className={isDark ? 'text-chalk/70' : 'text-graphite'} />
+                  <Check size={10} strokeWidth={3} className={isDark ? 'text-gold/70' : 'text-forest'} />
                 </div>
                 <span className={`text-[13px] leading-snug ${
-                  isHL ? `font-semibold ${isDark ? 'text-chalk' : 'text-graphite'}` : isDark ? 'text-white/65' : 'text-concrete'
+                  isHL ? `font-semibold ${isDark ? 'text-chalk' : 'text-forest-deep'}` : isDark ? 'text-white/65' : 'text-concrete'
                 }`}>
                   {feature}
                 </span>
@@ -114,12 +115,12 @@ function PricingCard({
       <div className="px-6 pb-6">
         <Link href="/templates">
           <motion.span
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className={`w-full font-semibold py-3 rounded-button text-[13px] transition-colors flex items-center justify-center gap-1.5 ${
-              isDark ? 'bg-chalk text-graphite hover:bg-mist'
-                : isGold ? 'bg-graphite text-chalk hover:bg-carbon'
-                  : 'bg-mist text-graphite hover:bg-hairline'
+              isDark ? 'bg-gold text-forest-deep hover:bg-gold-light'
+                : isGold ? 'bg-forest text-chalk hover:bg-forest-deep'
+                  : 'bg-forest-50 text-forest-deep hover:bg-forest-100'
             }`}
           >
             {ctaLabel}
@@ -174,23 +175,24 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
   const sales = flashSales ?? []
 
   return (
-    <section id="harga" className="py-20 sm:py-28 lg:py-32 bg-chalk">
+    <section id="harga" className="py-24 sm:py-32 lg:py-36 bg-chalk">
       <div className="max-w-6xl mx-auto px-4 sm:px-8">
 
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="text-center mb-12 sm:mb-16"
+          transition={{ duration: 0.7, ease: EASE }}
+          className="text-center mb-14 sm:mb-18"
         >
-          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-graphite bg-graphite/[0.04] border border-hairline px-3.5 py-1.5 rounded-full mb-5">
+          <p className="text-[12px] font-semibold tracking-[0.15em] uppercase text-gold-dark mb-4">
             Harga
-          </span>
-          <h2 className="font-sans text-3xl sm:text-4xl font-bold text-graphite">
+          </p>
+          <h2 className="text-display-lg text-forest-deep">
             Sekali bayar. Tanpa langganan.
           </h2>
-          <p className="mt-3 text-ash text-[15px] max-w-md mx-auto">
+          <p className="mt-4 text-concrete text-[15px] max-w-md mx-auto leading-relaxed">
             Sekali bayar, langsung aktif. Tidak ada biaya bulanan atau biaya tersembunyi.
           </p>
         </motion.div>
@@ -224,7 +226,7 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
                     ctaHint={cta.hint}
                     variant={variant}
                     popular={!!tier.highlight}
-                    delay={i * 0.08}
+                    delay={i * 0.1}
                   />
                 )
               })
@@ -240,42 +242,43 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
                 name="Paket Popular" badge={PRICING_CONFIG.popular.badge}
                 price={PRICING_CONFIG.popular.priceFormatted} duration={PRICING_CONFIG.popular.durationLabel}
                 features={PRICING_CONFIG.popular.features} highlightedFeature={PRICING_CONFIG.popular.highlightedFeature}
-                ctaLabel="Pilih Popular" ctaHint="Fitur lengkap untuk acara kalian" variant="dark" popular delay={0.08}
+                ctaLabel="Pilih Popular" ctaHint="Fitur lengkap untuk acara kalian" variant="dark" popular delay={0.1}
               />
               <PricingCard
                 name="Paket Eksklusif" badge={PRICING_CONFIG.eksklusif.badge}
                 price={PRICING_CONFIG.eksklusif.priceFormatted} duration={PRICING_CONFIG.eksklusif.durationLabel}
                 features={PRICING_CONFIG.eksklusif.features} highlightedFeature={PRICING_CONFIG.eksklusif.highlightedFeature}
-                ctaLabel="Pilih Eksklusif" ctaHint="Untuk acara besar & eksklusif" variant="gold" delay={0.16}
+                ctaLabel="Pilih Eksklusif" ctaHint="Untuk acara besar & eksklusif" variant="gold" delay={0.2}
               />
             </>
           )}
         </div>
 
+        {/* Trust badges */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-12 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto"
         >
-          <div className="flex items-center gap-3.5 bg-mist rounded-xl px-5 py-4 border border-hairline">
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-chalk flex items-center justify-center border border-hairline">
-              <ShieldCheck size={18} className="text-graphite" />
+          <div className="flex items-center gap-3.5 bg-forest-50 rounded-xl px-5 py-4 border border-forest-100">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-chalk flex items-center justify-center border border-forest-100">
+              <ShieldCheck size={18} className="text-forest" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-graphite leading-snug">
+              <p className="text-[13px] font-semibold text-forest-deep leading-snug">
                 Lihat hasilnya dulu, bayar kalau suka
               </p>
               <p className="text-[11px] text-ash mt-0.5">Tanpa risiko, tanpa komitmen</p>
             </div>
           </div>
-          <div className="flex items-center gap-3.5 bg-mist rounded-xl px-5 py-4 border border-hairline">
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-chalk flex items-center justify-center border border-hairline">
-              <MessageCircle size={18} className="text-graphite" />
+          <div className="flex items-center gap-3.5 bg-forest-50 rounded-xl px-5 py-4 border border-forest-100">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-chalk flex items-center justify-center border border-forest-100">
+              <MessageCircle size={18} className="text-forest" />
             </div>
             <div>
-              <p className="text-[13px] font-semibold text-graphite leading-snug">
+              <p className="text-[13px] font-semibold text-forest-deep leading-snug">
                 Tim kami siap membantu via WhatsApp
               </p>
               <p className="text-[11px] text-ash mt-0.5">Balas dalam 1 hari kerja</p>
@@ -291,7 +294,7 @@ export default function Pricing({ priceTiers, flashSales }: PricingProps) {
           className="mt-8 text-center text-[13px] text-ash"
         >
           Ada pertanyaan?{' '}
-          <Link href="/#faq" className="font-medium text-concrete hover:text-graphite underline underline-offset-2 transition-colors">
+          <Link href="/#faq" className="font-medium text-forest hover:text-forest-deep underline underline-offset-2 transition-colors">
             Lihat FAQ
           </Link>
         </motion.p>

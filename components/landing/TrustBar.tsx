@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Shield, Clock, CreditCard, Smartphone } from 'lucide-react'
 
-const EASE = [0.16, 1, 0.3, 1] as const
+const EASE = [0.22, 1, 0.36, 1] as const
 
 const defaultItems = [
   { icon: Shield, value: 'Gratis Preview', label: 'Coba sebelum bayar' },
@@ -25,10 +25,10 @@ export default function TrustBar({ items }: { items?: { value: string; label: st
     <section ref={ref} className="relative bg-chalk pt-6 pb-2 sm:pt-0 sm:pb-0">
       <div className="max-w-4xl mx-auto px-4 sm:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="relative sm:-mt-8 z-20 bg-chalk rounded-2xl border border-hairline"
+          transition={{ duration: 0.7, ease: EASE }}
+          className="relative sm:-mt-8 z-20 bg-chalk rounded-2xl border border-forest-100"
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-0">
             {stats.map((s, i) => {
@@ -36,17 +36,17 @@ export default function TrustBar({ items }: { items?: { value: string; label: st
               return (
                 <motion.div
                   key={s.label ?? i}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.07, ease: EASE }}
+                  transition={{ duration: 0.5, delay: 0.15 + i * 0.1, ease: EASE }}
                   className={`flex flex-col items-center text-center px-4 py-5 sm:py-6 ${
-                    i < stats.length - 1 ? 'border-r border-mist sm:border-hairline' : ''
-                  } ${i === 1 ? 'max-sm:border-r-0' : ''} ${i >= 2 ? 'max-sm:border-t max-sm:border-mist' : ''}`}
+                    i < stats.length - 1 ? 'border-r border-forest-100' : ''
+                  } ${i === 1 ? 'max-sm:border-r-0' : ''} ${i >= 2 ? 'max-sm:border-t max-sm:border-forest-100' : ''}`}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-mist flex items-center justify-center mb-2.5">
-                    <Icon size={16} className="text-graphite" />
+                  <div className="w-9 h-9 rounded-xl bg-forest-50 flex items-center justify-center mb-2.5">
+                    <Icon size={16} className="text-forest" />
                   </div>
-                  <span className="font-semibold text-sm sm:text-[15px] text-graphite leading-none">
+                  <span className="font-semibold text-sm sm:text-[15px] text-forest-deep leading-none">
                     {s.value}
                   </span>
                   <span className="text-[10px] sm:text-[11px] text-ash font-medium mt-1.5">

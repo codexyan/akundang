@@ -14,9 +14,8 @@ const productLinks = [
 
 const companyLinks = [
   { href: '/#cara-kerja', label: 'Cara Kerja' },
-  { href: '/#testimoni', label: 'Kenapa Kami' },
-  { href: '/blog', label: 'Blog' },
   { href: '/#faq', label: 'FAQ' },
+  { href: '/blog', label: 'Blog' },
 ]
 
 const socials = [
@@ -27,7 +26,7 @@ const socials = [
 function FooterLinkGroup({ title, links }: { title: string; links: { href: string; label: string }[] }) {
   return (
     <div>
-      <h4 className="text-graphite font-semibold text-[13px] mb-4">{title}</h4>
+      <h4 className="text-forest-deep font-semibold text-[13px] mb-4">{title}</h4>
       <ul className="space-y-2.5">
         {links.map((link) => (
           <li key={link.href}>
@@ -72,7 +71,7 @@ export default function Footer() {
       ]
 
   return (
-    <footer className="relative bg-mist border-t border-hairline">
+    <footer className="relative bg-forest-50 border-t border-forest-100">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8">
@@ -98,7 +97,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-chalk border border-hairline flex items-center justify-center text-ash hover:text-graphite hover:border-hairline transition-all duration-200"
+                  className="w-9 h-9 rounded-xl bg-chalk border border-forest-100 flex items-center justify-center text-ash hover:text-forest hover:border-forest-light/40 transition-all duration-200"
                 >
                   <Icon className="w-4 h-4" />
                 </a>
@@ -113,7 +112,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h4 className="text-graphite font-semibold text-[13px] mb-4">Kontak</h4>
+            <h4 className="text-forest-deep font-semibold text-[13px] mb-4">Kontak</h4>
             <ul className="space-y-2.5 mb-5">
               <li>
                 <a
@@ -136,14 +135,14 @@ export default function Footer() {
             </ul>
             <Link
               href="/templates"
-              className="inline-flex items-center justify-center px-4 py-2 bg-graphite text-chalk text-[13px] font-semibold rounded-button hover:bg-carbon transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 bg-forest text-chalk text-[13px] font-semibold rounded-button hover:bg-forest-deep transition-colors"
             >
               Buat Undangan
             </Link>
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-hairline">
+        <div className="mt-12 pt-6 border-t border-forest-100">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <p className="text-ash text-[12px]">
               &copy; {currentYear} <span className="text-concrete font-medium">iaundang</span>. Semua hak dilindungi.

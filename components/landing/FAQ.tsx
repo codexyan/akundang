@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, MessageCircle } from 'lucide-react'
 
-const EASE = [0.16, 1, 0.3, 1] as const
+const EASE = [0.22, 1, 0.36, 1] as const
 
 const defaultFaqs = [
   { q: 'Bisa lihat hasilnya sebelum bayar?', a: 'Bisa. Pilih template, masukkan nama kalian, dan langsung lihat preview-nya. Bayar hanya saat kalian sudah cocok dan siap publish.' },
@@ -22,23 +22,21 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section id="faq" className="py-20 sm:py-28 lg:py-32 bg-mist">
+    <section id="faq" className="py-24 sm:py-32 lg:py-36 bg-forest-50">
       <div className="max-w-2xl mx-auto px-5 sm:px-8">
 
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: EASE }}
+          transition={{ duration: 0.7, ease: EASE }}
           className="text-center mb-12"
         >
-          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.08em] uppercase text-graphite bg-graphite/[0.04] border border-hairline px-3.5 py-1.5 rounded-full mb-5">
-            FAQ
-          </span>
-          <h2 className="font-sans text-3xl sm:text-4xl font-bold text-graphite">
+          <h2 className="text-display-md text-forest-deep">
             Pertanyaan umum
           </h2>
-          <p className="mt-3 text-ash text-[15px]">
+          <p className="mt-3 text-concrete text-[15px]">
             Belum menemukan jawabannya? Chat kami via WhatsApp.
           </p>
         </motion.div>
@@ -49,14 +47,14 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
             return (
               <motion.div
                 key={faq.q}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-16px' }}
-                transition={{ duration: 0.4, delay: i * 0.04, ease: EASE }}
+                transition={{ duration: 0.45, delay: i * 0.05, ease: EASE }}
                 className={`rounded-2xl border overflow-hidden transition-all duration-300 ${
                   isOpen
-                    ? 'bg-chalk border-hairline'
-                    : 'bg-chalk border-hairline/60 hover:border-hairline'
+                    ? 'bg-chalk border-forest-light/30'
+                    : 'bg-chalk border-forest-100 hover:border-forest-light/30'
                 }`}
               >
                 <button
@@ -64,17 +62,17 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
                   className="w-full flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 text-left gap-4 group"
                 >
                   <span className={`font-medium text-[14px] leading-snug transition-colors duration-200 ${
-                    isOpen ? 'text-graphite' : 'text-carbon group-hover:text-graphite'
+                    isOpen ? 'text-forest-deep' : 'text-carbon group-hover:text-forest-deep'
                   }`}>
                     {faq.q}
                   </span>
                   <motion.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+                    transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
                     className="shrink-0"
                   >
                     <ChevronDown size={16} className={`transition-colors duration-200 ${
-                      isOpen ? 'text-graphite' : 'text-smoke'
+                      isOpen ? 'text-forest' : 'text-smoke group-hover:text-ash'
                     }`} />
                   </motion.div>
                 </button>
@@ -84,7 +82,7 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+                      transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
                       className="overflow-hidden"
                     >
                       <p className="px-5 sm:px-6 pb-5 sm:pb-6 text-[14px] text-concrete leading-[1.7]">{faq.a}</p>
@@ -97,16 +95,16 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-10 text-center bg-chalk rounded-2xl border border-hairline p-6 sm:p-8"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-10 text-center bg-chalk rounded-2xl border border-forest-100 p-6 sm:p-8"
         >
-          <div className="w-10 h-10 rounded-xl bg-mist flex items-center justify-center mx-auto mb-3">
-            <MessageCircle size={18} className="text-graphite" />
+          <div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center mx-auto mb-3">
+            <MessageCircle size={18} className="text-forest" />
           </div>
-          <p className="text-[14px] text-graphite font-semibold mb-1">Masih ada pertanyaan?</p>
+          <p className="text-[14px] text-forest-deep font-semibold mb-1">Masih ada pertanyaan?</p>
           <p className="text-[13px] text-ash mb-5">Kami senang membantu, balas cepat di hari kerja.</p>
           <a
             href={`https://wa.me/${waNumber}`}
@@ -114,9 +112,9 @@ export default function FAQ({ items, whatsapp }: { items?: { q: string; a: strin
             rel="noopener noreferrer"
           >
             <motion.span
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 bg-graphite hover:bg-carbon text-chalk text-[13px] font-semibold px-6 py-2.5 rounded-button transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2 bg-forest hover:bg-forest-deep text-chalk text-[13px] font-semibold px-6 py-2.5 rounded-button transition-colors"
             >
               Chat via WhatsApp
             </motion.span>

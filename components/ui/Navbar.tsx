@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useMotionValueEvent, useScroll } from 'framer-motion'
-import { Menu, X, LayoutDashboard, PenLine, Megaphone, Shield, ChevronRight } from 'lucide-react'
+import { Menu, X, LayoutDashboard, PenLine, Megaphone, Shield, ArrowRight } from 'lucide-react'
 import Logo from './Logo'
+
+const EASE = [0.22, 1, 0.36, 1] as const
 
 const NAV_LINKS = [
   { href: '/#fitur', label: 'Fitur' },
   { href: '/#templates', label: 'Template' },
-  { href: '/#cara-kerja', label: 'Cara Kerja' },
   { href: '/#harga', label: 'Harga' },
   { href: '/#faq', label: 'FAQ' },
 ]
@@ -33,12 +34,46 @@ const ROLE_LINKS: Record<string, { href: string; label: string; icon: React.Reac
   ],
 }
 
+function NavLink({ href, label, delay = 0 }: { href: string; label: string; delay?: number }) {
+  const pathname = usePathname()
+  const isAnchor = href.startsWith('/#')
+  const isActive = !isAnchor && pathname.startsWith(href)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease: EASE }}
+    >
+      <Link
+        href={href}
+        className="group relative text-[13px] font-medium px-1 py-1.5 transition-colors duration-200"
+      >
+        <span className={isActive ? 'text-forest-deep' : 'text-concrete group-hover:text-forest-deep'}>
+          {label}
+        </span>
+        <motion.span
+          className="absolute -bottom-0.5 left-0 right-0 h-[1.5px] bg-forest origin-left rounded-full"
+          initial={false}
+          animate={{ scaleX: isActive ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: EASE }}
+          style={{ transformOrigin: 'left' }}
+        />
+        {!isActive && (
+          <span className="absolute -bottom-0.5 left-0 right-0 h-[1.5px] bg-forest/30 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]" />
+        )}
+      </Link>
+    </motion.div>
+  )
+}
+
 export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState<{ email: string; role?: string } | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [scrollState, setScrollState] = useState<'top' | 'scrolled' | 'hidden'>('top')
+  const [scrolled, setScrolled] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [lastY, setLastY] = useState(0)
 
@@ -52,13 +87,8 @@ export default function Navbar() {
   }, [])
 
   useMotionValueEvent(scrollY, 'change', useCallback((latest: number) => {
-    if (latest < 20) {
-      setScrollState('top')
-    } else if (latest > lastY && latest > 100) {
-      setScrollState('hidden')
-    } else {
-      setScrollState('scrolled')
-    }
+    setScrolled(latest > 16)
+    setHidden(latest > 120 && latest > lastY)
     setLastY(latest)
   }, [lastY]))
 
@@ -79,75 +109,56 @@ export default function Navbar() {
   return (
     <>
       <motion.nav
-        initial={false}
+        initial={{ y: -20, opacity: 0 }}
         animate={{
-          y: scrollState === 'hidden' ? -100 : 0,
-          opacity: scrollState === 'hidden' ? 0 : 1,
+          y: hidden ? -80 : 0,
+          opacity: hidden ? 0 : 1,
         }}
-        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.4, ease: EASE }}
         className="fixed top-0 inset-x-0 z-50"
       >
-        {/* Outer container   adds horizontal margin on scroll for floating pill effect */}
         <div
-          className={`transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-            scrollState === 'scrolled'
-              ? 'mx-3 sm:mx-6 mt-3 rounded-nav border border-hairline bg-chalk'
+          className={`transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            scrolled
+              ? 'bg-chalk/80 backdrop-blur-xl border-b border-forest-100/60'
               : isLanding
                 ? 'bg-transparent'
-                : 'bg-chalk border-b border-hairline'
+                : 'bg-chalk border-b border-forest-100/40'
           }`}
         >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+
             {/* Logo */}
             <motion.div
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, ease: EASE }}
             >
               <Logo variant="horizontal" size="sm" />
             </motion.div>
 
-            {/* Desktop nav   center-aligned pill navigation */}
-            <div className="hidden md:flex items-center">
-              <div className={`flex items-center gap-0.5 px-1 py-1 rounded-nav transition-all duration-300 ${
-                scrollState === 'scrolled' ? 'bg-mist' : 'bg-chalk/40'
-              }`}>
-                {NAV_LINKS.map((link, i) => {
-                  const isAnchor = link.href.startsWith('/#')
-                  const isActive = !isAnchor && pathname.startsWith(link.href)
-                  return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.05 * i, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      <Link
-                        href={link.href}
-                        className={`relative text-[13px] font-medium px-3.5 py-1.5 rounded-lg transition-all duration-200 ${
-                          isActive
-                            ? 'text-graphite bg-chalk'
-                            : 'text-concrete hover:text-graphite hover:bg-mist'
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
-                    </motion.div>
-                  )
-                })}
-              </div>
+            {/* Desktop nav links — clean, no container */}
+            <div className="hidden md:flex items-center gap-7">
+              {NAV_LINKS.map((link, i) => (
+                <NavLink key={link.href} href={link.href} label={link.label} delay={0.06 * i + 0.1} />
+              ))}
             </div>
 
             {/* Right section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {!loaded ? (
                 <div className="flex gap-2">
-                  <div className="w-16 h-7 bg-mist rounded-lg animate-pulse" />
-                  <div className="w-20 h-7 bg-mist rounded-lg animate-pulse" />
+                  <div className="w-14 h-8 bg-forest-50 rounded-lg animate-pulse" />
+                  <div className="w-24 h-8 bg-forest-50 rounded-lg animate-pulse" />
                 </div>
               ) : user ? (
-                <>
-                  <span className="hidden lg:block text-xs text-ash truncate max-w-[120px]">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3, ease: EASE }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="hidden lg:block text-[12px] text-ash truncate max-w-[120px]">
                     {user.email}
                   </span>
                   <div className="hidden md:flex items-center gap-1">
@@ -155,10 +166,10 @@ export default function Navbar() {
                       <Link
                         key={rl.href}
                         href={rl.href}
-                        className={`text-[13px] font-medium px-2.5 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5 ${
+                        className={`text-[13px] font-medium px-2.5 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 ${
                           pathname === rl.href
-                            ? 'text-graphite bg-mist'
-                            : 'text-concrete hover:text-graphite hover:bg-mist'
+                            ? 'text-forest-deep bg-forest-50'
+                            : 'text-concrete hover:text-forest-deep hover:bg-forest-50'
                         }`}
                       >
                         {rl.icon}
@@ -168,47 +179,62 @@ export default function Navbar() {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="hidden md:inline-flex text-[13px] text-ash hover:text-graphite px-2.5 py-1.5 rounded-lg hover:bg-mist transition-all duration-200"
+                    className="hidden md:inline-flex text-[13px] text-ash hover:text-forest-deep px-2.5 py-1.5 rounded-lg hover:bg-forest-50 transition-colors duration-200"
                   >
                     Keluar
                   </button>
-                </>
+                </motion.div>
               ) : (
                 <motion.div
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex items-center gap-1.5"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3, ease: EASE }}
+                  className="flex items-center gap-2"
                 >
                   <Link
                     href="/login"
-                    className="hidden sm:inline-flex text-[13px] font-medium text-concrete hover:text-graphite px-3.5 py-1.5 rounded-lg hover:bg-mist transition-all duration-200"
+                    className="hidden sm:inline-flex text-[13px] font-medium text-concrete hover:text-forest-deep px-3 py-1.5 rounded-lg transition-colors duration-200"
                   >
                     Masuk
                   </Link>
-                  <Link
-                    href="/templates"
-                    className="group text-[13px] font-semibold text-chalk bg-graphite px-4 py-2 rounded-button transition-colors hover:bg-carbon"
-                  >
-                    <span className="flex items-center gap-1">
+                  <Link href="/templates">
+                    <motion.span
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="group flex items-center gap-1.5 text-[13px] font-semibold text-chalk bg-forest px-4 py-2 rounded-button transition-colors hover:bg-forest-deep"
+                    >
                       Buat Undangan
-                      <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200" />
-                    </span>
+                      <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform duration-200" />
+                    </motion.span>
                   </Link>
                 </motion.div>
               )}
+
+              {/* Mobile toggle */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden ml-0.5 p-2 rounded-lg text-concrete hover:text-graphite hover:bg-mist transition-all duration-200"
+                className="md:hidden p-2 rounded-lg text-concrete hover:text-forest-deep transition-colors duration-200"
                 aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
               >
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" initial={false}>
                   {mobileOpen ? (
-                    <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <motion.div
+                      key="close"
+                      initial={{ opacity: 0, rotate: -90 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.2, ease: EASE }}
+                    >
                       <X size={20} />
                     </motion.div>
                   ) : (
-                    <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <motion.div
+                      key="menu"
+                      initial={{ opacity: 0, rotate: 90 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: -90 }}
+                      transition={{ duration: 0.2, ease: EASE }}
+                    >
                       <Menu size={20} />
                     </motion.div>
                   )}
@@ -219,67 +245,74 @@ export default function Navbar() {
         </div>
       </motion.nav>
 
-      {/* Mobile menu   full-screen overlay */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-graphite/20 md:hidden"
+              transition={{ duration: 0.25, ease: EASE }}
+              className="fixed inset-0 z-40 bg-forest-deep/20 backdrop-blur-[2px] md:hidden"
               onClick={() => setMobileOpen(false)}
             />
+
+            {/* Menu card */}
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-              className="fixed inset-x-3 top-[72px] z-50 md:hidden"
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="fixed inset-x-4 top-[76px] z-50 md:hidden"
             >
-              <div className="bg-chalk rounded-card border border-hairline overflow-hidden">
-                <div className="p-2 space-y-0.5">
+              <div className="bg-chalk/95 backdrop-blur-xl rounded-2xl border border-forest-100/60 overflow-hidden">
+                <div className="p-3 space-y-0.5">
                   {NAV_LINKS.map((link, i) => {
                     const isAnchor = link.href.startsWith('/#')
                     const isActive = !isAnchor && pathname.startsWith(link.href)
                     return (
                       <motion.div
                         key={link.href}
-                        initial={{ opacity: 0, x: -12 }}
+                        initial={{ opacity: 0, x: -16 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.03 * i, duration: 0.3 }}
+                        transition={{ delay: 0.04 * i + 0.05, duration: 0.35, ease: EASE }}
                       >
                         <Link
                           href={link.href}
                           onClick={() => setMobileOpen(false)}
-                          className={`flex items-center justify-between text-sm font-medium px-4 py-3 rounded-nav transition-all duration-200 ${
+                          className={`flex items-center text-[14px] font-medium px-4 py-3 rounded-xl transition-colors duration-200 ${
                             isActive
-                              ? 'text-graphite bg-mist'
-                              : 'text-concrete hover:text-graphite hover:bg-mist'
+                              ? 'text-forest-deep bg-forest-50'
+                              : 'text-concrete hover:text-forest-deep hover:bg-forest-50'
                           }`}
                         >
                           {link.label}
-                          <ChevronRight size={14} className="text-smoke" />
                         </Link>
                       </motion.div>
                     )
                   })}
                 </div>
 
-                <div className="border-t border-hairline p-2 space-y-0.5">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                  className="border-t border-forest-100/40 p-3 space-y-1"
+                >
                   {user ? (
                     <>
-                      <p className="px-4 py-2 text-xs text-ash truncate">{user.email}</p>
+                      <p className="px-4 py-1.5 text-[11px] text-ash truncate">{user.email}</p>
                       {roleLinks.map((rl) => (
                         <Link
                           key={rl.href}
                           href={rl.href}
                           onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2.5 text-sm font-medium px-4 py-3 rounded-nav transition-all duration-200 ${
+                          className={`flex items-center gap-2.5 text-[14px] font-medium px-4 py-3 rounded-xl transition-colors duration-200 ${
                             pathname === rl.href
-                              ? 'text-graphite bg-mist'
-                              : 'text-concrete hover:text-graphite hover:bg-mist'
+                              ? 'text-forest-deep bg-forest-50'
+                              : 'text-concrete hover:text-forest-deep hover:bg-forest-50'
                           }`}
                         >
                           {rl.icon}
@@ -288,30 +321,31 @@ export default function Navbar() {
                       ))}
                       <button
                         onClick={() => { setMobileOpen(false); handleLogout() }}
-                        className="w-full flex items-center gap-2.5 text-sm font-medium text-concrete hover:text-graphite hover:bg-mist px-4 py-3 rounded-nav transition-all duration-200"
+                        className="w-full flex items-center gap-2.5 text-[14px] font-medium text-concrete hover:text-forest-deep hover:bg-forest-50 px-4 py-3 rounded-xl transition-colors duration-200"
                       >
                         Keluar
                       </button>
                     </>
                   ) : (
-                    <div className="space-y-2 px-2 pb-1">
+                    <div className="flex flex-col gap-2 px-1 pb-1">
                       <Link
                         href="/login"
                         onClick={() => setMobileOpen(false)}
-                        className="block text-sm font-medium text-concrete text-center px-4 py-2.5 rounded-nav hover:bg-mist transition-all duration-200"
+                        className="text-[14px] font-medium text-concrete text-center px-4 py-2.5 rounded-xl hover:bg-forest-50 transition-colors duration-200"
                       >
                         Masuk
                       </Link>
                       <Link
                         href="/templates"
                         onClick={() => setMobileOpen(false)}
-                        className="block text-sm font-semibold text-center text-chalk bg-graphite px-4 py-2.5 rounded-button transition-colors hover:bg-carbon"
+                        className="flex items-center justify-center gap-1.5 text-[14px] font-semibold text-chalk bg-forest px-4 py-2.5 rounded-button transition-colors hover:bg-forest-deep"
                       >
                         Buat Undangan
+                        <ArrowRight size={14} />
                       </Link>
                     </div>
                   )}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </>

@@ -22,6 +22,19 @@ const config: Config = {
         hairline: '#e5e5e5',
         mist: '#f2f2f2',
         chalk: '#ffffff',
+        forest: {
+          DEFAULT: '#1a3320',
+          deep: '#0f1a12',
+          light: '#2d5a3d',
+          50: '#f0f5f1',
+          100: '#dce8de',
+        },
+        gold: {
+          DEFAULT: '#d4af37',
+          dark: '#b8973a',
+          light: '#e8d48b',
+          50: '#faf6e8',
+        },
       },
       borderRadius: {
         'nav': '10px',
