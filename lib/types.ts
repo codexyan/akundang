@@ -602,6 +602,9 @@ export interface Order {
   status: 'pending' | 'paid' | 'approved' | 'rejected'
   admin_notes: string
   referred_by: string | null
+  mayar_transaction_id: string | null
+  mayar_payment_link: string | null
+  payment_method: string | null
   created_at: string
   reviewed_at: string | null
 }

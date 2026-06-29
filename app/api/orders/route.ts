@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { orders, invitations } from '@/lib/db'
 import { notifyUser } from '@/lib/notifications'
+import { createMayarPayment } from '@/lib/mayar'
+import { PACKAGES, type PackageTier } from '@/lib/packages'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,6 +74,9 @@ export async function POST(req: NextRequest) {
       status: 'pending',
       admin_notes: '',
       referred_by: referred_by || null,
+      mayar_transaction_id: null,
+      mayar_payment_link: null,
+      payment_method: null,
     })
 
     notifyUser('order_created', order.email, {
@@ -79,7 +84,37 @@ export async function POST(req: NextRequest) {
       amount: order.total_amount.toLocaleString('id-ID'),
     }).catch(() => {})
 
-    return NextResponse.json({ order }, { status: 201 })
+    // Call Mayar payment gateway
+    let paymentUrl: string | null = null
+    try {
+      const pkg = PACKAGES[package_tier as PackageTier]
+      if (pkg) {
+        const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+        const mayarPayment = await createMayarPayment({
+          name: `${groom_name} & ${bride_name}`,
+          email: email.toLowerCase(),
+          amount: totalAmount,
+          mobile: phone || '08000000000',
+          redirectUrl: `${appUrl}/dashboard?payment=success&order=${order.id}`,
+          description: `Paket ${pkg.name} - iaundang - ${order.order_number}`,
+          expiredAt,
+        })
+
+        await orders.update(order.id, {
+          mayar_transaction_id: mayarPayment.transactionId,
+          mayar_payment_link: mayarPayment.link,
+          payment_method: 'mayar',
+        })
+
+        paymentUrl = mayarPayment.link
+      }
+    } catch (err) {
+      console.error('Mayar payment creation failed, falling back to manual:', err)
+    }
+
+    return NextResponse.json({ order, paymentUrl }, { status: 201 })
   } catch (error) {
     console.error('Order POST error:', error)
     return NextResponse.json({ error: 'Gagal membuat pesanan' }, { status: 500 })

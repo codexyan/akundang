@@ -188,7 +188,14 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
         toast.error(err.error || 'Gagal membuat pesanan')
         return
       }
-      const { order: newOrder } = await res.json()
+      const { order: newOrder, paymentUrl } = await res.json()
+
+      if (paymentUrl) {
+        toast.success('Mengalihkan ke halaman pembayaran...')
+        window.location.href = paymentUrl
+        return
+      }
+
       setOrder(newOrder)
       setStep(3)
       toast.success('Pesanan berhasil dibuat!')

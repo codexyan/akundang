@@ -1076,6 +1076,9 @@ function mapOrder(o: any): Order {
     proof_url: o.proofUrl, notes: o.notes,
     status: o.status as Order['status'], admin_notes: o.adminNotes,
     referred_by: o.referredBy ?? null,
+    mayar_transaction_id: o.mayarTransactionId ?? null,
+    mayar_payment_link: o.mayarPaymentLink ?? null,
+    payment_method: o.paymentMethod ?? null,
     created_at: o.createdAt instanceof Date ? o.createdAt.toISOString() : o.createdAt,
     reviewed_at: o.reviewedAt instanceof Date ? o.reviewedAt.toISOString() : o.reviewedAt ?? null,
   }
@@ -1112,6 +1115,9 @@ export const orders = {
         proofUrl: data.proof_url, notes: data.notes,
         status: data.status, adminNotes: data.admin_notes,
         referredBy: data.referred_by,
+        mayarTransactionId: data.mayar_transaction_id,
+        mayarPaymentLink: data.mayar_payment_link,
+        paymentMethod: data.payment_method,
       },
     })
     return mapOrder(o)
@@ -1125,6 +1131,9 @@ export const orders = {
           ...(data.admin_notes !== undefined && { adminNotes: data.admin_notes }),
           ...(data.proof_url !== undefined && { proofUrl: data.proof_url }),
           ...(data.invitation_id !== undefined && { invitationId: data.invitation_id }),
+          ...(data.mayar_transaction_id !== undefined && { mayarTransactionId: data.mayar_transaction_id }),
+          ...(data.mayar_payment_link !== undefined && { mayarPaymentLink: data.mayar_payment_link }),
+          ...(data.payment_method !== undefined && { paymentMethod: data.payment_method }),
           ...(data.reviewed_at !== undefined && { reviewedAt: data.reviewed_at ? new Date(data.reviewed_at) : null }),
         },
       })

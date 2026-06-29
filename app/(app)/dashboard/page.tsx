@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 import type { Invitation } from '@/lib/types'
 
 interface Props {
-  searchParams: { template?: string }
+  searchParams: { template?: string; payment?: string; order?: string }
 }
 
 export default async function DashboardPage({ searchParams }: Props) {
@@ -27,6 +27,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   }))
 
   const selectedTemplateId = searchParams.template || ''
+  const paymentSuccess = searchParams.payment === 'success'
 
   return (
     <DashboardClient
@@ -35,6 +36,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       selectedTemplateId={selectedTemplateId}
       allTemplates={allTemplates}
       isAdmin={isAdmin(session)}
+      paymentSuccess={paymentSuccess}
     />
   )
 }

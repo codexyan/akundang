@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import dynamic from 'next/dynamic'
@@ -44,6 +44,7 @@ interface Props {
   selectedTemplateId: string
   allTemplates: TemplateInfo[]
   isAdmin?: boolean
+  paymentSuccess?: boolean
 }
 
 type Tab = 'overview' | 'undangan' | 'guest' | 'rsvp' | 'analytics' | 'referral' | 'subscription' | 'support' | 'settings'
@@ -69,7 +70,7 @@ function getDisplayNames(inv: Invitation): { groom: string; bride: string } {
   return { groom: d.groom_name || '', bride: d.bride_name || '' }
 }
 
-export default function DashboardClient({ user, invitation, selectedTemplateId, allTemplates, isAdmin }: Props) {
+export default function DashboardClient({ user, invitation, selectedTemplateId, allTemplates, isAdmin, paymentSuccess }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [inv, setInv] = useState<Invitation | null>(invitation)
@@ -82,6 +83,14 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
   const expired = isExpired(inv?.expires_at ?? null)
 
   const names = inv ? getDisplayNames(inv) : null
+
+  useEffect(() => {
+    if (paymentSuccess) {
+      toast.success('Pembayaran berhasil! Undangan Anda sedang diaktifkan...')
+      const t = setTimeout(() => router.refresh(), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [paymentSuccess, router])
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })

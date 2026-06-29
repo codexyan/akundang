@@ -353,6 +353,9 @@ model Order {
   status        String    @default("pending")
   adminNotes    String    @default("") @map("admin_notes")
   referredBy    String?   @map("referred_by")
+  mayarTransactionId String? @map("mayar_transaction_id")
+  mayarPaymentLink   String? @map("mayar_payment_link")
+  paymentMethod      String? @map("payment_method")
   createdAt     DateTime  @default(now()) @map("created_at")
   reviewedAt    DateTime? @map("reviewed_at")
 
