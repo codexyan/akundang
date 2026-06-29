@@ -155,7 +155,7 @@ function buildNavGroups(
         item('info', 'Mempelai', User, 'Konten'),
         item('acara', 'Acara', Calendar, 'Konten'),
         item('cerita', 'Cerita', BookOpen, 'Konten', 'cerita'),
-        item('quote', 'Doa', Quote, 'Konten'),
+        item('quote', 'Quote & Doa', Quote, 'Konten'),
       ],
     },
     {
@@ -163,8 +163,8 @@ function buildNavGroups(
       rawItems: [
         item('galeri', 'Galeri', Image, 'Media', 'galeri'),
         item('musik', 'Musik', Music, 'Media', 'musik'),
-        item('video', 'Video', Video, 'Media', 'video'),
-        item('livestream', 'Live', Radio, 'Media', 'livestream'),
+        item('video', 'Video Pre-Wedding', Video, 'Media', 'video'),
+        item('livestream', 'Live Streaming', Radio, 'Media', 'livestream'),
         item('ig_story', 'IG Story', Instagram, 'Media', 'ig_story'),
       ],
     },
@@ -172,7 +172,7 @@ function buildNavGroups(
       label: 'Lainnya',
       rawItems: [
         item('hadiah', 'Hadiah', Gift, 'Lainnya', 'hadiah'),
-        item('gift_registry', 'Registry', ShoppingBag, 'Lainnya', 'gift_registry'),
+        item('gift_registry', 'Gift Registry', ShoppingBag, 'Lainnya', 'gift_registry'),
         item('qrcode', 'QR Code', QrCode, 'Lainnya', 'qrcode'),
         item('penutup', 'Penutup', FileText, 'Lainnya'),
       ],

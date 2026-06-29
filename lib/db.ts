@@ -538,7 +538,7 @@ const POPULAR_FEATURES: TierFeatures = {
   hero: true, profiles: true, events: true, quote: true,
   countdown: true, gallery: true, rsvp: true, wishes: true,
   story: true, video: true, gift: true, gift_registry: true,
-  livestream: false, ig_story: true, qrcode: true, closing: true,
+  livestream: true, ig_story: false, qrcode: false, closing: true,
   custom_domain: false, subdomain: true, remove_watermark: true,
   analytics: true, priority_support: false, validity_days: 90,
   decoration_editing: true, max_decoration_assets: 3, custom_animations: false,
