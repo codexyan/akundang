@@ -12,7 +12,7 @@ interface LivestreamFormProps {
 export default function LivestreamForm({ url, onUrlChange }: LivestreamFormProps) {
   return (
     <SectionCard title="Live Streaming" icon={Radio} description="Link siaran langsung untuk tamu jarak jauh">
-      <FormField label="URL Livestream" required hint="Link YouTube Live, Zoom, atau platform lainnya">
+      <FormField label="Link Livestream" required hint="Link YouTube Live, Zoom, atau platform lainnya">
         <input type="url" className={inputClass} value={url}
           onChange={e => onUrlChange(e.target.value)}
           placeholder="https://youtube.com/live/..." />

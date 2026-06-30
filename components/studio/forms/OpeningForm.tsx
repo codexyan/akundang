@@ -52,7 +52,7 @@ export default function OpeningForm({
     >
       {/* Opening Style Selector */}
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-stone-700">Gaya Opening</p>
+        <p className="text-sm font-semibold text-stone-700">Gaya Pembuka</p>
         <p className="text-xs text-stone-400">Pilih animasi pembuka yang tampil pertama kali</p>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {OPENING_STYLES.map((style) => {
@@ -158,7 +158,7 @@ export default function OpeningForm({
 
       {/* Nama Mempelai di Opening */}
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-stone-700">Nama di Opening</p>
+        <p className="text-sm font-semibold text-stone-700">Nama di Pembuka</p>
         <p className="text-xs text-stone-400">
           Bisa berbeda dari nama di section lain (misal: panggilan, singkatan)
         </p>

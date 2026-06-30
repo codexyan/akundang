@@ -89,7 +89,7 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
 
   return (
     <SectionCard
-      title="Loading Screen"
+      title="Animasi Loading"
       icon={Loader2}
       description="Animasi & tampilan saat undangan pertama kali dibuka"
     >
@@ -192,7 +192,7 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
       </div>
 
       {/*  Background Type  */}
-      <FormField label="Background">
+      <FormField label="Latar Belakang">
         <div className="flex gap-1.5 mb-3">
           {BG_TYPES.map((bg) => (
             <button
@@ -266,7 +266,7 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
               value={config.bg_image_url ?? ''}
               onChange={(e) => update({ bg_image_url: e.target.value })}
               className={inputClass}
-              placeholder="URL gambar background..."
+              placeholder="Link gambar latar..."
             />
             <ColorRow
               label="Overlay"
@@ -410,8 +410,8 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
 
           {/* Blur toggle */}
           <ToggleRow
-            label="Blur Background"
-            desc="Efek glassmorphism"
+            label="Blur Latar"
+            desc="Efek kaca buram"
             checked={!!config.blur_background}
             onChange={() => update({ blur_background: !config.blur_background })}
           />
@@ -427,7 +427,7 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
           </FormField>
 
           {/* Font */}
-          <FormField label="Custom Font" hint="Nama Google Font">
+          <FormField label="Font Kustom" hint="Nama Google Font">
             <input
               type="text"
               value={config.font_family ?? ''}

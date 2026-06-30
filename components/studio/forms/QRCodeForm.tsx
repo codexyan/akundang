@@ -16,7 +16,7 @@ export default function QRCodeForm({
 }: QRCodeFormProps) {
   return (
     <SectionCard title="QR Code" icon={QrCode} description="QR Code untuk link undangan atau lokasi">
-      <FormField label="URL Tujuan" required hint="Link yang akan di-generate menjadi QR Code">
+      <FormField label="Link Tujuan" required hint="Link yang akan diubah menjadi QR Code">
         <input type="url" className={inputClass} value={targetUrl}
           onChange={e => onTargetUrlChange(e.target.value)}
           placeholder="https://..." />

@@ -139,7 +139,7 @@ export default function StoryForm({
                   placeholder="Ceritakan momen ini..." />
               </FormField>
 
-              <FormField label="Foto Latar" hint="Foto background untuk bab ini">
+              <FormField label="Foto Latar" hint="Foto latar untuk bab ini">
                 <ImageUploadField
                   value={ch.photo_url}
                   onChange={(url) => updateChapter(idx, 'photo_url', url || '')}

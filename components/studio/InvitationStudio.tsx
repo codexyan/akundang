@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { Invitation, NewInvitationData, TemplateRecord, OpeningType, TierFeatures } from '@/lib/types'
 import type { PackageTier } from '@/lib/packages'
+import { calculateCompleteness } from '@/lib/studio-progress'
 import { usePackageGating } from '@/hooks/usePackageGating'
 import InvitationPreview from '@/components/renderer/InvitationPreview'
 import GalleryManager from '@/components/dashboard/GalleryManager'
@@ -117,7 +118,7 @@ function calculateProgress(data: NewInvitationData) {
   return { percentage: Math.round((filled / total) * 100), requiredFieldsCount: filled, totalRequiredFields: total, missingFields: missing }
 }
 
-interface NavItem { id: string; label: string; icon: React.ElementType; locked?: boolean; requiredTier?: string; group: string }
+interface NavItem { id: string; label: string; icon: React.ElementType; locked?: boolean; requiredTier?: string; group: string; required?: boolean }
 interface NavGroup { label: string; items: NavItem[] }
 
 const NAV_SECTION_TYPE: Record<string, string> = {
@@ -133,48 +134,55 @@ function buildNavGroups(
 ): { groups: NavGroup[]; sections: NavItem[] } {
   const enabledTypes = new Set(templateSections.filter(s => s.enabled).map(s => s.type))
 
-  function item(id: string, label: string, icon: React.ElementType, groupLabel: string, gateKey?: string): NavItem | null {
+  function item(id: string, label: string, icon: React.ElementType, groupLabel: string, gateKey?: string, required = false): NavItem | null {
     const sectionType = NAV_SECTION_TYPE[id]
     if (sectionType && !enabledTypes.has(sectionType)) return null
     const isLocked = gateKey ? !gating.isSectionAllowed(gateKey) : false
-    return { id, label, icon, locked: isLocked, requiredTier: isLocked ? gating.getRequiredTier(gateKey!) : undefined, group: groupLabel }
+    return { id, label, icon, locked: isLocked, requiredTier: isLocked ? gating.getRequiredTier(gateKey!) : undefined, group: groupLabel, required }
   }
 
+  // Urutan mengikuti alur pengisian yang logis: isi data dasar dulu,
+  // baru atur tampilan, lalu cerita/media, interaksi tamu, dan fitur lanjutan.
   const allGroups: { label: string; rawItems: (NavItem | null)[] }[] = [
     {
-      label: 'Desain',
+      label: 'Info Dasar',
       rawItems: [
-        item('opening', 'Pembuka', Sparkles, 'Desain'),
-        item('loading', 'Loading', Loader2, 'Desain'),
-        item('warna', 'Tema Warna', Palette, 'Desain'),
+        item('info', 'Mempelai', User, 'Info Dasar', undefined, true),
+        item('acara', 'Acara', Calendar, 'Info Dasar', undefined, true),
       ],
     },
     {
-      label: 'Konten',
+      label: 'Tampilan',
       rawItems: [
-        item('info', 'Mempelai', User, 'Konten'),
-        item('acara', 'Acara', Calendar, 'Konten'),
-        item('cerita', 'Cerita', BookOpen, 'Konten', 'cerita'),
-        item('quote', 'Quote & Doa', Quote, 'Konten'),
+        item('warna', 'Tema Warna', Palette, 'Tampilan'),
+        item('opening', 'Pembuka', Sparkles, 'Tampilan'),
+        item('loading', 'Loading', Loader2, 'Tampilan'),
       ],
     },
     {
-      label: 'Media',
+      label: 'Cerita & Media',
       rawItems: [
-        item('galeri', 'Galeri', Image, 'Media', 'galeri'),
-        item('musik', 'Musik', Music, 'Media', 'musik'),
-        item('video', 'Video Pre-Wedding', Video, 'Media', 'video'),
-        item('livestream', 'Live Streaming', Radio, 'Media', 'livestream'),
-        item('ig_story', 'IG Story', Instagram, 'Media', 'ig_story'),
+        item('quote', 'Quote & Doa', Quote, 'Cerita & Media'),
+        item('cerita', 'Cerita', BookOpen, 'Cerita & Media', 'cerita'),
+        item('galeri', 'Galeri', Image, 'Cerita & Media', 'galeri'),
+        item('musik', 'Musik', Music, 'Cerita & Media', 'musik'),
+        item('video', 'Video Pre-Wedding', Video, 'Cerita & Media', 'video'),
       ],
     },
     {
-      label: 'Lainnya',
+      label: 'Interaksi Tamu',
       rawItems: [
-        item('hadiah', 'Hadiah', Gift, 'Lainnya', 'hadiah'),
-        item('gift_registry', 'Gift Registry', ShoppingBag, 'Lainnya', 'gift_registry'),
-        item('qrcode', 'QR Code', QrCode, 'Lainnya', 'qrcode'),
-        item('penutup', 'Penutup', FileText, 'Lainnya'),
+        item('hadiah', 'Hadiah', Gift, 'Interaksi Tamu', 'hadiah'),
+        item('gift_registry', 'Gift Registry', ShoppingBag, 'Interaksi Tamu', 'gift_registry'),
+        item('penutup', 'Penutup', FileText, 'Interaksi Tamu'),
+      ],
+    },
+    {
+      label: 'Fitur Lanjutan',
+      rawItems: [
+        item('livestream', 'Live Streaming', Radio, 'Fitur Lanjutan', 'livestream'),
+        item('ig_story', 'IG Story', Instagram, 'Fitur Lanjutan', 'ig_story'),
+        item('qrcode', 'QR Code', QrCode, 'Fitur Lanjutan', 'qrcode'),
       ],
     },
   ]
@@ -260,6 +268,11 @@ function StaticSectionItem({ section, active, onClick }: { section: NavItem; act
       <span className={`text-[12px] font-medium truncate flex-1 ${active ? 'font-semibold' : ''}`}>
         {section.label}
       </span>
+      {section.required && !section.locked && (
+        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${active ? 'bg-white/20 text-white' : 'text-rose-500 bg-rose-50'}`}>
+          Wajib
+        </span>
+      )}
       {section.locked && section.requiredTier && (
         <span className="text-[9px] font-semibold text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0">
           {section.requiredTier}
@@ -280,7 +293,7 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
   const [data, setData] = useState<NewInvitationData>(() => initData(invitation))
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [showPreview, setShowPreview] = useState(false)
-  const [activeSection, setActiveSection] = useState<string>('opening')
+  const [activeSection, setActiveSection] = useState<string>('info')
   const [previewKey, setPreviewKey] = useState(0)
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [reorderMode, setReorderMode] = useState(false)
@@ -296,6 +309,7 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
   const timer = useRef<ReturnType<typeof setTimeout>>()
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const progress = calculateProgress(data)
+  const completeness = calculateCompleteness(data)
   const gating = usePackageGating(isAdmin ? 'eksklusif' : (invitation as unknown as Record<string, unknown>).package_tier as PackageTier | undefined)
 
   const { groups: NAV_GROUPS, sections: SECTIONS } = useMemo(() => buildNavGroups(gating, template.config.sections), [gating, template.config.sections])
@@ -684,13 +698,18 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
                 <motion.div
                   className="h-full rounded-full"
                   initial={{ width: 0 }}
-                  animate={{ width: `${progress.percentage}%` }}
+                  animate={{ width: `${completeness.percentage}%` }}
                   transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ background: progress.percentage === 100 ? '#10b981' : '#f59e0b' }}
+                  style={{ background: completeness.percentage === 100 ? '#10b981' : '#f59e0b' }}
                 />
               </div>
-              <span className="text-[10px] font-bold text-stone-400 tabular-nums">{progress.percentage}%</span>
+              <span className="text-[10px] font-bold text-stone-400 tabular-nums">{completeness.percentage}%</span>
             </div>
+            {completeness.missingRequired.length > 0 && (
+              <p className="text-[10px] text-amber-600 mt-1.5 leading-tight">
+                Belum lengkap: {completeness.missingRequired.join(', ')}
+              </p>
+            )}
           </div>
 
           {/* Section list */}
@@ -834,6 +853,19 @@ export default function InvitationStudio({ invitation, template, onSaved, embedd
           {/* Active form */}
           <div className="flex-1 overflow-y-auto min-h-0" style={{ scrollbarWidth: 'thin' }}>
             <div className="px-4 sm:px-5 py-4 max-w-xl mx-auto">
+              {/* Completeness indicator (mobile, sidebar shows it on desktop) */}
+              <div className="md:hidden mb-4 px-3.5 py-3 bg-stone-50 border border-stone-200 rounded-xl">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-stone-600">Kelengkapan Undangan</span>
+                  <span className="text-xs font-bold text-stone-700">{completeness.percentage}%</span>
+                </div>
+                <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${completeness.percentage}%` }} />
+                </div>
+                {completeness.missingRequired.length > 0 && (
+                  <p className="text-[10px] text-amber-600 mt-1.5">Belum lengkap: {completeness.missingRequired.join(', ')}</p>
+                )}
+              </div>
               <div className="relative">
                 {renderActiveForm()}
                 {activeItem?.locked && activeItem.requiredTier && (
