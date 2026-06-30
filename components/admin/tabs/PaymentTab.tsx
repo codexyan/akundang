@@ -12,6 +12,7 @@ import {
 import type { BankAccount, PaymentProof } from '@/lib/db'
 import { formatPrice } from '@/lib/utils'
 import BankCard from '@/components/ui/BankCard'
+import { Button } from '@/components/ui/Button'
 
 interface PaymentConfig {
   bankAccounts: BankAccount[]
@@ -212,12 +213,13 @@ function PaymentConfigTab({ config, onUpdate }: { config: PaymentConfig; onUpdat
             </h3>
             <p className="text-xs text-gray-400 mt-0.5">Rekening tujuan transfer pembayaran dari customer</p>
           </div>
-          <button
+          <Button
+            variant="indigo"
             onClick={() => setShowAddBank(!showAddBank)}
-            className="flex items-center gap-1.5 text-xs bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-xl font-semibold transition-colors shadow-sm shadow-indigo-600/10"
+            className="text-xs px-4 py-2 gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" /> Tambah Rekening
-          </button>
+          </Button>
         </div>
 
         {/* Add bank form */}
@@ -273,9 +275,9 @@ function PaymentConfigTab({ config, onUpdate }: { config: PaymentConfig; onUpdat
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={addBank} className="flex items-center gap-1.5 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors">
+              <Button variant="indigo" onClick={addBank} className="px-5">
                 <Plus className="w-3.5 h-3.5" /> Tambahkan
-              </button>
+              </Button>
               <button onClick={() => { setShowAddBank(false); setNewBank({ bankName: '', accountNumber: '', accountName: '', logoUrl: '' }) }}
                 className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium">
                 Batal
@@ -313,9 +315,9 @@ function PaymentConfigTab({ config, onUpdate }: { config: PaymentConfig; onUpdat
                         placeholder="Atas Nama"
                         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                       <div className="flex gap-2">
-                        <button onClick={() => saveEdit(acc.id)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-700">
+                        <Button variant="indigo" onClick={() => saveEdit(acc.id)} className="text-xs px-4 py-2 rounded-lg">
                           Simpan
-                        </button>
+                        </Button>
                         <button onClick={() => setEditingId(null)} className="text-xs text-gray-500 hover:text-gray-700 px-3 py-2">
                           Batal
                         </button>
@@ -492,14 +494,15 @@ function PaymentConfigTab({ config, onUpdate }: { config: PaymentConfig; onUpdat
               {wa ? ` · WA: +${wa}` : ''}
             </p>
           </div>
-          <button
+          <Button
+            variant="indigo"
             onClick={save}
             disabled={saving}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 shadow-sm shadow-indigo-600/10 transition-colors"
+            className="px-6"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Menyimpan...' : 'Simpan Semua'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -745,11 +748,11 @@ function ProofsTab({ proofs, packageDuration, onReview }: {
                     className="w-full px-3.5 py-2.5 text-sm border border-red-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 resize-none bg-white"
                   />
                   <div className="flex gap-2">
-                    <button onClick={() => handleReview(proof, 'rejected')} disabled={loading || !adminNotes.trim()}
-                      className="flex items-center gap-1.5 bg-red-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-50 shadow-sm">
+                    <Button variant="danger" onClick={() => handleReview(proof, 'rejected')} disabled={loading || !adminNotes.trim()}
+                      className="px-5">
                       {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
                       {loading ? 'Memproses...' : 'Konfirmasi Tolak'}
-                    </button>
+                    </Button>
                     <button onClick={() => setReviewingId(null)} className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 font-medium">
                       Batal
                     </button>

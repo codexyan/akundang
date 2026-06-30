@@ -9,6 +9,7 @@ import {
   Copy, Hash, X, EyeOff, Ban,
   MessageSquare, Send, LayoutDashboard, Zap,
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 //  Types 
 
@@ -823,14 +824,15 @@ export default function UsersTab({ users, templates, onDelete, onOverridePaid, o
                                           >
                                             Batal
                                           </button>
-                                          <button
+                                          <Button
+                                            variant="indigo"
                                             onClick={() => sendTicketReply(ticket.id, user.id)}
                                             disabled={sendingReply || !replyMessage.trim()}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                            className="px-3 py-1.5 text-xs gap-1.5 rounded-lg"
                                           >
                                             {sendingReply ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                             Kirim
-                                          </button>
+                                          </Button>
                                         </div>
                                       </div>
                                     )}
@@ -1054,12 +1056,13 @@ export default function UsersTab({ users, templates, onDelete, onOverridePaid, o
                   </button>
                 </>
               ) : (
-                <button
+                <Button
+                  variant="primary"
                   onClick={() => { setResetModal(null); setResetResult(null) }}
-                  className="px-4 py-2 text-xs font-medium bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors"
+                  className="px-4 py-2 text-xs rounded-lg"
                 >
                   Selesai
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -1131,14 +1134,15 @@ export default function UsersTab({ users, templates, onDelete, onOverridePaid, o
               >
                 Batal
               </button>
-              <button
+              <Button
+                variant="danger"
                 onClick={doDelete}
                 disabled={deleting || deleteConfirmText !== deleteModal.email}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-xs gap-1.5 rounded-lg"
               >
                 {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                 {deleting ? 'Menghapus...' : 'Hapus Permanen'}
-              </button>
+              </Button>
             </div>
           </div>
         </ModalBackdrop>
