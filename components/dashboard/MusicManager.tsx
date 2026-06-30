@@ -40,9 +40,13 @@ export default function MusicManager({ invitation, onSaved }: Props) {
   }, [])
 
   useEffect(() => {
+    // Capture refs at cleanup time so we pause whichever audio is actually
+    // playing when the component unmounts (values are intentionally read late).
+    const previewAudio = previewAudioRef
+    const currentAudio = currentAudioRef
     return () => {
-      previewAudioRef.current?.pause()
-      currentAudioRef.current?.pause()
+      previewAudio.current?.pause()
+      currentAudio.current?.pause()
     }
   }, [])
 
