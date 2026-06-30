@@ -186,24 +186,26 @@ export default function SettingsPanel({ invitation, userEmail, onDeleted }: Prop
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => { setShowDeleteDialog(false); setConfirmText('') }}
                 disabled={deleting}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                className="flex-1"
               >
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
                 onClick={handleDelete}
                 disabled={confirmText !== slug || deleting}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1"
               >
                 {deleting ? (
                   <><Loader2 size={14} className="animate-spin" /> Menghapus...</>
                 ) : (
                   <><Trash2 size={14} /> Hapus Permanen</>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

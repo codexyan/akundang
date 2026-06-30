@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FileEdit, Users, LogOut,
   ExternalLink, Copy, Menu, X, ChevronRight, Eye, Send,
   Settings, MessageSquare, BarChart3, Gift,
-  Sparkles, Crown, Globe, ArrowUpRight, ShieldCheck,
+  Sparkles, Crown, Globe, ArrowUpRight, ShieldCheck, MoreHorizontal,
 } from 'lucide-react'
 import type { Invitation, NewInvitationData } from '@/lib/types'
 import { LEGACY_TEMPLATE_IDS } from '@/lib/types'
@@ -58,8 +58,12 @@ const NAV: { id: Tab; label: string; icon: React.ElementType; badge?: string }[]
   { id: 'referral',     label: 'Referral',   icon: Gift },
   { id: 'subscription', label: 'Langganan',  icon: ShieldCheck },
   { id: 'support',      label: 'Bantuan',    icon: MessageSquare },
-  { id: 'settings',     label: 'Settings',   icon: Settings },
+  { id: 'settings',     label: 'Pengaturan', icon: Settings },
 ]
+
+// Mobile bottom nav shows 4 primary tabs plus a "Lainnya" overflow sheet
+const MOBILE_PRIMARY = NAV.slice(0, 4)
+const MOBILE_OVERFLOW = NAV.slice(4)
 
 function getDisplayNames(inv: Invitation): { groom: string; bride: string } {
   const isLegacy = (LEGACY_TEMPLATE_IDS as string[]).includes(inv.template_id)
@@ -75,8 +79,11 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
   const [tab, setTab] = useState<Tab>('overview')
   const [inv, setInv] = useState<Invitation | null>(invitation)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false)
   const [showFullPreview, setShowFullPreview] = useState(false)
   const [previewTemplate, setPreviewTemplate] = useState<import('@/lib/types').TemplateRecord | null>(null)
+
+  const currentTabLabel = NAV.find(n => n.id === tab)?.label ?? 'Beranda'
 
   const isPaid = inv?.is_paid ?? false
   const isPublished = inv?.is_published ?? false
@@ -149,6 +156,7 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
   function navTo(id: Tab) {
     setTab(id)
     setSidebarOpen(false)
+    setMobileMoreOpen(false)
   }
 
   const statusConfig = expired
@@ -227,12 +235,13 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
               <button
                 key={id}
                 onClick={() => navTo(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all text-left group ${
+                className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all text-left group ${
                   active
                     ? 'bg-white/[0.1] text-white shadow-sm'
                     : 'text-white/40 hover:bg-white/[0.05] hover:text-white/70'
                 }`}
               >
+                {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-amber-400" />}
                 <Icon size={16} strokeWidth={active ? 2 : 1.5} />
                 <span className="flex-1">{label}</span>
                 {active && <ChevronRight size={12} className="text-white/30" />}
@@ -291,6 +300,14 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
           ) : <div className="w-9" />}
         </header>
 
+        {/* Desktop breadcrumb header */}
+        <div className="hidden md:flex items-center h-12 px-6 shrink-0 border-b border-stone-200/50 bg-white/60 backdrop-blur-xl">
+          <p className="text-xs text-stone-400 font-medium">
+            Dashboard <span className="text-stone-300 mx-1">/</span>
+            <span className="text-stone-700">{currentTabLabel}</span>
+          </p>
+        </div>
+
         {/* Content area */}
         <main className={`flex-1 min-h-0 ${tab === 'undangan' ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'}`}>
           {tab === 'undangan' && inv ? (
@@ -339,7 +356,7 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
         {/* Mobile bottom nav */}
         {inv && (
           <nav className="md:hidden bg-white/90 backdrop-blur-xl border-t border-stone-200/50 flex shrink-0 safe-area-bottom">
-            {NAV.slice(0, 5).map(({ id, label, icon: Icon }) => (
+            {MOBILE_PRIMARY.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => navTo(id)}
@@ -351,9 +368,43 @@ export default function DashboardClient({ user, invitation, selectedTemplateId, 
                 {label}
               </button>
             ))}
+            <button
+              onClick={() => setMobileMoreOpen(true)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors ${
+                MOBILE_OVERFLOW.some(n => n.id === tab) ? 'text-amber-600' : 'text-stone-400'
+              }`}
+            >
+              <MoreHorizontal size={18} strokeWidth={MOBILE_OVERFLOW.some(n => n.id === tab) ? 2 : 1.5} />
+              Lainnya
+            </button>
           </nav>
         )}
       </div>
+
+      {/* Mobile overflow bottom sheet */}
+      {mobileMoreOpen && inv && (
+        <div className="md:hidden fixed inset-0 z-[55]">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileMoreOpen(false)} />
+          <div className="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl p-4 pb-6 safe-area-bottom">
+            <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
+            <p className="text-xs font-semibold text-stone-400 px-2 mb-3">Menu Lainnya</p>
+            <div className="grid grid-cols-3 gap-2">
+              {MOBILE_OVERFLOW.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => navTo(id)}
+                  className={`flex flex-col items-center gap-1.5 py-3.5 rounded-2xl transition-colors ${
+                    tab === id ? 'bg-stone-900 text-white' : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
+                  }`}
+                >
+                  <Icon size={18} strokeWidth={tab === id ? 2 : 1.5} />
+                  <span className="text-[11px] font-medium">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full-screen preview overlay */}
       {showFullPreview && inv && (

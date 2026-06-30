@@ -11,6 +11,7 @@ import {
 import type { Invitation, Guest } from '@/lib/types'
 import { getPackage, type PackageTier } from '@/lib/packages'
 import { getInvitationUrl } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'
 
 interface Props {
   invitation: Invitation
@@ -217,23 +218,19 @@ export default function GuestManager({ invitation }: Props) {
             </button>
           )}
 
-          <button
-            onClick={exportCsv}
-            disabled={contacts.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl transition-colors disabled:opacity-40"
-          >
+          <Button variant="secondary" onClick={exportCsv} disabled={contacts.length === 0}>
             <Download size={16} /> Export CSV
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               navigator.clipboard.writeText(invUrl)
               toast.success('Link disalin!')
             }}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl transition-colors"
           >
             <Copy size={16} /> Salin Link
-          </button>
+          </Button>
         </div>
 
         {/* Add form */}
