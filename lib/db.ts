@@ -625,7 +625,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   confirmationWhatsapp: '628123456789', siteName: 'iaundang', siteTagline: 'Digital Wedding Invitation',
   logoHorizontalUrl: '/logos/logo-horizontal.png', logoVerticalUrl: '/logos/logo-vertical.png',
   contactWhatsapp: '628123456789', contactEmail: 'halo@iaundang.online',
-  socialInstagram: 'iaundang.online', socialTwitter: 'iaundang', socialGithub: 'iaundang',
+  socialInstagram: 'ia.undang', socialTwitter: 'iaundang', socialGithub: 'iaundang',
   appDomain: 'iaundang.online', demoSubdomain: 'demo',
   maintenanceMode: false,
 }

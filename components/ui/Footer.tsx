@@ -19,7 +19,7 @@ const companyLinks = [
 ]
 
 const socials = [
-  { href: 'https://instagram.com/iaundang.online', icon: Instagram, label: 'Instagram' },
+  { href: 'https://instagram.com/ia.undang', icon: Instagram, label: 'Instagram' },
   { href: 'https://wa.me/628123456789', icon: MessageCircle, label: 'WhatsApp' },
 ]
 

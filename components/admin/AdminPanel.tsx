@@ -455,7 +455,7 @@ export default function AdminPanel({
               logoVerticalUrl: appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png',
               contactEmail: appSettings.contactEmail ?? 'halo@iaundang.online',
               contactWhatsapp: appSettings.confirmationWhatsapp ?? '628123456789',
-              socialInstagram: appSettings.socialInstagram ?? 'iaundang.online',
+              socialInstagram: appSettings.socialInstagram ?? 'ia.undang',
               socialTwitter: appSettings.socialTwitter ?? 'iaundang',
               socialGithub: appSettings.socialGithub ?? 'iaundang',
               appDomain: appSettings.appDomain ?? 'iaundang.online',

@@ -82,7 +82,7 @@ export default async function AdminPage() {
         logoHorizontalUrl: appSettings.logoHorizontalUrl ?? '/logos/logo-horizontal.png',
         logoVerticalUrl: appSettings.logoVerticalUrl ?? '/logos/logo-vertical.png',
         contactEmail: appSettings.contactEmail ?? 'halo@iaundang.online',
-        socialInstagram: appSettings.socialInstagram ?? 'iaundang.online',
+        socialInstagram: appSettings.socialInstagram ?? 'ia.undang',
         socialTwitter: appSettings.socialTwitter ?? 'iaundang',
         socialGithub: appSettings.socialGithub ?? 'iaundang',
         appDomain: appSettings.appDomain ?? 'iaundang.online',

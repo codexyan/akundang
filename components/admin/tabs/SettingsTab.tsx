@@ -524,7 +524,7 @@ function ContactPanel({
   update: <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => void
 }) {
   const socialLinks = [
-    { label: 'Instagram', icon: Instagram, value: form.socialInstagram, key: 'socialInstagram' as const, placeholder: 'iaundang.online', prefix: '@', hint: 'Username tanpa @' },
+    { label: 'Instagram', icon: Instagram, value: form.socialInstagram, key: 'socialInstagram' as const, placeholder: 'ia.undang', prefix: '@', hint: 'Username tanpa @' },
     { label: 'Twitter / X', icon: Twitter, value: form.socialTwitter, key: 'socialTwitter' as const, placeholder: 'iaundang', prefix: '@', hint: 'Username tanpa @' },
     { label: 'GitHub', icon: Github, value: form.socialGithub, key: 'socialGithub' as const, placeholder: 'iaundang', prefix: '', hint: 'Repository atau organisasi' },
   ]
