@@ -16,7 +16,7 @@ function PhoneMockup({ children, className = '' }: { children: React.ReactNode; 
       style={{
         padding: 5,
         background: 'linear-gradient(160deg, #2a2a2c 0%, #1a1a1c 40%, #0a0a0a 100%)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+        boxShadow: '0 12px 28px -10px rgba(10,10,10,0.22), 0 28px 56px -16px rgba(10,10,10,0.14), inset 0 1px 0 rgba(255,255,255,0.08)',
       }}
     >
       <div className="absolute left-1/2 -translate-x-1/2 z-30 rounded-full" style={{ top: 8, width: 56, height: 16, backgroundColor: '#000' }} />
@@ -44,6 +44,12 @@ const TIER_BADGE: Record<string, { label: string; icon: typeof Sparkles }> = {
   starter: { label: 'Starter', icon: Sparkles },
   popular: { label: 'Popular', icon: Crown },
   eksklusif: { label: 'Eksklusif', icon: Gem },
+}
+
+// Solid-color blur placeholder so foto external (Unsplash) tidak flash kosong saat load
+function blurFor(color: string): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='8' height='12'><rect width='100%' height='100%' fill='${color}'/></svg>`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
 function templateToCard(t: TemplateRecord): TemplateCard {
@@ -109,7 +115,7 @@ export default function TemplatePreview({ templates }: { showcase?: ShowcaseData
           <p className="text-[12px] font-semibold tracking-[0.15em] uppercase text-concrete mb-4">
             Koleksi Template
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-graphite tracking-tight leading-[1.1]">
+          <h2 className="text-display-lg text-graphite text-balance">
             Pilih desain, preview langsung
           </h2>
           <p className="mt-4 text-concrete text-[15px] leading-relaxed max-w-lg mx-auto">
@@ -135,7 +141,7 @@ export default function TemplatePreview({ templates }: { showcase?: ShowcaseData
                 onMouseLeave={() => setHoveredIdx(null)}
                 className="group"
               >
-                <div className="rounded-2xl border border-hairline bg-mist/50 p-4 sm:p-5 transition-all duration-300 hover:border-ash/40 hover:shadow-lg hover:shadow-graphite/[0.04]">
+                <div className="rounded-2xl border border-hairline bg-mist/50 p-4 sm:p-5 transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:scale-[1.02] group-hover:border-ash/40 group-hover:shadow-[0_18px_40px_-16px_rgba(10,10,10,0.18),0_8px_18px_-10px_rgba(10,10,10,0.12)]">
 
                   {/* Phone Mockup */}
                   <div className="flex justify-center mb-5">
@@ -147,9 +153,10 @@ export default function TemplatePreview({ templates }: { showcase?: ShowcaseData
                       <PhoneMockup>
                         <div className="absolute inset-0" style={{ backgroundColor: card.primary }}>
                           {card.coverPhoto && (
-                            <Image src={card.coverPhoto} alt={card.name} fill className="object-cover" sizes="200px" style={{ opacity: 0.5 }} />
+                            <Image src={card.coverPhoto} alt={card.name} fill className="object-cover" sizes="200px"
+                              placeholder="blur" blurDataURL={blurFor(card.primary)} style={{ opacity: 0.6 }} />
                           )}
-                          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 10%, ${card.primary}cc 50%, ${card.primary} 100%)` }} />
+                          <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 18%, ${card.primary}99 56%, ${card.primary} 100%)` }} />
                           <div className="absolute inset-0 z-10 flex flex-col items-center justify-end pb-10 px-4">
                             <p className="text-[7px] tracking-[0.35em] uppercase mb-2" style={{ color: `${card.accent}bb` }}>
                               The Wedding of

@@ -253,7 +253,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
             const canGoBack = isDone && step !== 3
             return (
               <div key={i} className="flex items-center">
-                {i > 0 && <div className={`w-6 sm:w-10 h-px mx-1 ${isDone ? 'bg-forest-300' : 'bg-stone-200'}`} />}
+                {i > 0 && <div className={`w-6 sm:w-10 h-0.5 mx-1 rounded-full ${isDone ? 'bg-forest-400' : 'bg-stone-200'}`} />}
                 <button
                   type="button"
                   onClick={() => { if (canGoBack) setStep(i as Step) }}
@@ -277,7 +277,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
         </div>
 
         {/* Form card */}
-        <div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border border-stone-100 shadow-[0_1px_3px_rgba(10,10,10,0.04),0_12px_32px_-16px_rgba(10,10,10,0.10)] overflow-hidden">
 
           {/* Step 0: Data Mempelai */}
           {step === 0 && (
@@ -412,7 +412,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
                       className={`relative text-left rounded-2xl border-2 transition-all flex flex-col ${
                         selected
                           ? 'border-forest-500 bg-forest-50/30 shadow-lg shadow-forest-100'
-                          : 'border-stone-150 bg-white hover:border-stone-300 hover:shadow-md'
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-md'
                       }`}
                     >
                       {tier.highlight && (
@@ -692,7 +692,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
           {step < 3 && (
             <div className="flex items-center justify-between px-6 sm:px-8 py-4 border-t border-stone-100 bg-stone-50/50">
               {step > 0 ? (
-                <button onClick={() => setStep((step - 1) as Step)} className="flex items-center gap-1 text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors">
+                <button onClick={() => setStep((step - 1) as Step)} className="flex items-center gap-1 min-h-[44px] px-3 py-2.5 -ml-2 rounded-xl text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-100 font-medium transition-colors">
                   <ChevronLeft size={16} /> Kembali
                 </button>
               ) : <div />}
@@ -701,7 +701,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
                 <button
                   onClick={handleSubmitOrder}
                   disabled={!canNext() || submitting}
-                  className="flex items-center gap-2 px-7 py-3 bg-forest-600 text-white text-sm font-bold rounded-xl hover:bg-forest-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-forest-600/20"
+                  className="flex items-center gap-2 min-h-[44px] px-7 py-3 bg-forest-600 text-white text-sm font-bold rounded-xl hover:bg-forest-700 transition-colors shadow-lg shadow-forest-600/20 disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShoppingBag size={16} />}
                   Buat Pesanan
@@ -710,7 +710,7 @@ export default function OrderForm({ templateId, templateName, tiers, paymentConf
                 <button
                   onClick={() => setStep((step + 1) as Step)}
                   disabled={!canNext()}
-                  className="flex items-center gap-1 px-6 py-3 bg-forest-600 text-white text-sm font-semibold rounded-xl hover:bg-forest-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 min-h-[44px] px-6 py-3 bg-forest-600 text-white text-sm font-semibold rounded-xl hover:bg-forest-700 transition-colors disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   Lanjut <ChevronRight size={16} />
                 </button>
