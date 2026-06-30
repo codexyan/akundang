@@ -270,7 +270,7 @@ Hash-based deterministic variant assignment (same session → same variant).
 ### Cron
 | Method | Route | Purpose |
 |--------|-------|---------|
-| POST | `/api/cron/sync-subscriptions` | Batch expire + notify (CRON_SECRET) |
+| GET | `/api/cron/sync-subscriptions` | Batch expire + notify (CRON_SECRET, Vercel Cron) |
 
 ---
 
