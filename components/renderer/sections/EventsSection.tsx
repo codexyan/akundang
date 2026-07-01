@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, EventDetail } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, cardBg } from '../SectionWrapper'
@@ -60,7 +61,7 @@ function EditorialHeader({ accent, text, headingFont, bodyFont }: {
   )
 }
 
-function MapsButton({ url, accent, text, bodyFont, light, cs }: { url: string; accent: string; text: string; bodyFont: string; light?: boolean; cs: ReturnType<typeof getComponentStyle> }) {
+function MapsButton({ url, accent, text, bodyFont, light, editorial, cs }: { url: string; accent: string; text: string; bodyFont: string; light?: boolean; editorial?: boolean; cs: ReturnType<typeof getComponentStyle> }) {
   if (light) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer"
@@ -72,6 +73,21 @@ function MapsButton({ url, accent, text, bodyFont, light, cs }: { url: string; a
           textDecoration: 'none', transition: 'all 0.3s',
         }}>
         <MapPin size={12} style={{ opacity: 0.6 }} />
+        Lihat Peta
+      </a>
+    )
+  }
+  // Editorial: ikon + teks underline tanpa border box   menyatu dengan gaya majalah/undangan cetak
+  if (editorial) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5"
+        style={{
+          color: accent, fontSize: fsb(9), fontWeight: 500, letterSpacing: '0.14em',
+          textTransform: 'uppercase' as const, fontFamily: bodyFont, textDecoration: 'none',
+          borderBottom: `1px solid ${accent}55`, paddingBottom: 2,
+        }}>
+        <MapPin size={11} style={{ opacity: 0.75 }} />
         Lihat Peta
       </a>
     )
@@ -89,40 +105,92 @@ function MapsButton({ url, accent, text, bodyFont, light, cs }: { url: string; a
   )
 }
 
+// Badge ikon melingkar tipis   memberi "berat visual" supaya info tidak terasa seperti bullet list
+function IconBadge({ children, accent, light }: { children: ReactNode; accent: string; light?: boolean }) {
+  return (
+    <div style={{
+      width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+      border: `1px solid ${light ? 'rgba(255,255,255,0.35)' : `${accent}45`}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: light ? 'rgba(255,255,255,0.8)' : accent,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+// Info stacked dengan badge   dipakai DefaultView & CinematicView (light)
 function EventInfo({ event, accent, text, bodyFont, light }: {
   event: EventDetail; accent: string; text: string; bodyFont: string; light?: boolean
 }) {
-  const labelColor = light ? 'rgba(255,255,255,0.6)' : `${text}65`
-  const valueColor = light ? 'rgba(255,255,255,0.9)' : `${text}95`
-  const subColor = light ? 'rgba(255,255,255,0.6)' : `${text}65`
-  const iconColor = light ? 'rgba(255,255,255,0.5)' : `${accent}70`
+  const labelColor = light ? 'rgba(255,255,255,0.7)' : `${text}80`
+  const valueColor = light ? '#ffffff' : text
+  const subColor = light ? 'rgba(255,255,255,0.65)' : `${text}70`
+
+  const label: React.CSSProperties = { fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: labelColor, fontFamily: bodyFont, marginBottom: 3 }
+  const value: React.CSSProperties = { fontSize: fsb(11.5), color: valueColor, fontFamily: bodyFont, lineHeight: 1.45 }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="flex items-center gap-3">
-        <CalendarDays size={13} style={{ color: iconColor, flexShrink: 0 }} />
+        <IconBadge accent={accent} light={light}><CalendarDays size={13} /></IconBadge>
         <div>
-          <p style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: labelColor, fontFamily: bodyFont, marginBottom: 3 }}>Tanggal</p>
-          <p style={{ fontSize: fsb(10.5), color: valueColor, fontFamily: bodyFont, lineHeight: 1.5 }} className="capitalize">{fmt(event.date)}</p>
+          <p style={label}>Tanggal</p>
+          <p style={value} className="capitalize">{fmt(event.date)}</p>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <Clock size={13} style={{ color: iconColor, flexShrink: 0 }} />
+        <IconBadge accent={accent} light={light}><Clock size={13} /></IconBadge>
         <div>
-          <p style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: labelColor, fontFamily: bodyFont, marginBottom: 3 }}>Waktu</p>
-          <p style={{ fontSize: fsb(10.5), color: valueColor, fontFamily: bodyFont }}>{event.time} WIB</p>
+          <p style={label}>Waktu</p>
+          <p style={value}>{event.time} WIB</p>
         </div>
       </div>
       <div className="flex items-start gap-3">
-        <MapPin size={13} style={{ color: iconColor, flexShrink: 0, marginTop: 2 }} />
+        <IconBadge accent={accent} light={light}><MapPin size={13} /></IconBadge>
         <div>
-          <p style={{ fontSize: fsb(7), letterSpacing: '0.2em', textTransform: 'uppercase', color: labelColor, fontFamily: bodyFont, marginBottom: 3 }}>Lokasi</p>
-          <p style={{ fontSize: fsb(10.5), color: valueColor, fontFamily: bodyFont, lineHeight: 1.5 }}>{event.venue_name}</p>
+          <p style={label}>Lokasi</p>
+          <p style={value}>{event.venue_name}</p>
           {event.venue_address && (
             <p style={{ fontSize: fsb(9), color: subColor, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 3 }}>{event.venue_address}</p>
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Info inline ala caption majalah   tanggal & jam sebaris (dipisah bullet), lokasi di bawah
+function EventInfoMagazine({ event, accent, text, bodyFont }: {
+  event: EventDetail; accent: string; text: string; bodyFont: string
+}) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span className="capitalize" style={{ fontSize: fsb(11.5), color: text, fontFamily: bodyFont }}>{fmt(event.date)}</span>
+        <span style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}80`, flexShrink: 0 }} />
+        <span style={{ fontSize: fsb(11.5), color: text, fontFamily: bodyFont }}>{event.time} WIB</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 10 }}>
+        <MapPin size={12} style={{ color: `${accent}90`, marginTop: 2, flexShrink: 0 }} />
+        <div>
+          <p style={{ fontSize: fsb(10.5), color: text, fontFamily: bodyFont, lineHeight: 1.5 }}>{event.venue_name}</p>
+          {event.venue_address && (
+            <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.6, marginTop: 2 }}>{event.venue_address}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Divider ornamental tipis (garis + wajik)   dipakai ElegantView di antara tanggal/jam/lokasi
+function OrnDivider({ accent }: { accent: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '10px 0' }}>
+      <div style={{ width: 24, height: '0.5px', background: `${accent}40` }} />
+      <div style={{ width: 4, height: 4, transform: 'rotate(45deg)', border: `0.5px solid ${accent}70` }} />
+      <div style={{ width: 24, height: '0.5px', background: `${accent}40` }} />
     </div>
   )
 }
@@ -223,9 +291,11 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
               viewport={{ once: true }} transition={{ delay: index * 0.15 }}
               style={{ position: 'relative', width: '100%', minHeight: 380, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
 
-              {/* Background */}
+              {/* Background   parallax scale-in halus saat masuk viewport */}
               {event.venue_photo_url ? (
-                <img src={event.venue_photo_url} alt={event.venue_name}
+                <motion.img src={event.venue_photo_url} alt={event.venue_name}
+                  initial={{ scale: 1.12 }} whileInView={{ scale: 1 }} viewport={{ once: true }}
+                  transition={{ duration: 1.5, ease: 'easeOut' }}
                   style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ position: 'absolute', inset: 0, background: `${accent}15` }} />
@@ -253,10 +323,13 @@ function CinematicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx
                   {event.venue_name}
                 </h3>
 
-                <EventInfo event={event} accent={accent} text="#ffffff" bodyFont={bodyFont} light />
+                {/* Stat card mengambang: frosted blur supaya info tetap terbaca di atas foto full-bleed */}
+                <div style={{ ...cardBg({ type: 'image' }), padding: 16 }}>
+                  <EventInfo event={event} accent={accent} text="#ffffff" bodyFont={bodyFont} light />
+                </div>
 
                 {event.maps_url && (
-                  <div style={{ marginTop: 20 }}>
+                  <div style={{ marginTop: 18 }}>
                     <MapsButton url={event.maps_url} accent={accent} text="#ffffff" bodyFont={bodyFont} light cs={cs} />
                   </div>
                 )}
@@ -288,8 +361,11 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         <EditorialHeader accent={accent} text={text} headingFont={headingFont} bodyFont={bodyFont} />
 
         <div style={{ position: 'relative', paddingLeft: 28 }}>
-          {/* Vertical line */}
-          <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: '0.5px', background: `${accent}35` }} />
+          {/* Vertical line   "tergambar" scaleY 0->1 seiring event muncul */}
+          <motion.div
+            variants={{ hidden: { scaleY: 0 }, visible: { scaleY: 1, transition: { duration: 0.5 + events.length * 0.15, ease: 'easeOut' } } }}
+            style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: '0.5px', background: `${accent}35`, transformOrigin: 'top' }}
+          />
 
           {events.map(({ title, event, index }) => (
             <motion.div key={title}
@@ -305,13 +381,17 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                 <div style={{ position: 'absolute', inset: 3, borderRadius: '50%', background: `${accent}60` }} />
               </div>
 
-              {/* Event label */}
-              <p style={{ fontSize: fsb(8), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${accent}60`, fontFamily: bodyFont, marginBottom: 6 }}>
+              {/* Event label (eyebrow) */}
+              <p style={{ fontSize: fsb(8), letterSpacing: '0.25em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginBottom: 6 }}>
                 {title}
               </p>
-              <h3 style={{ fontSize: fsh(17), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: 16 }}>
-                {event.venue_name}
+              {/* Tanggal = elemen paling menonjol (runtut kronologis di timeline) */}
+              <h3 className="capitalize" style={{ fontSize: fsh(19), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', lineHeight: 1.25, marginBottom: 4 }}>
+                {fmt(event.date)}
               </h3>
+              <p style={{ fontSize: fsb(10), letterSpacing: '0.1em', color: accent, fontFamily: bodyFont, marginBottom: 14 }}>
+                {event.time} WIB
+              </p>
 
               {/* Venue photo */}
               {event.venue_photo_url && (
@@ -321,7 +401,16 @@ function TimelineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                 </div>
               )}
 
-              <EventInfo event={event} accent={accent} text={text} bodyFont={bodyFont} />
+              {/* Sub-info lokasi (lebih kecil dari tanggal) */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <MapPin size={13} style={{ color: `${accent}70`, marginTop: 2, flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontSize: fsb(10.5), color: text, fontFamily: bodyFont, lineHeight: 1.5 }}>{event.venue_name}</p>
+                  {event.venue_address && (
+                    <p style={{ fontSize: fsb(9), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7, marginTop: 3 }}>{event.venue_address}</p>
+                  )}
+                </div>
+              </div>
 
               {event.maps_url && (
                 <div style={{ marginTop: 16 }}>
@@ -387,11 +476,11 @@ function MagazineView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
                     {event.venue_name}
                   </h3>
 
-                  <EventInfo event={event} accent={accent} text={text} bodyFont={bodyFont} />
+                  <EventInfoMagazine event={event} accent={accent} text={text} bodyFont={bodyFont} />
 
                   {event.maps_url && (
                     <div style={{ marginTop: 16 }}>
-                      <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
+                      <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} editorial cs={cs} />
                     </div>
                   )}
                 </div>
@@ -423,7 +512,7 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {events.map(({ title, event, index }) => (
             <motion.div key={title} className="text-center"
-              variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { delay: index * 0.15 } } }}>
+              variants={{ hidden: { opacity: 0, y: 18, scale: 0.96 }, visible: { opacity: 1, y: 0, scale: 1, transition: { delay: index * 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] } } }}>
 
               {/* Divider between events */}
               {index > 0 && (
@@ -440,24 +529,34 @@ function ElegantView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
                 </div>
               )}
 
-              <p style={{ fontSize: fsb(8), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}60`, fontFamily: bodyFont, marginBottom: 8 }}>
+              <p style={{ fontSize: fsb(8), letterSpacing: '0.3em', textTransform: 'uppercase', color: `${accent}70`, fontFamily: bodyFont, marginBottom: 8 }}>
                 {title}
               </p>
-              <h3 style={{ fontSize: fsh(20), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: 6 }}>
+              <h3 style={{ fontSize: fsh(20), fontWeight: 400, color: text, fontFamily: headingFont, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: 4 }}>
                 {event.venue_name}
               </h3>
-              <p style={{ fontSize: fsb(10), color: `${text}70`, fontFamily: bodyFont, fontStyle: 'italic', marginBottom: 20 }} className="capitalize">
-                {fmt(event.date)}  {event.time} WIB
-              </p>
 
+              {/* Detail dengan ornamental divider   kesan formal undangan cetak, bukan 3 baris polos */}
+              <p className="capitalize" style={{ fontSize: fsb(11), color: text, fontFamily: bodyFont, marginTop: 10 }}>
+                {fmt(event.date)}
+              </p>
+              <OrnDivider accent={accent} />
+              <p style={{ fontSize: fsb(11), color: text, fontFamily: bodyFont }}>
+                {event.time} WIB
+              </p>
               {event.venue_address && (
-                <p style={{ fontSize: fsb(9.5), color: `${text}60`, fontFamily: bodyFont, lineHeight: 1.8, marginBottom: 16 }}>
-                  {event.venue_address}
-                </p>
+                <>
+                  <OrnDivider accent={accent} />
+                  <p style={{ fontSize: fsb(9.5), color: `${text}70`, fontFamily: bodyFont, lineHeight: 1.7 }}>
+                    {event.venue_address}
+                  </p>
+                </>
               )}
 
               {event.maps_url && (
-                <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} cs={cs} />
+                <div style={{ marginTop: 20 }}>
+                  <MapsButton url={event.maps_url} accent={accent} text={text} bodyFont={bodyFont} editorial cs={cs} />
+                </div>
               )}
             </motion.div>
           ))}
