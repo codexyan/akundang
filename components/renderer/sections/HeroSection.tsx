@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import SectionWrapper, { resolveFont } from '../SectionWrapper'
 import { usePreviewContext } from '../PreviewContext'
+import BrandMarkLogo from '../BrandMarkLogo'
 
 interface Props {
   section: SectionConfig
@@ -78,21 +79,13 @@ function Bismillah({ section, font, accent, delay }: {
   )
 }
 
-//  Hero Icon/Logo component
+//  Hero brand mark (logo iaundang) — selalu tampil, bukan lagi upload custom
 function HeroIcon({ section, delay, dur }: { section: SectionConfig; delay: number; dur: number }) {
-  if (!section.hero_icon_url) return null
   const size = section.hero_icon_size ?? 40
   return (
-    <motion.div
-      variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: { delay, duration: dur } } }}
-      style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}
-    >
-      <img
-        src={section.hero_icon_url}
-        alt=""
-        style={{ width: size, height: size, objectFit: 'contain' }}
-      />
-    </motion.div>
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+      <BrandMarkLogo size={size} delay={delay} dur={dur} />
+    </div>
   )
 }
 
@@ -235,17 +228,10 @@ function HeroBottom({ section, data, font, accent, text, primary }: {
         background: `radial-gradient(ellipse at center bottom, transparent 50%, ${primary}55 100%)`,
       }} />
 
-      {/* Top icon — positioned absolute at top center */}
-      {section.hero_icon_url && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: stagger * 0.3, duration: dur }}
-          style={{ position: 'absolute', top: 24, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 2 }}
-        >
-          <img src={section.hero_icon_url} alt="" style={{ width: section.hero_icon_size ?? 40, height: section.hero_icon_size ?? 40, objectFit: 'contain' }} />
-        </motion.div>
-      )}
+      {/* Top brand mark — positioned absolute at top center, selalu tampil */}
+      <div style={{ position: 'absolute', top: 24, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 2 }}>
+        <BrandMarkLogo size={section.hero_icon_size ?? 40} delay={stagger * 0.3} dur={dur} />
+      </div>
 
       <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', paddingLeft: 28, paddingRight: 28 }}>
 

@@ -4196,42 +4196,28 @@ export default function TemplateLab({ onGoToManagement, onTemplateReleased, edit
                         {s.type === 'hero' && (
                           <div className="space-y-4">
 
-                            {/* Icon / Logo kecil */}
+                            {/* Brand mark iaundang   otomatis, tidak bisa diupload */}
                             <div className="bg-white rounded-xl border border-gray-200 p-3 space-y-2.5">
-                              <div className="flex items-center justify-between">
-                                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Icon / Logo</p>
-                                {s.hero_icon_url && (
-                                  <button type="button" onClick={() => updateSection(s.id, { hero_icon_url: undefined })}
-                                    className="text-[8px] font-semibold text-gray-400 hover:text-red-400 transition-colors">Hapus</button>
-                                )}
-                              </div>
-                              <p className="text-[8px] text-gray-400">Monogram, emblem, atau logo kecil di atas cover (opsional)</p>
-                              <div className="flex items-start gap-3">
-                                {s.hero_icon_url && (
-                                  <div className="shrink-0 w-12 h-12 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
-                                    <img src={s.hero_icon_url} alt="icon" className="w-10 h-10 object-contain" />
-                                  </div>
-                                )}
-                                <div className="flex-1">
-                                  <ImageUploadField
-                                    value={s.hero_icon_url}
-                                    onChange={url => updateSection(s.id, { hero_icon_url: url })}
-                                    hint="PNG transparan, SVG, atau WebP"
-                                  />
+                              <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Logo iaundang</p>
+                              <div className="flex items-center gap-3">
+                                <div className="shrink-0 w-12 h-12 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                  <img src="/logos/icons.png" alt="logo iaundang" className="w-9 h-9 object-contain" />
                                 </div>
+                                <p className="text-[9px] text-gray-500 leading-relaxed flex-1">
+                                  Logo iaundang ditampilkan otomatis di Hero. Tidak bisa diganti dengan upload sendiri.
+                                </p>
                               </div>
-                              {s.hero_icon_url && (
-                                <div>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <p className="text-[9px] text-gray-400 font-medium">Ukuran</p>
-                                    <span className="text-[9px] font-bold text-gray-600 tabular-nums">{s.hero_icon_size ?? 40}px</span>
-                                  </div>
-                                  <input type="range" min={20} max={80} step={2}
-                                    value={s.hero_icon_size ?? 40}
-                                    onChange={e => updateSection(s.id, { hero_icon_size: Number(e.target.value) })}
-                                    className="w-full h-1.5 accent-indigo-500 rounded-full" />
+                              {/* Ukuran brand mark tetap bisa diatur */}
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <p className="text-[9px] text-gray-400 font-medium">Ukuran</p>
+                                  <span className="text-[9px] font-bold text-gray-600 tabular-nums">{s.hero_icon_size ?? 40}px</span>
                                 </div>
-                              )}
+                                <input type="range" min={20} max={80} step={2}
+                                  value={s.hero_icon_size ?? 40}
+                                  onChange={e => updateSection(s.id, { hero_icon_size: Number(e.target.value) })}
+                                  className="w-full h-1.5 accent-indigo-500 rounded-full" />
+                              </div>
                             </div>
 
                             {/* Nama & konten */}

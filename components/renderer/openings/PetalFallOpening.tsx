@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { OpeningConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import type { PositionMode } from '../OpeningScene'
+import BrandMarkLogo from '../BrandMarkLogo'
 import DecorationAssetLayer from '../DecorationAssetLayer'
 import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import SeparatorOrnament from '../SeparatorOrnament'
@@ -334,11 +335,10 @@ export default function PetalFallOpening({ config, data, meta, onOpen, positionM
           <motion.div
             className="absolute top-0 inset-x-0 z-20 flex justify-center"
             style={{ paddingTop: 'max(5vh, 28px)' }}
-            initial={{ opacity: 0, y: -20, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.2, duration: 1, type: 'spring', damping: 14 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
           >
-            <img src="/logos/icons.png" alt="" style={{ width: 40, height: 'auto', opacity: 0.85, filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.3))' }} />
+            <BrandMarkLogo size={40} delay={0.2} />
           </motion.div>
 
           {/*  Content  bottom-anchored  */}

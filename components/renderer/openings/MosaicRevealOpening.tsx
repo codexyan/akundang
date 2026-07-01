@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import type { OpeningConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import type { PositionMode } from '../OpeningScene'
+import BrandMarkLogo from '../BrandMarkLogo'
 import DecorationAssetLayer from '../DecorationAssetLayer'
 import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import SeparatorOrnament from '../SeparatorOrnament'
@@ -159,11 +160,10 @@ export default function MosaicRevealOpening({ config, data, meta, onOpen, positi
       <motion.div
         className="absolute top-0 inset-x-0 z-20 flex justify-center"
         style={{ paddingTop: 'max(5vh, 28px)' }}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: clicked ? 0 : 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        animate={{ opacity: clicked ? 0 : 1 }}
+        transition={{ duration: 0.4 }}
       >
-        <img src="/logos/icons.png" alt="" style={{ width: 40, height: 'auto', opacity: 0.85, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))' }} />
+        <BrandMarkLogo size={40} delay={0.3} />
       </motion.div>
 
       {/* Content   bottom-anchored, centered over tiles */}
