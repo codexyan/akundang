@@ -15,10 +15,21 @@ interface Props {
 }
 
 type StyleCtx = {
-  accent: string; text: string
+  accent: string; text: string; primary: string
   headingFont: string; bodyFont: string
   photos: string[]
   onOpen: (i: number) => void
+}
+
+// Campur warna hex ke arah hitam (blackRatio 0..1). Dipakai DramaticView untuk
+// menurunkan warna dasar gelap yang senada tema, bukan hitam pekat universal.
+function mixToBlack(hex: string, blackRatio: number): string {
+  const h = hex.replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  if (full.length !== 6) return '#0a0a0a'
+  const keep = 1 - Math.min(Math.max(blackRatio, 0), 1)
+  const ch = (i: number) => Math.round(parseInt(full.slice(i, i + 2), 16) * keep).toString(16).padStart(2, '0')
+  return `#${ch(0)}${ch(2)}${ch(4)}`
 }
 
 function Ornament({ accent }: { accent: string }) {
@@ -196,21 +207,35 @@ function DefaultView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }
 //  DRAMATIC: Full-bleed cinematic horizontal IG-stories-style 
 
 function DramaticView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
-  const { accent, text, headingFont, bodyFont, photos, onOpen } = ctx
+  const { accent, text, headingFont, bodyFont, photos, onOpen, primary } = ctx
   const [current, setCurrent] = useState(0)
   const total = photos.length
 
   const goNext = useCallback(() => setCurrent(i => (i + 1) % total), [total])
   const goPrev = useCallback(() => setCurrent(i => (i - 1 + total) % total), [total])
 
-  // Auto-advance
+  // Auto-advance   dimatikan kalau cuma ada <=1 foto (tidak berguna & bikin
+  // interval + potensi re-render sia-sia)
   useEffect(() => {
+    if (total <= 1) return
     const t = setInterval(goNext, 4000)
     return () => clearInterval(t)
-  }, [goNext])
+  }, [goNext, total])
+
+  // Warna dasar gelap untuk look IG-stories. Prioritaskan warna background section
+  // eksplisit dari template; kalau tidak ada, turunkan dari primary yang digelapkan
+  // (~85% ke hitam) supaya tetap senada tema, bukan hitam pekat yang bisa clash di
+  // template pastel/terang.
+  const bg = section.background
+  const darkBase = bg.type === 'color' && bg.value ? bg.value : mixToBlack(primary, 0.85)
+
+  // full-bleed: isi lebar & tinggi viewport, tapi tetap lewat SectionWrapper supaya
+  // background/transition/padding/decoration dari config section tetap berlaku.
+  const sectionCfg: SectionConfig = { ...section, content_layout: 'full-bleed' as const }
 
   return (
-    <div style={{ position: 'relative', width: '100%', minHeight: '100dvh', overflow: 'hidden', background: '#0a0a0a' }}>
+    <SectionWrapper section={sectionCfg}>
+    <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: '100%', overflow: 'hidden', background: darkBase }}>
       {/* Background photo  full bleed */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -311,10 +336,11 @@ function DramaticView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx 
         ))}
       </div>
     </div>
+    </SectionWrapper>
   )
 }
 
-//  MOSAIC: Asymmetric magazine-style grid 
+//  MOSAIC: Asymmetric magazine-style grid
 
 function MosaicView({ section, ctx }: { section: SectionConfig; ctx: StyleCtx }) {
   const { accent, text, headingFont, bodyFont, photos, onOpen } = ctx
@@ -639,7 +665,7 @@ function EmptyPreview({ section, accent, text, headingFont, bodyFont }: {
 //  MAIN 
 
 export default function GallerySection({ section, data, meta }: Props) {
-  const { accent, text } = meta.color_scheme
+  const { accent, text, primary } = meta.color_scheme
   const font = resolveFont(meta, section)
   const photos = data.gallery_photos ?? []
   const [lightbox, setLightbox] = useState<number | null>(null)
@@ -654,7 +680,7 @@ export default function GallerySection({ section, data, meta }: Props) {
   }
 
   const ctx: StyleCtx = {
-    accent, text, headingFont, bodyFont, photos,
+    accent, text, primary, headingFont, bodyFont, photos,
     onOpen: (i: number) => setLightbox(i),
   }
 
