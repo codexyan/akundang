@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 
 interface Props {
   section: SectionConfig
@@ -25,17 +26,13 @@ const ARABIC_FONT_STACK = `'Amiri', 'Scheherazade New', 'Traditional Arabic', 'N
 //  Shared ornaments 
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 function FooterOrnament({ accent }: { accent: string }) {
   return (
-    <div className="flex items-center justify-center gap-3" style={{ marginTop: 24 }}>
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
+    <div style={{ marginTop: 24 }}>
+      <SectionOrnament accent={accent} placement="footer" />
     </div>
   )
 }

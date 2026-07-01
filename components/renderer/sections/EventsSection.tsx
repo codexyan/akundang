@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, EventDetail } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, cardBg } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import { format, parseISO } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
@@ -26,17 +27,13 @@ function fmt(d: string) {
 //  Shared components 
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 function FooterOrnament({ accent }: { accent: string }) {
   return (
-    <div className="flex items-center justify-center gap-2" style={{ marginTop: 28 }}>
-      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}35` }} />
+    <div style={{ marginTop: 28 }}>
+      <SectionOrnament accent={accent} placement="footer" />
     </div>
   )
 }

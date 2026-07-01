@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, StoryChapter } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 
 interface Props {
   section: SectionConfig
@@ -12,11 +13,7 @@ interface Props {
 }
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 //  IG Stories-style progress bars 

@@ -5,6 +5,7 @@ import type { TemplateRecord, NewInvitationData, Wish, SectionConfig } from '@/l
 import { mergeDecorationAssets } from '@/lib/decoration-utils'
 import SectionRenderer from './SectionRenderer'
 import { PreviewContext } from './PreviewContext'
+import { ComponentStyleProvider } from './ComponentStyleContext'
 
 interface Props {
   template: TemplateRecord
@@ -47,6 +48,7 @@ export default function InvitationPreview({
       replaySectionId,
       replaySectionKey,
     }}>
+      <ComponentStyleProvider value={meta.component_style}>
       <div style={{
         fontFamily: `'${meta.font.body}', serif`,
         backgroundColor: meta.color_scheme.primary,
@@ -69,6 +71,7 @@ export default function InvitationPreview({
           )
         })}
       </div>
+      </ComponentStyleProvider>
     </PreviewContext.Provider>
   )
 }

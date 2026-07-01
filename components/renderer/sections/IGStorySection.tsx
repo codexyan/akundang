@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Download, Instagram } from 'lucide-react'
 import type { SectionConfig, NewInvitationData, TemplateMeta } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 import { getComponentStyle, btnStyle } from '@/lib/component-styles'
 import { usePreviewContext } from '../PreviewContext'
 
@@ -22,11 +23,7 @@ type StyleCtx = {
 }
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 function Placeholder({ accent, text, bodyFont }: { accent: string; text: string; bodyFont: string }) {
@@ -46,8 +43,8 @@ function Placeholder({ accent, text, bodyFont }: { accent: string; text: string;
 
 function FooterOrnament({ accent }: { accent: string }) {
   return (
-    <div className="flex items-center justify-center gap-2" style={{ marginTop: 20 }}>
-      <div style={{ width: 3, height: 3, borderRadius: '50%', background: `${accent}25` }} />
+    <div style={{ marginTop: 20 }}>
+      <SectionOrnament accent={accent} placement="footer" />
     </div>
   )
 }

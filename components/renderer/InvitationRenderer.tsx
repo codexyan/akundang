@@ -8,6 +8,7 @@ import LoadingScreen from './LoadingScreen'
 import OpeningScene from './OpeningScene'
 import SectionRenderer from './SectionRenderer'
 import FloatingMusicPlayer from './FloatingMusicPlayer'
+import { ComponentStyleProvider } from './ComponentStyleContext'
 
 interface Props {
   invitationId: string
@@ -130,6 +131,7 @@ export default function InvitationRenderer({
   const posMode = contained ? 'absolute' as const : 'fixed' as const
 
   return (
+    <ComponentStyleProvider value={meta.component_style}>
     <div style={{
       fontFamily: `'${meta.font.body}', serif`,
       position: 'relative',
@@ -219,5 +221,6 @@ export default function InvitationRenderer({
         </motion.main>
       )}
     </div>
+    </ComponentStyleProvider>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { SectionConfig, NewInvitationData, TemplateMeta, Wish } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, hasMediaBg, cardBg } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 import { getComponentStyle, btnStyle, inputBorderStyle, cardRadius } from '@/lib/component-styles'
 import { Loader2, Send } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
@@ -29,11 +30,7 @@ function makePreviewWishes(): Wish[] {
 }
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 function StaticBubble({ wish, accent, text, headingFont, bodyFont }: {

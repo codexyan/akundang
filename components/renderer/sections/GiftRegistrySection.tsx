@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { SectionConfig, NewInvitationData, TemplateMeta, GiftRegistryLink } from '@/lib/types'
 import SectionWrapper, { resolveFont, fsh, fsb, cardBg, contentPanelBg, hasMediaBg } from '../SectionWrapper'
+import SectionOrnament from '../SectionOrnament'
 
 interface Props {
   section: SectionConfig
@@ -30,11 +31,7 @@ const MARKETPLACE_LABEL: Record<string, string> = {
 //  Ornament 
 
 function Ornament({ accent }: { accent: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3">
-      <div style={{ width: 5, height: 5, borderRadius: '50%', border: `0.5px solid ${accent}40` }} />
-    </div>
-  )
+  return <SectionOrnament accent={accent} />
 }
 
 //  Section Header 
