@@ -6,7 +6,8 @@
 'use client'
 
 import { Gift, Plus, Trash2 } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import type { GiftAccount } from '@/lib/types'
 
@@ -74,9 +75,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
             </div>
 
             <FormField label="Nama Bank" hint="Contoh: BCA, Mandiri, BRI">
-              <input
+              <StudioInput
                 type="text"
-                className={inputClass}
                 value={account.bank ?? ''}
                 onChange={(e) => updateAccount(index, 'bank', e.target.value)}
                 placeholder="BCA"
@@ -84,9 +84,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
             </FormField>
 
             <FormField label="Nomor Rekening" hint="Masukkan nomor rekening bank">
-              <input
+              <StudioInput
                 type="text"
-                className={inputClass}
                 value={account.number}
                 onChange={(e) => updateAccount(index, 'number', e.target.value)}
                 placeholder="1234567890"
@@ -94,9 +93,8 @@ export default function GiftForm({ accounts, onAccountsChange }: GiftFormProps) 
             </FormField>
 
             <FormField label="Nama Pemilik" hint="Sesuai dengan nama di rekening">
-              <input
+              <StudioInput
                 type="text"
-                className={inputClass}
                 value={account.name}
                 onChange={(e) => updateAccount(index, 'name', e.target.value)}
                 placeholder="Ahmad Budi Santoso"

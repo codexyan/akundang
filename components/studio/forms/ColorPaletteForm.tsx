@@ -6,7 +6,8 @@
 'use client'
 
 import { Palette } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 
 interface ColorPaletteFormProps {
@@ -149,11 +150,10 @@ export default function ColorPaletteForm({
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
                 className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
-              <input
+              <StudioInput
                 type="text"
                 value={primaryColor}
                 onChange={(e) => onPrimaryColorChange(e.target.value)}
-                className={inputClass}
                 placeholder="#2c4a34"
               />
             </div>
@@ -167,11 +167,10 @@ export default function ColorPaletteForm({
                 onChange={(e) => onAccentColorChange(e.target.value)}
                 className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
-              <input
+              <StudioInput
                 type="text"
                 value={accentColor}
                 onChange={(e) => onAccentColorChange(e.target.value)}
-                className={inputClass}
                 placeholder="#c9a961"
               />
             </div>
@@ -185,11 +184,10 @@ export default function ColorPaletteForm({
                 onChange={(e) => onTextColorChange(e.target.value)}
                 className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
-              <input
+              <StudioInput
                 type="text"
                 value={textColor}
                 onChange={(e) => onTextColorChange(e.target.value)}
-                className={inputClass}
                 placeholder="#1a1a1a"
               />
             </div>
@@ -203,11 +201,10 @@ export default function ColorPaletteForm({
                 onChange={(e) => onBackgroundColorChange(e.target.value)}
                 className="w-10 h-9 rounded-lg border border-stone-200 cursor-pointer shrink-0"
               />
-              <input
+              <StudioInput
                 type="text"
                 value={backgroundColor}
                 onChange={(e) => onBackgroundColorChange(e.target.value)}
-                className={inputClass}
                 placeholder="#fefdf8"
               />
             </div>

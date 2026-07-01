@@ -6,7 +6,8 @@
 'use client'
 
 import { Users } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
@@ -58,9 +59,8 @@ export default function ProfilesForm({
           label="Nama Orang Tua"
           hint="Contoh: Bpk. Ahmad & Ibu Sri"
         >
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={groomParents}
             onChange={(e) => onGroomParentsChange(e.target.value)}
             placeholder="Bpk. ... & Ibu ..."
@@ -77,9 +77,8 @@ export default function ProfilesForm({
           </FormField>
 
           <FormField label="Bio Singkat" hint="Profesi, hobi, atau quote">
-            <input
+            <StudioInput
               type="text"
-              className={inputClass}
               value={groomBio}
               onChange={(e) => onGroomBioChange(e.target.value)}
               placeholder="Software Engineer, 28 thn"
@@ -101,9 +100,8 @@ export default function ProfilesForm({
           label="Nama Orang Tua"
           hint="Contoh: Bpk. Hendra & Ibu Dewi"
         >
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={brideParents}
             onChange={(e) => onBrideParentsChange(e.target.value)}
             placeholder="Bpk. ... & Ibu ..."
@@ -120,9 +118,8 @@ export default function ProfilesForm({
           </FormField>
 
           <FormField label="Bio Singkat" hint="Profesi, hobi, atau quote">
-            <input
+            <StudioInput
               type="text"
-              className={inputClass}
               value={brideBio}
               onChange={(e) => onBrideBioChange(e.target.value)}
               placeholder="Desainer, 25 thn"

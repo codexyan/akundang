@@ -13,6 +13,18 @@ const config: Config = {
         mono: ['var(--font-geist-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       colors: {
+        warm: {
+          50: '#FAF9F6',
+          100: '#F5F2ED',
+          200: '#EDE8E2',
+          300: '#DDD8D0',
+          400: '#C9C2B8',
+          500: '#A8A29E',
+          600: '#78716C',
+          700: '#44403C',
+          800: '#292524',
+          900: '#1C1917',
+        },
         graphite: '#0a0a0a',
         'pure-black': '#000000',
         carbon: '#171717',

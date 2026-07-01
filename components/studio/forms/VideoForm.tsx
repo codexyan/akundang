@@ -1,7 +1,8 @@
 'use client'
 
 import { Video } from 'lucide-react'
-import FormField, { inputClass, textareaClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioTextarea } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 
 interface VideoFormProps {
@@ -17,12 +18,12 @@ export default function VideoForm({
   return (
     <SectionCard title="Video Prewedding" icon={Video} description="Video prewedding atau video singkat pernikahan">
       <FormField label="Link Video" required hint="Link YouTube atau Vimeo">
-        <input type="url" className={inputClass} value={embedUrl}
+        <StudioInput type="url" value={embedUrl}
           onChange={e => onEmbedUrlChange(e.target.value)}
           placeholder="https://youtube.com/watch?v=..." />
       </FormField>
       <FormField label="Keterangan" hint="Deskripsi singkat video (opsional)">
-        <textarea className={textareaClass} rows={2} value={caption}
+        <StudioTextarea rows={2} value={caption}
           onChange={e => onCaptionChange(e.target.value)}
           placeholder="Video prewedding kami" />
       </FormField>

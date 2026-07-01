@@ -1,7 +1,8 @@
 'use client'
 
 import { DoorOpen, Check } from 'lucide-react'
-import FormField, { inputClass, textareaClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioTextarea } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import type { OpeningType } from '@/lib/types'
 
@@ -137,9 +138,8 @@ export default function OpeningForm({
         label="Salam Pembuka"
         hint="Sapaan formal untuk tamu undangan"
       >
-        <input
+        <StudioInput
           type="text"
-          className={inputClass}
           value={openingGreeting}
           onChange={(e) => onOpeningGreetingChange(e.target.value)}
           placeholder="Assalamualaikum Warahmatullahi Wabarakatuh"
@@ -151,8 +151,7 @@ export default function OpeningForm({
         label="Kalimat Pembuka"
         hint="Teks formal di bawah salam pembuka"
       >
-        <textarea
-          className={textareaClass}
+        <StudioTextarea
           rows={3}
           value={openingSubtitle}
           onChange={(e) => onOpeningSubtitleChange(e.target.value)}
@@ -210,9 +209,8 @@ export default function OpeningForm({
           label="Nama Mempelai Pria"
           hint={`Kosongkan untuk pakai "${groomName || 'nama utama'}"`}
         >
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={openingGroomName}
             onChange={(e) => onOpeningGroomNameChange(e.target.value)}
             placeholder={groomName || 'Nama mempelai pria...'}
@@ -222,9 +220,8 @@ export default function OpeningForm({
           label="Nama Mempelai Wanita"
           hint={`Kosongkan untuk pakai "${brideName || 'nama utama'}"`}
         >
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={openingBrideName}
             onChange={(e) => onOpeningBrideNameChange(e.target.value)}
             placeholder={brideName || 'Nama mempelai wanita...'}

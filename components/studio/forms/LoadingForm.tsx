@@ -7,7 +7,8 @@ import {
   Landmark, Flame, Infinity, Sparkles, Globe,
   Target, Diamond, Hourglass, Moon, Shell,
 } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioToggle } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import type { LoadingConfig, LoadingVariant, LoadingBgType } from '@/lib/types'
 
@@ -136,28 +137,19 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
 
       {/*  Teks Loading  */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-stone-700">Teks Loading</span>
-            <p className="text-[10px] text-stone-400">Tampil di bawah animasi</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => update({ show_text: !(config.show_text !== false) })}
-            className={`relative w-10 h-5 rounded-full transition-colors ${config.show_text !== false ? 'bg-gold-500' : 'bg-stone-300'}`}
-          >
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${config.show_text !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
-          </button>
-        </div>
+        <StudioToggle
+          label="Teks Loading"
+          desc="Tampil di bawah animasi"
+          checked={config.show_text !== false}
+          onChange={() => update({ show_text: !(config.show_text !== false) })}
+        />
 
         {config.show_text !== false && (
           <>
-            <input
+            <StudioInput
               type="text"
               value={config.text}
-              onChange={(e) => update({ text: e.target.value })}
-              className={inputClass}
-              placeholder="Membuka undangan..."
+              onChange={(e) => update({ text: e.target.value })}              placeholder="Membuka undangan..."
               maxLength={40}
             />
             <div className="grid grid-cols-2 gap-3">
@@ -261,12 +253,10 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
         {/* Image */}
         {bgType === 'image' && (
           <div className="space-y-2">
-            <input
+            <StudioInput
               type="text"
               value={config.bg_image_url ?? ''}
-              onChange={(e) => update({ bg_image_url: e.target.value })}
-              className={inputClass}
-              placeholder="Link gambar latar..."
+              onChange={(e) => update({ bg_image_url: e.target.value })}              placeholder="Link gambar latar..."
             />
             <ColorRow
               label="Overlay"
@@ -391,12 +381,10 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
 
           {/* Logo */}
           <FormField label="Logo" hint="URL gambar logo di atas animasi">
-            <input
+            <StudioInput
               type="text"
               value={config.logo_image ?? ''}
-              onChange={(e) => update({ logo_image: e.target.value || undefined })}
-              className={inputClass}
-              placeholder="https://..."
+              onChange={(e) => update({ logo_image: e.target.value || undefined })}              placeholder="https://..."
             />
           </FormField>
 
@@ -428,12 +416,10 @@ export default function LoadingForm({ config, onChange }: LoadingFormProps) {
 
           {/* Font */}
           <FormField label="Font Kustom" hint="Nama Google Font">
-            <input
+            <StudioInput
               type="text"
               value={config.font_family ?? ''}
-              onChange={(e) => update({ font_family: e.target.value || undefined })}
-              className={inputClass}
-              placeholder="Cormorant Garamond"
+              onChange={(e) => update({ font_family: e.target.value || undefined })}              placeholder="Cormorant Garamond"
             />
           </FormField>
         </div>
@@ -463,18 +449,5 @@ function ColorRow({ label, value, onChange }: { label: string; value: string; on
 }
 
 function ToggleRow({ label, desc, checked, onChange }: { label: string; desc: string; checked: boolean; onChange: () => void }) {
-  return (
-    <div className="flex items-center justify-between py-1">
-      <div>
-        <span className="text-xs font-semibold text-stone-700">{label}</span>
-        <p className="text-[10px] text-stone-400">{desc}</p>
-      </div>
-      <button
-        type="button" onClick={onChange}
-        className={`relative w-10 h-5 rounded-full transition-colors ${checked ? 'bg-gold-500' : 'bg-stone-300'}`}
-      >
-        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
-      </button>
-    </div>
-  )
+  return <StudioToggle label={label} desc={desc} checked={checked} onChange={onChange} />
 }

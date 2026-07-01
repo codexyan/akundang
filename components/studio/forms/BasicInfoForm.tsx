@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react'
 import { Upload, Loader2, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
@@ -118,21 +119,21 @@ export default function BasicInfoForm({
         </p>
         <div className="grid grid-cols-2 gap-2.5">
           <FormField label="Nama Lengkap" required>
-            <input type="text" className={inputClass} value={groomName}
+            <StudioInput type="text" value={groomName}
               onChange={(e) => onGroomNameChange(e.target.value)} placeholder="Ahmad Budi Santoso" />
           </FormField>
           <FormField label="Panggilan">
-            <input type="text" className={inputClass} value={groomNickname ?? ''}
+            <StudioInput type="text" value={groomNickname ?? ''}
               onChange={(e) => onGroomNicknameChange(e.target.value)} placeholder="Budi" />
           </FormField>
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           <FormField label="Nama Ayah">
-            <input type="text" className={inputClass} value={groomFather ?? ''}
+            <StudioInput type="text" value={groomFather ?? ''}
               onChange={(e) => onGroomFatherChange(e.target.value)} placeholder="Bpk. Ahmad" />
           </FormField>
           <FormField label="Nama Ibu">
-            <input type="text" className={inputClass} value={groomMother ?? ''}
+            <StudioInput type="text" value={groomMother ?? ''}
               onChange={(e) => onGroomMotherChange(e.target.value)} placeholder="Ibu Sri" />
           </FormField>
         </div>
@@ -141,7 +142,7 @@ export default function BasicInfoForm({
             <ImageUploadField value={groomPhotoUrl} onChange={onGroomPhotoChange} hint="Opsional" />
           </FormField>
           <FormField label="Bio Singkat">
-            <input type="text" className={inputClass} value={groomBio ?? ''}
+            <StudioInput type="text" value={groomBio ?? ''}
               onChange={(e) => onGroomBioChange(e.target.value)} placeholder="Software Engineer" />
           </FormField>
         </div>
@@ -155,21 +156,21 @@ export default function BasicInfoForm({
         </p>
         <div className="grid grid-cols-2 gap-2.5">
           <FormField label="Nama Lengkap" required>
-            <input type="text" className={inputClass} value={brideName}
+            <StudioInput type="text" value={brideName}
               onChange={(e) => onBrideNameChange(e.target.value)} placeholder="Siti Aisyah Rahayu" />
           </FormField>
           <FormField label="Panggilan">
-            <input type="text" className={inputClass} value={brideNickname ?? ''}
+            <StudioInput type="text" value={brideNickname ?? ''}
               onChange={(e) => onBrideNicknameChange(e.target.value)} placeholder="Aisyah" />
           </FormField>
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           <FormField label="Nama Ayah">
-            <input type="text" className={inputClass} value={brideFather ?? ''}
+            <StudioInput type="text" value={brideFather ?? ''}
               onChange={(e) => onBrideFatherChange(e.target.value)} placeholder="Bpk. Hendra" />
           </FormField>
           <FormField label="Nama Ibu">
-            <input type="text" className={inputClass} value={brideMother ?? ''}
+            <StudioInput type="text" value={brideMother ?? ''}
               onChange={(e) => onBrideMotherChange(e.target.value)} placeholder="Ibu Dewi" />
           </FormField>
         </div>
@@ -178,7 +179,7 @@ export default function BasicInfoForm({
             <ImageUploadField value={bridePhotoUrl} onChange={onBridePhotoChange} hint="Opsional" />
           </FormField>
           <FormField label="Bio Singkat">
-            <input type="text" className={inputClass} value={brideBio ?? ''}
+            <StudioInput type="text" value={brideBio ?? ''}
               onChange={(e) => onBrideBioChange(e.target.value)} placeholder="Desainer" />
           </FormField>
         </div>

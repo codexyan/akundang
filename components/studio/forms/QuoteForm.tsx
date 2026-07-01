@@ -6,7 +6,8 @@
 'use client'
 
 import { BookOpen } from 'lucide-react'
-import FormField, { textareaClass, inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioTextarea } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 
 interface QuoteFormProps {
@@ -127,8 +128,7 @@ export default function QuoteForm({
           label="Teks Arab (Opsional)"
           hint="Untuk ayat Al-Quran atau doa"
         >
-          <textarea
-            className={textareaClass}
+          <StudioTextarea
             rows={3}
             value={quoteArabic}
             onChange={(e) => onQuoteArabicChange(e.target.value)}
@@ -143,8 +143,7 @@ export default function QuoteForm({
           hint="Terjemahan ayat atau kutipan cinta"
           required
         >
-          <textarea
-            className={textareaClass}
+          <StudioTextarea
             rows={3}
             value={quoteTranslation}
             onChange={(e) => onQuoteTranslationChange(e.target.value)}
@@ -156,9 +155,8 @@ export default function QuoteForm({
           label="Sumber"
           hint="Sumber ayat atau nama penulis quote"
         >
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={quoteSource}
             onChange={(e) => onQuoteSourceChange(e.target.value)}
             placeholder="QS. Ar-Rum: 21"

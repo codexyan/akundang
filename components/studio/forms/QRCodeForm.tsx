@@ -1,7 +1,8 @@
 'use client'
 
 import { QrCode } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 
 interface QRCodeFormProps {
@@ -17,12 +18,12 @@ export default function QRCodeForm({
   return (
     <SectionCard title="QR Code" icon={QrCode} description="QR Code untuk link undangan atau lokasi">
       <FormField label="Link Tujuan" required hint="Link yang akan diubah menjadi QR Code">
-        <input type="url" className={inputClass} value={targetUrl}
+        <StudioInput type="url" value={targetUrl}
           onChange={e => onTargetUrlChange(e.target.value)}
           placeholder="https://..." />
       </FormField>
       <FormField label="Label" hint="Teks di bawah QR Code">
-        <input type="text" className={inputClass} value={label}
+        <StudioInput type="text" value={label}
           onChange={e => onLabelChange(e.target.value)}
           placeholder="Scan untuk buka undangan" />
       </FormField>

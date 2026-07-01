@@ -1,7 +1,8 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import FormField, { inputClass, textareaClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioTextarea } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 
@@ -46,30 +47,30 @@ function EventBlock({
 
       <div className="grid grid-cols-2 gap-2.5">
         <FormField label="Tanggal" required>
-          <input type="date" className={inputClass} value={event.date}
+          <StudioInput type="date" value={event.date}
             onChange={(e) => onChange({ date: e.target.value })} />
         </FormField>
         <FormField label="Waktu" required>
-          <input type="time" className={inputClass} value={event.time}
+          <StudioInput type="time" value={event.time}
             onChange={(e) => onChange({ time: e.target.value })} />
         </FormField>
       </div>
 
       <FormField label="Nama Tempat" required>
-        <input type="text" className={inputClass} value={event.venue_name}
+        <StudioInput type="text" value={event.venue_name}
           onChange={(e) => onChange({ venue_name: e.target.value })}
           placeholder="Masjid / Gedung / Ballroom" />
       </FormField>
 
       <FormField label="Alamat Lengkap" required>
-        <textarea className={textareaClass} rows={2} value={event.venue_address}
+        <StudioTextarea rows={2} value={event.venue_address}
           onChange={(e) => onChange({ venue_address: e.target.value })}
           placeholder="Jl. Contoh No. 123, Kota" />
       </FormField>
 
       <div className="grid grid-cols-2 gap-2.5">
         <FormField label="Link Google Maps">
-          <input type="url" className={inputClass} value={event.maps_url || ''}
+          <StudioInput type="url" value={event.maps_url || ''}
             onChange={(e) => onChange({ maps_url: e.target.value })}
             placeholder="https://maps.app.goo.gl/..." />
         </FormField>

@@ -1,7 +1,8 @@
 'use client'
 
 import { ShoppingBag, Plus, Trash2 } from 'lucide-react'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioSelect } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import type { GiftRegistryLink } from '@/lib/types'
@@ -43,27 +44,27 @@ export default function GiftRegistryForm({ items, onItemsChange }: GiftRegistryF
 
           <div className="grid grid-cols-2 gap-2.5">
             <FormField label="Nama Barang">
-              <input type="text" className={inputClass} value={item.label}
+              <StudioInput type="text" value={item.label}
                 onChange={e => updateItem(idx, { label: e.target.value })}
                 placeholder="Set Piring Keramik" />
             </FormField>
             <FormField label="Marketplace">
-              <select className={inputClass} value={item.marketplace ?? 'other'}
+              <StudioSelect value={item.marketplace ?? 'other'}
                 onChange={e => updateItem(idx, { marketplace: e.target.value as GiftRegistryLink['marketplace'] })}>
                 {MARKETPLACES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-              </select>
+              </StudioSelect>
             </FormField>
           </div>
 
           <FormField label="Link Produk">
-            <input type="url" className={inputClass} value={item.url}
+            <StudioInput type="url" value={item.url}
               onChange={e => updateItem(idx, { url: e.target.value })}
               placeholder="https://tokopedia.com/..." />
           </FormField>
 
           <div className="grid grid-cols-2 gap-2.5">
             <FormField label="Harga (opsional)">
-              <input type="text" className={inputClass} value={item.price ?? ''}
+              <StudioInput type="text" value={item.price ?? ''}
                 onChange={e => updateItem(idx, { price: e.target.value })}
                 placeholder="Rp 250.000" />
             </FormField>

@@ -21,27 +21,38 @@ export default function FormField({
   htmlFor,
 }: FormFieldProps) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <label
         htmlFor={htmlFor}
-        className="block text-xs font-medium text-stone-600"
+        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
       >
-        {label}
+        <span style={{
+          fontSize: 10,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: '#78716C',
+        }}>
+          {label}
+        </span>
         {required && (
-          <span className="text-rose-500 ml-0.5">*</span>
+          <span
+            style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#C9A961', flexShrink: 0 }}
+            title="Wajib diisi"
+          />
         )}
       </label>
 
       {children}
 
       {hint && !error && (
-        <p className="text-[11px] text-stone-400 leading-relaxed">
+        <p style={{ fontSize: 11, color: '#A8A29E', lineHeight: 1.5 }}>
           {hint}
         </p>
       )}
 
       {error && (
-        <p className="text-[11px] text-red-600 font-medium">
+        <p style={{ fontSize: 11, color: '#DC2626', fontWeight: 500 }}>
           {error}
         </p>
       )}
@@ -49,7 +60,6 @@ export default function FormField({
   )
 }
 
-// Reusable input class with improved UX
-export const inputClass = 'w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 bg-white placeholder:text-stone-300 transition-colors'
-
-export const textareaClass = 'w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500 bg-white placeholder:text-stone-300 transition-colors resize-none'
+// Base class - rounded-xl, warm bg (colors applied inline via StudioInput)
+export const inputClass = 'w-full px-3.5 py-2.5 rounded-xl text-sm transition-all duration-200 outline-none'
+export const textareaClass = inputClass + ' resize-none'

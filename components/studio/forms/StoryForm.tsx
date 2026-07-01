@@ -1,7 +1,8 @@
 'use client'
 
 import { BookOpen, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
-import FormField, { inputClass, textareaClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput, StudioTextarea } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import type { StoryChapter } from '@/lib/types'
@@ -52,9 +53,8 @@ export default function StoryForm({
     >
       <div className="space-y-4">
         <FormField label="Judul Kisah" hint="Contoh: Perjalanan Cinta Kami">
-          <input
+          <StudioInput
             type="text"
-            className={inputClass}
             value={storyTitle}
             onChange={e => onStoryTitleChange(e.target.value)}
             placeholder="Perjalanan Cinta"
@@ -62,8 +62,7 @@ export default function StoryForm({
         </FormField>
 
         <FormField label="Deskripsi Singkat" hint="Ringkasan cerita cinta Anda (tampil jika tidak ada bab)">
-          <textarea
-            className={textareaClass}
+          <StudioTextarea
             rows={3}
             value={storyText}
             onChange={e => onStoryTextChange(e.target.value)}
@@ -119,13 +118,13 @@ export default function StoryForm({
 
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="Tanggal">
-                  <input type="text" className={inputClass}
+                  <StudioInput type="text"
                     value={ch.date ?? ''}
                     onChange={e => updateChapter(idx, 'date', e.target.value)}
                     placeholder="Januari 2020" />
                 </FormField>
                 <FormField label="Judul Bab">
-                  <input type="text" className={inputClass}
+                  <StudioInput type="text"
                     value={ch.title ?? ''}
                     onChange={e => updateChapter(idx, 'title', e.target.value)}
                     placeholder="Pertama Bertemu" />
@@ -133,7 +132,7 @@ export default function StoryForm({
               </div>
 
               <FormField label="Cerita">
-                <textarea className={textareaClass} rows={3}
+                <StudioTextarea rows={3}
                   value={ch.text ?? ''}
                   onChange={e => updateChapter(idx, 'text', e.target.value)}
                   placeholder="Ceritakan momen ini..." />

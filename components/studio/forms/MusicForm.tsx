@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Music, Loader2, Play, Pause, Trash2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
+import { StudioInput } from '../ui/StudioInput'
 import SectionCard from '../ui/SectionCard'
 
 interface MusicFormProps {
@@ -139,9 +140,8 @@ export default function MusicForm({
             </div>
           </div>
           <FormField label="Judul Musik" hint="Nama lagu yang ditampilkan">
-            <input
+            <StudioInput
               type="text"
-              className={inputClass}
               value={musicTitle}
               onChange={(e) => onMusicTitleChange(e.target.value)}
               placeholder="Perfect - Ed Sheeran"
