@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  FileText, Plus, Edit3, Trash2, Eye, EyeOff, Search, BarChart3,
-  Save, ExternalLink, Clock, TrendingUp,
-  Heart, MessageSquare, Tag, Image as ImageIcon, Bold, Italic,
+  FileText, Plus, Edit3, Trash2, Eye, EyeOff, Search,
+  Save, ExternalLink, Clock, TrendingUp, Settings2, X,
+  Heart, Tag, Image as ImageIcon, Bold, Italic,
   Heading2, Heading3, List, ListOrdered, Quote, Link2, Minus,
   ChevronLeft,
 } from 'lucide-react'
+import ImagePicker from '@/components/ui/ImagePicker'
+import { parseMarkdownPreview, slugify, wordCount, readTime } from '@/lib/article-markdown'
 
 interface ArticleData {
   id: string
@@ -42,6 +44,8 @@ export default function WriterDashboard() {
   const [search, setSearch] = useState('')
   const [saving, setSaving] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
 
   // Editor state
   const [title, setTitle] = useState('')
@@ -53,6 +57,8 @@ export default function WriterDashboard() {
   const [metaTitle, setMetaTitle] = useState('')
   const [metaDesc, setMetaDesc] = useState('')
   const [authorName, setAuthorName] = useState('')
+
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   const fetchArticles = useCallback(async () => {
     const res = await fetch('/api/writer/articles')
@@ -77,10 +83,6 @@ export default function WriterDashboard() {
     drafts: articles.filter(a => !a.isPublished).length,
     totalViews: articles.reduce((s, a) => s + a.viewsCount, 0),
     totalLikes: articles.reduce((s, a) => s + a.likesCount, 0),
-  }
-
-  function generateSlug(text: string) {
-    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   }
 
   function openEditor(article?: ArticleData) {
@@ -108,6 +110,7 @@ export default function WriterDashboard() {
       setAuthorName('')
     }
     setPreviewMode(false)
+    setShowSettings(false)
     setView('editor')
   }
 
@@ -151,8 +154,9 @@ export default function WriterDashboard() {
     if (editingArticle?.id === id) setView('list')
   }
 
+  // Bungkus teks terpilih dengan prefix/suffix (bold, italic, heading, list, dsb)
   function insertMarkdown(prefix: string, suffix: string = '') {
-    const textarea = document.querySelector<HTMLTextAreaElement>('#content-editor')
+    const textarea = contentRef.current
     if (!textarea) return
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
@@ -167,45 +171,76 @@ export default function WriterDashboard() {
     }, 0)
   }
 
-  const wordCount = content.split(/\s+/).filter(Boolean).length
-  const readTime = Math.max(1, Math.ceil(wordCount / 200))
+  // Sisipkan teks apa adanya di posisi kursor (dipakai modal gambar)
+  function insertAtCursor(text: string) {
+    const textarea = contentRef.current
+    if (!textarea) { setContent(content + text); return }
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newContent = content.substring(0, start) + text + content.substring(end)
+    setContent(newContent)
+    setTimeout(() => {
+      textarea.focus()
+      const pos = start + text.length
+      textarea.setSelectionRange(pos, pos)
+    }, 0)
+  }
+
+  const wc = wordCount(content)
+  const rt = readTime(content)
 
   if (view === 'editor') {
     return (
       <div className="min-h-screen bg-stone-50">
-        {/* Editor Header */}
-        <header className="sticky top-0 z-30 bg-white border-b border-stone-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        {/* Editor Header (sticky di bawah header AppShell) */}
+        <header className="sticky top-14 z-30 bg-white border-b border-stone-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
             <button
               onClick={() => setView('list')}
-              className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700"
+              className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Kembali</span>
             </button>
 
-            <div className="flex-1 min-w-0 text-center">
+            <div className="flex-1 min-w-0 flex items-center gap-3">
               <p className="text-sm font-medium text-stone-700 truncate">
                 {editingArticle ? 'Edit Artikel' : 'Artikel Baru'}
               </p>
+              <span className="hidden md:inline text-xs text-stone-400 whitespace-nowrap">
+                {wc} kata &middot; {rt} mnt baca
+              </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline text-xs text-stone-400">
-                {wordCount} kata &middot; {readTime} mnt baca
-              </span>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Toggle Tulis | Preview */}
+              <div className="flex items-center bg-stone-100 rounded-lg p-0.5">
+                <button onClick={() => setPreviewMode(false)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${!previewMode ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                  Tulis
+                </button>
+                <button onClick={() => setPreviewMode(true)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${previewMode ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                  Preview
+                </button>
+              </div>
+
+              <button onClick={() => setShowSettings(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors">
+                <Settings2 className="w-3.5 h-3.5" /><span className="hidden sm:inline">Pengaturan</span>
+              </button>
+
               <button
                 onClick={() => handleSave(false)}
                 disabled={saving || !title || !slug}
-                className="px-3 py-1.5 text-sm border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-50"
+                className="px-3 py-1.5 text-xs border border-stone-200 rounded-lg hover:bg-stone-50 disabled:opacity-50 flex items-center gap-1"
               >
-                <span className="hidden sm:inline">{saving ? 'Menyimpan...' : 'Simpan Draft'}</span>
-                <Save className="w-4 h-4 sm:hidden" />
+                <Save className="w-3.5 h-3.5" /><span className="hidden sm:inline">{saving ? 'Menyimpan...' : 'Draft'}</span>
               </button>
               <button
                 onClick={() => handleSave(true)}
                 disabled={saving || !title || !slug}
-                className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
               >
                 {editingArticle?.isPublished ? 'Update' : 'Publish'}
               </button>
@@ -213,6 +248,7 @@ export default function WriterDashboard() {
           </div>
         </header>
 
+        {/* AREA MENULIS */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Title */}
           <input
@@ -220,121 +256,51 @@ export default function WriterDashboard() {
             value={title}
             onChange={e => {
               setTitle(e.target.value)
-              if (!editingArticle) setSlug(generateSlug(e.target.value))
+              if (!editingArticle) setSlug(slugify(e.target.value))
             }}
             placeholder="Judul artikel..."
-            className="w-full text-2xl sm:text-3xl font-sans font-bold text-stone-900 bg-transparent border-none outline-none placeholder:text-stone-300 mb-4"
+            className="w-full text-2xl sm:text-3xl font-sans font-bold text-stone-900 bg-transparent border-none outline-none placeholder:text-stone-300 mb-5"
           />
-
-          {/* Slug */}
-          <div className="flex items-center gap-2 mb-6 text-sm text-stone-400">
-            <span>/blog/</span>
-            <input
-              type="text"
-              value={slug}
-              onChange={e => setSlug(generateSlug(e.target.value))}
-              className="bg-stone-100 px-2 py-1 rounded text-stone-600 border-none outline-none flex-1 min-w-0"
-            />
-          </div>
 
           {/* Cover Image */}
           <div className="mb-6">
-            {coverUrl ? (
-              <div className="relative rounded-xl overflow-hidden">
-                <img src={coverUrl} alt="Cover" className="w-full aspect-[2/1] object-cover" />
-                <button
-                  onClick={() => setCoverUrl('')}
-                  className="absolute top-3 right-3 bg-black/50 text-white p-1.5 rounded-lg hover:bg-black/70"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-stone-200 rounded-xl p-6 text-center">
-                <ImageIcon className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-                <input
-                  type="text"
-                  placeholder="Paste URL gambar cover..."
-                  onBlur={e => setCoverUrl(e.target.value)}
-                  className="text-sm text-center w-full max-w-md mx-auto bg-transparent border-none outline-none text-stone-500 placeholder:text-stone-300"
-                />
-              </div>
-            )}
+            <p className="text-xs font-semibold text-stone-500 mb-1.5">Cover Image</p>
+            <ImagePicker value={coverUrl} onChange={setCoverUrl} uploadUrl="/api/user/upload" folder="photos" />
           </div>
 
-          {/* Excerpt */}
-          <textarea
-            value={excerpt}
-            onChange={e => setExcerpt(e.target.value)}
-            placeholder="Ringkasan singkat artikel (ditampilkan di kartu blog)..."
-            rows={2}
-            className="w-full text-base text-stone-500 bg-transparent border-none outline-none resize-none placeholder:text-stone-300 mb-6"
-          />
-
-          {/* Toolbar */}
-          <div className="sticky top-[57px] z-20 bg-white border border-stone-200 rounded-xl p-2 mb-4 flex flex-wrap gap-1">
-            <button onClick={() => insertMarkdown('**', '**')} className="p-2 hover:bg-stone-100 rounded-lg" title="Bold"><Bold className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('*', '*')} className="p-2 hover:bg-stone-100 rounded-lg" title="Italic"><Italic className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n## ')} className="p-2 hover:bg-stone-100 rounded-lg" title="Heading 2"><Heading2 className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n### ')} className="p-2 hover:bg-stone-100 rounded-lg" title="Heading 3"><Heading3 className="w-4 h-4" /></button>
-            <div className="w-px bg-stone-200 mx-1" />
-            <button onClick={() => insertMarkdown('\n- ')} className="p-2 hover:bg-stone-100 rounded-lg" title="Bullet List"><List className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n1. ')} className="p-2 hover:bg-stone-100 rounded-lg" title="Numbered List"><ListOrdered className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n> ')} className="p-2 hover:bg-stone-100 rounded-lg" title="Quote"><Quote className="w-4 h-4" /></button>
-            <div className="w-px bg-stone-200 mx-1" />
-            <button onClick={() => insertMarkdown('[', '](url)')} className="p-2 hover:bg-stone-100 rounded-lg" title="Link"><Link2 className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n![alt](', ')')} className="p-2 hover:bg-stone-100 rounded-lg" title="Image"><ImageIcon className="w-4 h-4" /></button>
-            <button onClick={() => insertMarkdown('\n---\n')} className="p-2 hover:bg-stone-100 rounded-lg" title="Separator"><Minus className="w-4 h-4" /></button>
-            <div className="flex-1" />
-            <button
-              onClick={() => setPreviewMode(!previewMode)}
-              className={`px-3 py-1.5 text-xs rounded-lg ${previewMode ? 'bg-emerald-100 text-emerald-700' : 'hover:bg-stone-100 text-stone-500'}`}
-            >
-              {previewMode ? 'Edit' : 'Preview'}
-            </button>
+          {/* Toolbar (dikelompokkan dengan pemisah) */}
+          <div className="sticky top-[104px] z-20 bg-white border border-stone-200 rounded-xl p-1.5 mb-4 flex flex-wrap items-center gap-0.5">
+            <TBtn icon={Heading2} title="Heading 2" onClick={() => insertMarkdown('\n## ')} />
+            <TBtn icon={Heading3} title="Heading 3" onClick={() => insertMarkdown('\n### ')} />
+            <Sep />
+            <TBtn icon={Bold} title="Bold" onClick={() => insertMarkdown('**', '**')} />
+            <TBtn icon={Italic} title="Italic" onClick={() => insertMarkdown('*', '*')} />
+            <Sep />
+            <TBtn icon={List} title="Bullet List" onClick={() => insertMarkdown('\n- ')} />
+            <TBtn icon={ListOrdered} title="Numbered List" onClick={() => insertMarkdown('\n1. ')} />
+            <TBtn icon={Quote} title="Quote" onClick={() => insertMarkdown('\n> ')} />
+            <Sep />
+            <TBtn icon={ImageIcon} title="Sisipkan Gambar" onClick={() => setShowImageModal(true)} accent />
+            <TBtn icon={Link2} title="Sisipkan Link" onClick={() => insertMarkdown('[', '](url)')} accent />
+            <Sep />
+            <TBtn icon={Minus} title="Separator" onClick={() => insertMarkdown('\n---\n')} />
           </div>
 
           {/* Content Area */}
           {previewMode ? (
             <div className="prose prose-stone max-w-none min-h-[400px] bg-white rounded-xl border border-stone-200 p-6 sm:p-8">
-              <div dangerouslySetInnerHTML={{ __html: simpleMarkdown(content) }} />
+              <div dangerouslySetInnerHTML={{ __html: parseMarkdownPreview(content) }} />
             </div>
           ) : (
             <textarea
+              ref={contentRef}
               id="content-editor"
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Tulis artikel di sini... (mendukung Markdown)"
-              className="w-full min-h-[400px] sm:min-h-[500px] bg-white rounded-xl border border-stone-200 p-6 sm:p-8 text-base leading-relaxed text-stone-700 font-mono outline-none resize-y placeholder:text-stone-300"
+              className="w-full min-h-[420px] sm:min-h-[540px] bg-white rounded-xl border border-stone-200 p-6 sm:p-8 text-base leading-relaxed text-stone-700 font-mono outline-none resize-y placeholder:text-stone-300"
             />
           )}
-
-          {/* Meta / Tags Panel */}
-          <details className="mt-8 bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <summary className="px-6 py-4 text-sm font-medium text-stone-700 cursor-pointer hover:bg-stone-50">
-              SEO & Pengaturan
-            </summary>
-            <div className="px-6 pb-6 space-y-4 border-t border-stone-100 pt-4">
-              <div>
-                <label className="text-xs font-medium text-stone-500 mb-1 block">Nama Penulis</label>
-                <input type="text" value={authorName} onChange={e => setAuthorName(e.target.value)} placeholder="Nama penulis" className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-stone-500 mb-1 block">Tags (pisahkan dengan koma)</label>
-                <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="pernikahan, tips, undangan digital" className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-stone-500 mb-1 block">Meta Title</label>
-                <input type="text" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder="Judul untuk SEO..." className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
-                <p className="text-xs text-stone-400 mt-1">{metaTitle.length}/60 karakter</p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-stone-500 mb-1 block">Meta Description</label>
-                <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} placeholder="Deskripsi untuk SEO..." rows={2} className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none resize-none focus:border-emerald-300" />
-                <p className="text-xs text-stone-400 mt-1">{metaDesc.length}/160 karakter</p>
-              </div>
-            </div>
-          </details>
 
           {/* Delete button for existing articles */}
           {editingArticle && (
@@ -349,6 +315,74 @@ export default function WriterDashboard() {
             </div>
           )}
         </div>
+
+        {/* PANEL PENGATURAN (slide-over kanan) */}
+        {showSettings && (
+          <div className="fixed inset-0 z-[150] flex justify-end">
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+            <div className="relative w-full max-w-md bg-white shadow-2xl h-full flex flex-col">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-stone-100 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="w-4 h-4 text-stone-500" />
+                  <h3 className="text-sm font-bold text-stone-900">Pengaturan Artikel</h3>
+                </div>
+                <button onClick={() => setShowSettings(false)} className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1 block">Slug URL</label>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <span className="text-stone-400 shrink-0">/blog/</span>
+                    <input type="text" value={slug} onChange={e => setSlug(slugify(e.target.value))}
+                      className="flex-1 min-w-0 px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300 font-mono text-stone-600" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1 block">Ringkasan (Excerpt)</label>
+                  <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={3}
+                    placeholder="Ringkasan singkat artikel (ditampilkan di kartu blog)..."
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none resize-none focus:border-emerald-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1 block">Nama Penulis</label>
+                  <input type="text" value={authorName} onChange={e => setAuthorName(e.target.value)} placeholder="Nama penulis"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-stone-500 mb-1 block">Tags (pisahkan dengan koma)</label>
+                  <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="pernikahan, tips, undangan digital"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
+                </div>
+
+                <div className="pt-2 border-t border-stone-100">
+                  <p className="text-xs font-semibold text-stone-600 mb-3">SEO</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-medium text-stone-500 mb-1 block">Meta Title</label>
+                      <input type="text" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder="Judul untuk SEO..."
+                        className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none focus:border-emerald-300" />
+                      <p className="text-xs text-stone-400 mt-1">{metaTitle.length}/60 karakter</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-stone-500 mb-1 block">Meta Description</label>
+                      <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} placeholder="Deskripsi untuk SEO..." rows={3}
+                        className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm outline-none resize-none focus:border-emerald-300" />
+                      <p className="text-xs text-stone-400 mt-1">{metaDesc.length}/160 karakter</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Sisipkan Gambar */}
+        {showImageModal && (
+          <ImageInsertModal
+            onInsert={(alt, url) => { insertAtCursor(`\n![${alt}](${url})\n`); setShowImageModal(false) }}
+            onClose={() => setShowImageModal(false)}
+          />
+        )}
       </div>
     )
   }
@@ -531,27 +565,45 @@ export default function WriterDashboard() {
   )
 }
 
-function simpleMarkdown(text: string): string {
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+function TBtn({ icon: Icon, title, onClick, accent }: { icon: React.ElementType; title: string; onClick: () => void; accent?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} title={title}
+      className={`p-2 rounded-lg transition-colors ${accent ? 'text-emerald-600 hover:bg-emerald-50' : 'text-stone-500 hover:bg-stone-100'}`}>
+      <Icon className="w-4 h-4" />
+    </button>
+  )
+}
 
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>')
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>')
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:16px 0" />')
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:#059669">$1</a>')
-  html = html.replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid #d4d4d8;padding-left:16px;color:#78716c;margin:12px 0">$1</blockquote>')
-  html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />')
-  html = html.replace(/^- (.+)$/gm, '<li>$1</li>')
-  html = html.replace(/(<li>[\s\S]*<\/li>)/, '<ul style="padding-left:20px">$1</ul>')
-  html = html.replace(/\n\n/g, '</p><p>')
-  html = `<p>${html}</p>`
-  html = html.replace(/<p><(h[1-3]|blockquote|hr|ul|ol)/g, '<$1')
-  html = html.replace(/<\/(h[1-3]|blockquote|ul|ol)><\/p>/g, '</$1>')
+function Sep() { return <div className="w-px h-5 bg-stone-200 mx-1" /> }
 
-  return html
+function ImageInsertModal({ onInsert, onClose }: { onInsert: (alt: string, url: string) => void; onClose: () => void }) {
+  const [url, setUrl] = useState('')
+  const [alt, setAlt] = useState('')
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+          <div className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-emerald-600" /><h3 className="font-bold text-stone-900 text-sm">Sisipkan Gambar</h3></div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="px-5 py-4 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-stone-500 mb-1.5">Gambar</p>
+            <ImagePicker value={url} onChange={setUrl} uploadUrl="/api/user/upload" folder="photos" previewHeightClass="h-32" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-stone-500 mb-1.5">Alt Text (deskripsi gambar)</label>
+            <input type="text" value={alt} onChange={e => setAlt(e.target.value)} placeholder="Deskripsi singkat gambar untuk SEO & aksesibilitas"
+              className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg outline-none focus:border-emerald-300" />
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-stone-100 bg-stone-50">
+          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-100 rounded-lg transition-colors">Batal</button>
+          <button onClick={() => { if (url) onInsert(alt, url) }} disabled={!url}
+            className="px-4 py-2 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">Sisipkan</button>
+        </div>
+      </div>
+    </div>
+  )
 }

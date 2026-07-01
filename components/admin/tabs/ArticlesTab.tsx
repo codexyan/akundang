@@ -16,6 +16,8 @@ import {
   Star, Pin, Lock, MessageSquare, Hash, Type,
   Ban,
 } from 'lucide-react'
+import ImagePicker from '@/components/ui/ImagePicker'
+import { parseMarkdownPreview, slugify, wordCount, readTime } from '@/lib/article-markdown'
 
 interface ArticleSettings {
   comments: {
@@ -63,77 +65,8 @@ interface ArticleData {
   createdAt: string; updatedAt: string
 }
 
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
-
 function formatDate(d: string): string {
   return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-function wordCount(text: string): number {
-  return text.trim() ? text.trim().split(/\s+/).length : 0
-}
-
-function readTime(text: string): number {
-  return Math.max(1, Math.ceil(wordCount(text) / 200))
-}
-
-function parseMarkdownPreview(md: string): string {
-  const lines = md.split('\n')
-  const output: string[] = []
-  let i = 0
-  while (i < lines.length) {
-    if (lines[i].includes('|') && i + 1 < lines.length && /^\|?\s*[-:]+[-|\s:]*$/.test(lines[i + 1])) {
-      const hCells = lines[i].split('|').map(c => c.trim()).filter(Boolean)
-      const alLine = lines[i + 1].split('|').map(c => c.trim()).filter(Boolean)
-      const aligns = alLine.map(c => c.startsWith(':') && c.endsWith(':') ? 'center' : c.endsWith(':') ? 'right' : 'left')
-      let t = '<table><thead><tr>'
-      hCells.forEach((c, ci) => { t += `<th style="text-align:${aligns[ci]||'left'}">${inl(esc(c))}</th>` })
-      t += '</tr></thead><tbody>'
-      i += 2
-      while (i < lines.length && lines[i].includes('|')) {
-        const cells = lines[i].split('|').map(c => c.trim()).filter(Boolean)
-        t += '<tr>'
-        cells.forEach((c, ci) => { t += `<td style="text-align:${aligns[ci]||'left'}">${inl(esc(c))}</td>` })
-        t += '</tr>'; i++
-      }
-      t += '</tbody></table>'; output.push(t); continue
-    }
-    const line = lines[i]
-    if (line.startsWith('### ')) { output.push(`<h3>${inl(esc(line.slice(4)))}</h3>`); i++; continue }
-    if (line.startsWith('## ')) { output.push(`<h2>${inl(esc(line.slice(3)))}</h2>`); i++; continue }
-    if (line.startsWith('# ')) { output.push(`<h1>${inl(esc(line.slice(2)))}</h1>`); i++; continue }
-    if (/^---+$/.test(line.trim())) { output.push('<hr />'); i++; continue }
-    const imgM = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-    if (imgM) { output.push(`<figure><img src="${esc(imgM[2])}" alt="${esc(imgM[1])}" style="max-width:100%;border-radius:8px" />${imgM[1]?`<figcaption style="text-align:center;font-size:12px;color:#a8a29e;margin-top:4px">${esc(imgM[1])}</figcaption>`:''}</figure>`); i++; continue }
-    if (line.startsWith('> ')) { output.push(`<blockquote>${inl(esc(line.slice(2)))}</blockquote>`); i++; continue }
-    if (/^[-*] /.test(line)) {
-      let l = '<ul>'; while (i < lines.length && /^[-*] /.test(lines[i])) { l += `<li>${inl(esc(lines[i].replace(/^[-*] /, '')))}</li>`; i++ }
-      l += '</ul>'; output.push(l); continue
-    }
-    if (/^\d+\. /.test(line)) {
-      let l = '<ol>'; while (i < lines.length && /^\d+\. /.test(lines[i])) { l += `<li>${inl(esc(lines[i].replace(/^\d+\. /, '')))}</li>`; i++ }
-      l += '</ol>'; output.push(l); continue
-    }
-    if (line.trim() === '') { i++; continue }
-    let para = ''
-    while (i < lines.length && lines[i].trim() !== '' && !/^#{1,3} |^[-*] |^\d+\. |^> |^---+$|^!\[/.test(lines[i]) && !(lines[i].includes('|') && i + 1 < lines.length && /^\|?\s*[-:]+[-|\s:]*$/.test(lines[i + 1]))) {
-      if (para) para += ' '; para += lines[i]; i++
-    }
-    if (para) output.push(`<p>${inl(esc(para))}</p>`)
-  }
-  return output.join('\n')
-}
-function esc(s: string) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
-function inl(s: string) {
-  return s
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px" />')
-    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code style="background:#f5f5f4;padding:1px 4px;border-radius:3px;font-size:0.875em">$1</code>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2c4a34;text-decoration:underline">$1</a>')
 }
 
 interface SeoCheck { label: string; pass: boolean; hint: string }
@@ -340,7 +273,7 @@ export default function ArticlesTab() {
   )
 }
 
-type EditorPanel = 'write' | 'preview' | 'settings'
+type EditorPanel = 'write' | 'preview'
 type SettingsSection = 'engagement' | 'comments' | 'seo' | 'ads' | 'meta'
 
 function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew: boolean; onBack: () => void }) {
@@ -349,6 +282,7 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [activePanel, setActivePanel] = useState<EditorPanel>('write')
+  const [showSettings, setShowSettings] = useState(false)
   const [showTableModal, setShowTableModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showLinkModal, setShowLinkModal] = useState(false)
@@ -447,17 +381,22 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
           </button>
           <div className="h-5 w-px bg-gray-200" />
           <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
-            {([['write', PenLine, 'Tulis'], ['preview', Eye, 'Preview'], ['settings', Settings2, 'Pengaturan']] as const).map(([id, Icon, label]) => (
+            {([['write', PenLine, 'Tulis'], ['preview', Eye, 'Preview']] as const).map(([id, Icon, label]) => (
               <button key={id} onClick={() => setActivePanel(id)}
                 className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors flex items-center gap-1 ${activePanel === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                 <Icon className="w-3 h-3" />{label}
               </button>
             ))}
           </div>
-          <div className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full ${seo.grade === 'good' ? 'bg-emerald-50 text-emerald-600' : seo.grade === 'ok' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'}`}>
+          <button onClick={() => setShowSettings(true)}
+            className="flex items-center gap-1 px-3 py-1.5 text-[11px] font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            <Settings2 className="w-3 h-3" />Pengaturan
+          </button>
+          <button onClick={() => { setSettingsSection('seo'); setShowSettings(true) }}
+            className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full transition-colors ${seo.grade === 'good' ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : seo.grade === 'ok' ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}>
             {seo.grade === 'good' ? <CheckCircle className="w-3 h-3" /> : seo.grade === 'ok' ? <AlertCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
             SEO {seo.score}%
-          </div>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400 hidden lg:inline">{wc} kata &middot; {rt} mnt baca</span>
@@ -484,8 +423,26 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
       <div className="flex-1 overflow-y-auto">
         {activePanel === 'write' && <WritePanel form={form} set={set} insertAt={insertAt} titleRef={titleRef} contentRef={contentRef} isNew={isNew} onShowTable={() => setShowTableModal(true)} onShowImage={() => setShowImageModal(true)} onShowLink={() => setShowLinkModal(true)} />}
         {activePanel === 'preview' && <PreviewPanel form={form} />}
-        {activePanel === 'settings' && <SettingsPanel form={form} set={set} updateSettings={updateSettings} seo={seo} isNew={isNew} settingsSection={settingsSection} setSettingsSection={setSettingsSection} onDelete={() => setShowDeleteConfirm(true)} />}
       </div>
+
+      {/* Slide-over Pengaturan (slug, excerpt di WritePanel; sisanya di sini) */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[150] flex justify-end">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+          <div className="relative w-full max-w-2xl bg-white shadow-2xl h-full flex flex-col">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-gray-500" />
+                <h3 className="text-sm font-bold text-gray-900">Pengaturan Artikel</h3>
+              </div>
+              <button onClick={() => setShowSettings(false)} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <SettingsPanel form={form} set={set} updateSettings={updateSettings} seo={seo} isNew={isNew} settingsSection={settingsSection} setSettingsSection={setSettingsSection} onDelete={() => { setShowSettings(false); setShowDeleteConfirm(true) }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {showTableModal && <TableBuilderModal onInsert={md => { insertAt(md); setShowTableModal(false) }} onClose={() => setShowTableModal(false)} />}
       {showImageModal && <ImageInsertModal onInsert={md => { insertAt(md); setShowImageModal(false) }} onClose={() => setShowImageModal(false)} />}
@@ -528,19 +485,8 @@ function WritePanel({ form, set, insertAt, titleRef, contentRef, isNew, onShowTa
       </div>
 
       <div className="mb-6">
-        <FieldLabel>Cover Image URL</FieldLabel>
-        <input type="text" value={form.coverUrl} onChange={e => set('coverUrl', e.target.value)} placeholder="https://images.unsplash.com/..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-forest-400 transition-colors" />
-        {form.coverUrl ? (
-          <div className="mt-2 relative group">
-            <img src={form.coverUrl} alt="" className="w-full h-48 object-cover rounded-lg bg-gray-100" />
-            <button onClick={() => set('coverUrl', '')} className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
-          </div>
-        ) : (
-          <div className="mt-2 w-full h-28 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400">
-            <ImageIcon className="w-6 h-6 mb-1" /><span className="text-xs">Tempel URL gambar di atas</span>
-          </div>
-        )}
+        <FieldLabel>Cover Image</FieldLabel>
+        <ImagePicker value={form.coverUrl} onChange={url => set('coverUrl', url)} uploadUrl="/api/admin/upload" folder="covers" />
       </div>
 
       <div className="mb-6">
@@ -1080,9 +1026,8 @@ function ImageInsertModal({ onInsert, onClose }: { onInsert: (md: string) => voi
         </div>
         <div className="px-5 py-4 space-y-3">
           <div>
-            <FieldLabel>URL Gambar</FieldLabel>
-            <input type="text" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://images.unsplash.com/..."
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-forest-400" autoFocus />
+            <FieldLabel>Gambar</FieldLabel>
+            <ImagePicker value={url} onChange={setUrl} uploadUrl="/api/admin/upload" folder="assets" previewHeightClass="h-32" />
           </div>
           <div>
             <FieldLabel>Alt Text (deskripsi gambar)</FieldLabel>
@@ -1090,11 +1035,6 @@ function ImageInsertModal({ onInsert, onClose }: { onInsert: (md: string) => voi
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-forest-400" />
             <p className="text-[10px] text-gray-400 mt-1">Alt text penting untuk SEO dan pembaca screen reader</p>
           </div>
-          {url && (
-            <div className="rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-              <img src={url} alt={alt} className="w-full h-32 object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-            </div>
-          )}
         </div>
         <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
           <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Batal</button>
