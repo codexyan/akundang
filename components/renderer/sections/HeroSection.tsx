@@ -390,7 +390,19 @@ function HeroSplit({ section, data, font, accent, text }: {
     <div style={{
       display: 'flex', width: '100%', minHeight: 400, paddingTop: padT, paddingBottom: padB,
     }}>
-      {data.couple_photo_url && (
+      {/* Panel kiri: video menggantikan foto bila ada (bukan berdampingan), bukan full-bleed di belakang teks */}
+      {data.hero_video_url ? (
+        <motion.div
+          variants={{ hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: ts(1) } }}
+          style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
+        >
+          <video
+            src={data.hero_video_url}
+            autoPlay muted loop playsInline
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </motion.div>
+      ) : data.couple_photo_url ? (
         <motion.div
           variants={{ hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: ts(1) } }}
           style={{
@@ -398,7 +410,7 @@ function HeroSplit({ section, data, font, accent, text }: {
             backgroundSize: 'cover', backgroundPosition: 'center',
           }}
         />
-      )}
+      ) : null}
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         justifyContent: 'center', padding: '32px 24px', textAlign: 'left',
@@ -630,7 +642,24 @@ function HeroMagazine({ section, data, font, accent, text }: {
     }}>
       <HeroIcon section={section} delay={stagger * 0.3} dur={dur} />
 
-      {data.couple_photo_url && (
+      {/* Circle avatar 120px: video loop dalam mask bulat menggantikan foto bila ada (bukan full-bleed) */}
+      {data.hero_video_url ? (
+        <motion.div
+          variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: ts(1) } }}
+          style={{
+            width: 120, height: 120, borderRadius: '50%', margin: '0 auto 20px',
+            position: 'relative', overflow: 'hidden',
+            border: `2px solid ${accent}66`,
+            boxShadow: `0 0 0 6px ${accent}22, 0 8px 24px rgba(0,0,0,0.15)`,
+          }}
+        >
+          <video
+            src={data.hero_video_url}
+            autoPlay muted loop playsInline
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </motion.div>
+      ) : data.couple_photo_url ? (
         <motion.div
           variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: ts(1) } }}
           style={{
@@ -641,7 +670,7 @@ function HeroMagazine({ section, data, font, accent, text }: {
             boxShadow: `0 0 0 6px ${accent}22, 0 8px 24px rgba(0,0,0,0.15)`,
           }}
         />
-      )}
+      ) : null}
 
       <motion.p
         variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: ts(2) } }}
@@ -675,11 +704,15 @@ export default function HeroSection({ section, data, meta }: Props) {
   const hasVideo = !!data.hero_video_url
   const hasPhoto = !!data.couple_photo_url && !hasVideo
 
-  // 'magazine' & 'minimal' sengaja tanpa foto background (lihat SECTION_VARIANTS di TemplateLab)
-  const usesBgPhoto = variant !== 'magazine' && variant !== 'minimal'
+  // Varian yang menampilkan foto/video sebagai BACKGROUND full-bleed section.
+  // Dikecualikan karena media-nya ditangani sendiri di dalam varian (bukan seragam):
+  //   - magazine : media tampil sebagai circle avatar 120px di dalam varian
+  //   - split    : media tampil sebagai panel kiri di dalam varian
+  //   - minimal  : murni tipografis, tidak menampilkan media sama sekali
+  const usesFullBleedMedia = !['magazine', 'split', 'minimal'].includes(variant)
 
   let sectionCfg: SectionConfig = { ...section }
-  if (hasPhoto && usesBgPhoto) {
+  if (hasPhoto && usesFullBleedMedia) {
     sectionCfg = { ...sectionCfg, background: { type: 'image', url: data.couple_photo_url, overlay_opacity: overlay } }
   }
   if (variant === 'bottom') {
@@ -690,8 +723,9 @@ export default function HeroSection({ section, data, meta }: Props) {
 
   return (
     <SectionWrapper section={sectionCfg} className={variant !== 'bottom' ? 'px-6' : ''}>
-      {/* Video background */}
-      {hasVideo && (
+      {/* Video background   full-bleed hanya untuk varian yang memang memakainya.
+          split/magazine menampilkan video di panel/circle sendiri, minimal tanpa media. */}
+      {hasVideo && usesFullBleedMedia && (
         <>
           <video
             src={data.hero_video_url}
