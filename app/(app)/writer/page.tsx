@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   FileText, Plus, Edit3, Trash2, Eye, EyeOff, Search,
   Save, ExternalLink, Clock, TrendingUp, Settings2, X,
-  Heart, Tag, Image as ImageIcon, Bold, Italic,
-  Heading2, Heading3, List, ListOrdered, Quote, Link2, Minus,
-  ChevronLeft,
+  Heart, Tag, ChevronLeft,
 } from 'lucide-react'
 import ImagePicker from '@/components/ui/ImagePicker'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 import { parseMarkdownPreview, slugify, wordCount, readTime } from '@/lib/article-markdown'
 
 interface ArticleData {
@@ -45,7 +44,6 @@ export default function WriterDashboard() {
   const [saving, setSaving] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [showImageModal, setShowImageModal] = useState(false)
 
   // Editor state
   const [title, setTitle] = useState('')
@@ -57,8 +55,6 @@ export default function WriterDashboard() {
   const [metaTitle, setMetaTitle] = useState('')
   const [metaDesc, setMetaDesc] = useState('')
   const [authorName, setAuthorName] = useState('')
-
-  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   const fetchArticles = useCallback(async () => {
     const res = await fetch('/api/writer/articles')
@@ -154,38 +150,6 @@ export default function WriterDashboard() {
     if (editingArticle?.id === id) setView('list')
   }
 
-  // Bungkus teks terpilih dengan prefix/suffix (bold, italic, heading, list, dsb)
-  function insertMarkdown(prefix: string, suffix: string = '') {
-    const textarea = contentRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selected = content.substring(start, end)
-    const replacement = `${prefix}${selected || 'teks'}${suffix}`
-    const newContent = content.substring(0, start) + replacement + content.substring(end)
-    setContent(newContent)
-    setTimeout(() => {
-      textarea.focus()
-      textarea.selectionStart = start + prefix.length
-      textarea.selectionEnd = start + prefix.length + (selected || 'teks').length
-    }, 0)
-  }
-
-  // Sisipkan teks apa adanya di posisi kursor (dipakai modal gambar)
-  function insertAtCursor(text: string) {
-    const textarea = contentRef.current
-    if (!textarea) { setContent(content + text); return }
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const newContent = content.substring(0, start) + text + content.substring(end)
-    setContent(newContent)
-    setTimeout(() => {
-      textarea.focus()
-      const pos = start + text.length
-      textarea.setSelectionRange(pos, pos)
-    }, 0)
-  }
-
   const wc = wordCount(content)
   const rt = readTime(content)
 
@@ -268,38 +232,13 @@ export default function WriterDashboard() {
             <ImagePicker value={coverUrl} onChange={setCoverUrl} uploadUrl="/api/user/upload" folder="photos" />
           </div>
 
-          {/* Toolbar (dikelompokkan dengan pemisah) */}
-          <div className="sticky top-[104px] z-20 bg-white border border-stone-200 rounded-xl p-1.5 mb-4 flex flex-wrap items-center gap-0.5">
-            <TBtn icon={Heading2} title="Heading 2" onClick={() => insertMarkdown('\n## ')} />
-            <TBtn icon={Heading3} title="Heading 3" onClick={() => insertMarkdown('\n### ')} />
-            <Sep />
-            <TBtn icon={Bold} title="Bold" onClick={() => insertMarkdown('**', '**')} />
-            <TBtn icon={Italic} title="Italic" onClick={() => insertMarkdown('*', '*')} />
-            <Sep />
-            <TBtn icon={List} title="Bullet List" onClick={() => insertMarkdown('\n- ')} />
-            <TBtn icon={ListOrdered} title="Numbered List" onClick={() => insertMarkdown('\n1. ')} />
-            <TBtn icon={Quote} title="Quote" onClick={() => insertMarkdown('\n> ')} />
-            <Sep />
-            <TBtn icon={ImageIcon} title="Sisipkan Gambar" onClick={() => setShowImageModal(true)} accent />
-            <TBtn icon={Link2} title="Sisipkan Link" onClick={() => insertMarkdown('[', '](url)')} accent />
-            <Sep />
-            <TBtn icon={Minus} title="Separator" onClick={() => insertMarkdown('\n---\n')} />
-          </div>
-
           {/* Content Area */}
           {previewMode ? (
             <div className="prose prose-stone max-w-none min-h-[400px] bg-white rounded-xl border border-stone-200 p-6 sm:p-8">
               <div dangerouslySetInnerHTML={{ __html: parseMarkdownPreview(content) }} />
             </div>
           ) : (
-            <textarea
-              ref={contentRef}
-              id="content-editor"
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="Tulis artikel di sini... (mendukung Markdown)"
-              className="w-full min-h-[420px] sm:min-h-[540px] bg-white rounded-xl border border-stone-200 p-6 sm:p-8 text-base leading-relaxed text-stone-700 font-mono outline-none resize-y placeholder:text-stone-300"
-            />
+            <RichTextEditor value={content} onChange={setContent} uploadUrl="/api/user/upload" folder="photos" />
           )}
 
           {/* Delete button for existing articles */}
@@ -374,14 +313,6 @@ export default function WriterDashboard() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Modal Sisipkan Gambar */}
-        {showImageModal && (
-          <ImageInsertModal
-            onInsert={(alt, url) => { insertAtCursor(`\n![${alt}](${url})\n`); setShowImageModal(false) }}
-            onClose={() => setShowImageModal(false)}
-          />
         )}
       </div>
     )
@@ -560,49 +491,6 @@ export default function WriterDashboard() {
             ))}
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-function TBtn({ icon: Icon, title, onClick, accent }: { icon: React.ElementType; title: string; onClick: () => void; accent?: boolean }) {
-  return (
-    <button type="button" onClick={onClick} title={title}
-      className={`p-2 rounded-lg transition-colors ${accent ? 'text-emerald-600 hover:bg-emerald-50' : 'text-stone-500 hover:bg-stone-100'}`}>
-      <Icon className="w-4 h-4" />
-    </button>
-  )
-}
-
-function Sep() { return <div className="w-px h-5 bg-stone-200 mx-1" /> }
-
-function ImageInsertModal({ onInsert, onClose }: { onInsert: (alt: string, url: string) => void; onClose: () => void }) {
-  const [url, setUrl] = useState('')
-  const [alt, setAlt] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-          <div className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-emerald-600" /><h3 className="font-bold text-stone-900 text-sm">Sisipkan Gambar</h3></div>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700"><X className="w-4 h-4" /></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          <div>
-            <p className="text-xs font-semibold text-stone-500 mb-1.5">Gambar</p>
-            <ImagePicker value={url} onChange={setUrl} uploadUrl="/api/user/upload" folder="photos" previewHeightClass="h-32" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-stone-500 mb-1.5">Alt Text (deskripsi gambar)</label>
-            <input type="text" value={alt} onChange={e => setAlt(e.target.value)} placeholder="Deskripsi singkat gambar untuk SEO & aksesibilitas"
-              className="w-full px-3 py-2 text-sm border border-stone-200 rounded-lg outline-none focus:border-emerald-300" />
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-stone-100 bg-stone-50">
-          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-stone-600 hover:bg-stone-100 rounded-lg transition-colors">Batal</button>
-          <button onClick={() => { if (url) onInsert(alt, url) }} disabled={!url}
-            className="px-4 py-2 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">Sisipkan</button>
-        </div>
       </div>
     </div>
   )

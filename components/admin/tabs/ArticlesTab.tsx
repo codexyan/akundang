@@ -4,19 +4,17 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import {
   Eye, Save, Loader2, Plus, Trash2,
-  RotateCcw,
   FileText, PenLine, ExternalLink,
   CheckCircle2, Clock, X, EyeOff,
   Heart, MessageCircle, Tag, Search,
-  Settings2, ArrowLeft, Image as ImageIcon,
-  Bold, Italic, List, Link2, Heading, Quote, Minus,
-  Table, Code, ListOrdered,
+  Settings2, ArrowLeft,
   AlertCircle, CheckCircle, XCircle,
   Megaphone as AdIcon, Link as LinkIcon,
   Star, Pin, Lock, MessageSquare, Hash, Type,
   Ban,
 } from 'lucide-react'
 import ImagePicker from '@/components/ui/ImagePicker'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 import { parseMarkdownPreview, slugify, wordCount, readTime } from '@/lib/article-markdown'
 
 interface ArticleSettings {
@@ -283,12 +281,8 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [activePanel, setActivePanel] = useState<EditorPanel>('write')
   const [showSettings, setShowSettings] = useState(false)
-  const [showTableModal, setShowTableModal] = useState(false)
-  const [showImageModal, setShowImageModal] = useState(false)
-  const [showLinkModal, setShowLinkModal] = useState(false)
   const [settingsSection, setSettingsSection] = useState<SettingsSection>('engagement')
   const titleRef = useRef<HTMLInputElement>(null)
-  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => { if (isNew) titleRef.current?.focus() }, [isNew])
 
@@ -309,17 +303,6 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
       obj[keys[keys.length - 1]] = value
       return { ...prev, settings: s }
     })
-  }
-
-  const insertAt = (prefix: string, suffix = '') => {
-    const ta = contentRef.current
-    if (!ta) return
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const selected = form.content.substring(start, end)
-    const newText = form.content.substring(0, start) + prefix + selected + suffix + form.content.substring(end)
-    set('content', newText)
-    setTimeout(() => { ta.focus(); ta.setSelectionRange(start + prefix.length, start + prefix.length + selected.length) }, 0)
   }
 
   const handleSave = async (publish?: boolean) => {
@@ -421,7 +404,7 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {activePanel === 'write' && <WritePanel form={form} set={set} insertAt={insertAt} titleRef={titleRef} contentRef={contentRef} isNew={isNew} onShowTable={() => setShowTableModal(true)} onShowImage={() => setShowImageModal(true)} onShowLink={() => setShowLinkModal(true)} />}
+        {activePanel === 'write' && <WritePanel form={form} set={set} titleRef={titleRef} />}
         {activePanel === 'preview' && <PreviewPanel form={form} />}
       </div>
 
@@ -444,10 +427,6 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
         </div>
       )}
 
-      {showTableModal && <TableBuilderModal onInsert={md => { insertAt(md); setShowTableModal(false) }} onClose={() => setShowTableModal(false)} />}
-      {showImageModal && <ImageInsertModal onInsert={md => { insertAt(md); setShowImageModal(false) }} onClose={() => setShowImageModal(false)} />}
-      {showLinkModal && <LinkInsertModal onInsert={md => { insertAt(md); setShowLinkModal(false) }} onClose={() => setShowLinkModal(false)} />}
-
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-5">
@@ -468,10 +447,9 @@ function ArticleEditor({ article, isNew, onBack }: { article: ArticleData; isNew
   )
 }
 
-function WritePanel({ form, set, insertAt, titleRef, contentRef, isNew, onShowTable, onShowImage, onShowLink }: {
-  form: ArticleData; set: (k: keyof ArticleData, v: unknown) => void; insertAt: (p: string, s?: string) => void
-  titleRef: React.RefObject<HTMLInputElement>; contentRef: React.RefObject<HTMLTextAreaElement>; isNew: boolean
-  onShowTable: () => void; onShowImage: () => void; onShowLink: () => void
+function WritePanel({ form, set, titleRef }: {
+  form: ArticleData; set: (k: keyof ArticleData, v: unknown) => void
+  titleRef: React.RefObject<HTMLInputElement>
 }) {
   return (
     <div className="max-w-4xl mx-auto px-6 lg:px-8 py-6">
@@ -498,30 +476,8 @@ function WritePanel({ form, set, insertAt, titleRef, contentRef, isNew, onShowTa
 
       <div className="mb-6">
         <FieldLabel>Konten</FieldLabel>
-        <div className="flex items-center gap-0.5 border border-gray-200 border-b-0 rounded-t-lg bg-gray-50 px-2 py-1.5 flex-wrap">
-          <TBtn icon={Heading} title="Heading (H2)" onClick={() => insertAt('## ')} />
-          <TBtn icon={Type} title="Heading 3" onClick={() => insertAt('### ')} />
-          <Sep />
-          <TBtn icon={Bold} title="Bold" onClick={() => insertAt('**', '**')} />
-          <TBtn icon={Italic} title="Italic" onClick={() => insertAt('*', '*')} />
-          <TBtn icon={Code} title="Inline Code" onClick={() => insertAt('`', '`')} />
-          <Sep />
-          <TBtn icon={List} title="Bullet List" onClick={() => insertAt('- ')} />
-          <TBtn icon={ListOrdered} title="Numbered List" onClick={() => insertAt('1. ')} />
-          <TBtn icon={Quote} title="Blockquote" onClick={() => insertAt('> ')} />
-          <Sep />
-          <TBtn icon={ImageIcon} title="Sisipkan Gambar" onClick={onShowImage} accent />
-          <TBtn icon={Table} title="Buat Tabel" onClick={onShowTable} accent />
-          <TBtn icon={Link2} title="Sisipkan Link" onClick={onShowLink} accent />
-          <Sep />
-          <TBtn icon={Minus} title="Separator" onClick={() => insertAt('\n---\n')} />
-        </div>
-        <textarea ref={contentRef} value={form.content} onChange={e => set('content', e.target.value)} rows={24}
-          placeholder={"Tulis konten artikel di sini...\n\nMendukung Markdown:\n## Subjudul\n**Bold** dan *Italic*\n`kode`\n- Bullet list\n1. Numbered list\n![alt](url gambar)\n[Link text](url)\n> Kutipan\n\nTabel:\n| Kolom 1 | Kolom 2 |\n|---------|--------|\n| Data    | Data   |"}
-          className="w-full px-4 py-3 text-sm font-mono leading-relaxed border border-gray-200 rounded-b-lg outline-none focus:border-forest-400 transition-colors resize-y"
-          style={{ minHeight: 450 }} />
-        <div className="flex items-center justify-between mt-1.5">
-          <p className="text-[10px] text-gray-400">Mendukung: Heading, Bold, Italic, Code, List, Image, Tabel, Link, Blockquote, HR</p>
+        <RichTextEditor value={form.content} onChange={v => set('content', v)} uploadUrl="/api/admin/upload" folder="assets" />
+        <div className="flex items-center justify-end mt-1.5">
           <p className="text-[10px] text-gray-400">{wordCount(form.content)} kata &middot; {readTime(form.content)} mnt baca</p>
         </div>
       </div>
@@ -946,162 +902,9 @@ function SettingsPanel({ form, set, updateSettings, seo, isNew, settingsSection,
   )
 }
 
-function TableBuilderModal({ onInsert, onClose }: { onInsert: (md: string) => void; onClose: () => void }) {
-  const [cols, setCols] = useState(3)
-  const [rows, setRows] = useState(3)
-  const [headers, setHeaders] = useState<string[]>(['Kolom 1', 'Kolom 2', 'Kolom 3'])
-  const [cells, setCells] = useState<string[][]>([['', '', ''], ['', '', '']])
-
-  const updateSize = (newCols: number, newRows: number) => {
-    setCols(newCols); setRows(newRows)
-    setHeaders(Array.from({ length: newCols }, (_, i) => headers[i] || `Kolom ${i + 1}`))
-    setCells(Array.from({ length: newRows - 1 }, (_, r) => Array.from({ length: newCols }, (_, c) => cells[r]?.[c] || '')))
-  }
-
-  const generate = () => {
-    const hdr = '| ' + headers.slice(0, cols).join(' | ') + ' |'
-    const sep = '| ' + headers.slice(0, cols).map(() => '---').join(' | ') + ' |'
-    const body = cells.map(row => '| ' + row.slice(0, cols).join(' | ') + ' |').join('\n')
-    onInsert('\n' + hdr + '\n' + sep + '\n' + body + '\n')
-  }
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2"><Table className="w-4 h-4 text-indigo-600" /><h3 className="font-bold text-gray-900 text-sm">Buat Tabel</h3></div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X className="w-4 h-4" /></button>
-        </div>
-        <div className="px-5 py-4 space-y-4">
-          <div className="flex items-center gap-4">
-            <div><FieldLabel>Kolom</FieldLabel><input type="number" value={cols} onChange={e => updateSize(Math.min(6, Math.max(2, parseInt(e.target.value) || 2)), rows)} min={2} max={6} className="w-20 px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none" /></div>
-            <div><FieldLabel>Baris (termasuk header)</FieldLabel><input type="number" value={rows} onChange={e => updateSize(cols, Math.min(10, Math.max(2, parseInt(e.target.value) || 2)))} min={2} max={10} className="w-20 px-3 py-1.5 text-sm border border-gray-200 rounded-lg outline-none" /></div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr>
-                  {headers.slice(0, cols).map((h, i) => (
-                    <th key={i} className="border border-gray-200 p-0">
-                      <input type="text" value={h} onChange={e => { const nh = [...headers]; nh[i] = e.target.value; setHeaders(nh) }}
-                        className="w-full px-2 py-1.5 text-xs font-semibold outline-none bg-gray-50 text-center" />
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cells.map((row, r) => (
-                  <tr key={r}>
-                    {row.slice(0, cols).map((cell, c) => (
-                      <td key={c} className="border border-gray-200 p-0">
-                        <input type="text" value={cell} onChange={e => { const nc = cells.map(r => [...r]); nc[r][c] = e.target.value; setCells(nc) }}
-                          className="w-full px-2 py-1.5 text-xs outline-none text-center" placeholder="..." />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
-          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Batal</button>
-          <button onClick={generate} className="px-4 py-2 text-xs font-semibold bg-forest-500 text-white hover:bg-forest-600 rounded-lg transition-colors">Sisipkan Tabel</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ImageInsertModal({ onInsert, onClose }: { onInsert: (md: string) => void; onClose: () => void }) {
-  const [url, setUrl] = useState('')
-  const [alt, setAlt] = useState('')
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-indigo-600" /><h3 className="font-bold text-gray-900 text-sm">Sisipkan Gambar</h3></div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X className="w-4 h-4" /></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          <div>
-            <FieldLabel>Gambar</FieldLabel>
-            <ImagePicker value={url} onChange={setUrl} uploadUrl="/api/admin/upload" folder="assets" previewHeightClass="h-32" />
-          </div>
-          <div>
-            <FieldLabel>Alt Text (deskripsi gambar)</FieldLabel>
-            <input type="text" value={alt} onChange={e => setAlt(e.target.value)} placeholder="Deskripsi singkat gambar untuk SEO & aksesibilitas"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-forest-400" />
-            <p className="text-[10px] text-gray-400 mt-1">Alt text penting untuk SEO dan pembaca screen reader</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
-          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Batal</button>
-          <button onClick={() => { if (url) onInsert(`\n![${alt}](${url})\n`) }} disabled={!url}
-            className="px-4 py-2 text-xs font-semibold bg-forest-500 text-white hover:bg-forest-600 rounded-lg transition-colors disabled:opacity-50">Sisipkan</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function LinkInsertModal({ onInsert, onClose }: { onInsert: (md: string) => void; onClose: () => void }) {
-  const [url, setUrl] = useState('')
-  const [text, setText] = useState('')
-  const [isInternal, setIsInternal] = useState(false)
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2"><Link2 className="w-4 h-4 text-indigo-600" /><h3 className="font-bold text-gray-900 text-sm">Sisipkan Link</h3></div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X className="w-4 h-4" /></button>
-        </div>
-        <div className="px-5 py-4 space-y-3">
-          <div className="flex items-center bg-gray-100 rounded-lg p-0.5 mb-1">
-            <button onClick={() => setIsInternal(false)} className={`flex-1 px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${!isInternal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>External Link</button>
-            <button onClick={() => setIsInternal(true)} className={`flex-1 px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors ${isInternal ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>Internal Link</button>
-          </div>
-          <div>
-            <FieldLabel>URL</FieldLabel>
-            <input type="text" value={url} onChange={e => setUrl(e.target.value)}
-              placeholder={isInternal ? '/blog/artikel-lain' : 'https://...'} autoFocus
-              className="w-full px-3 py-2 text-sm font-mono border border-gray-200 rounded-lg outline-none focus:border-forest-400" />
-          </div>
-          <div>
-            <FieldLabel>Teks yang ditampilkan</FieldLabel>
-            <input type="text" value={text} onChange={e => setText(e.target.value)} placeholder="Klik di sini"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-forest-400" />
-          </div>
-          {isInternal && (
-            <div className="p-2.5 bg-blue-50 rounded-lg">
-              <p className="text-[10px] text-blue-700"><strong>Tips:</strong> Internal link membantu SEO! Link ke artikel terkait, halaman pricing, atau landing page.</p>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
-          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Batal</button>
-          <button onClick={() => { if (url && text) onInsert(`[${text}](${url})`) }} disabled={!url || !text}
-            className="px-4 py-2 text-xs font-semibold bg-forest-500 text-white hover:bg-forest-600 rounded-lg transition-colors disabled:opacity-50">Sisipkan</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs font-semibold text-gray-600 mb-1.5">{children}</label>
 }
-
-function TBtn({ icon: Icon, title, onClick, accent }: { icon: React.ElementType; title: string; onClick: () => void; accent?: boolean }) {
-  return <button type="button" onClick={onClick} title={title}
-    className={`p-1.5 rounded hover:bg-gray-200 transition-colors ${accent ? 'text-indigo-500 hover:text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}>
-    <Icon className="w-3.5 h-3.5" />
-  </button>
-}
-
-function Sep() { return <div className="w-px h-4 bg-gray-200 mx-1" /> }
 
 function Card({ children }: { children: React.ReactNode }) {
   return <div className="bg-white rounded-xl border border-gray-100 p-5">{children}</div>

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import {
   LayoutDashboard, Users, ShoppingCart, Settings, LogOut,
-  Globe, Music, Package, CreditCard, FlaskConical,
+  Music, Package, CreditCard, FlaskConical,
   PanelLeftClose, PanelLeftOpen, AlertTriangle, X, Megaphone,
   FileText, PenLine, Home, ExternalLink, Copy, Save,
   MessageSquarePlus, Zap, Hand,
@@ -21,7 +21,6 @@ import TemplatesTab from './tabs/TemplatesTab'
 import PaymentTab from './tabs/PaymentTab'
 import TemplateLab from './tabs/TemplateLab'
 import MusicLibraryTab from './tabs/MusicLibraryTab'
-import LandingPageTab from './tabs/LandingPageTab'
 import ArticlesTab from './tabs/ArticlesTab'
 import WriterTab from './tabs/WriterTab'
 import AffiliatesTab from './tabs/AffiliatesTab'
@@ -136,9 +135,9 @@ interface Props {
   adminEmail: string
 }
 
-type NavTab = 'dashboard' | 'users' | 'template' | 'lab' | 'music' | 'orders' | 'payment' | 'landing' | 'articles' | 'writers' | 'affiliates' | 'feedback' | 'experiments' | 'settings'
+type NavTab = 'dashboard' | 'users' | 'template' | 'lab' | 'music' | 'orders' | 'payment' | 'articles' | 'writers' | 'affiliates' | 'feedback' | 'experiments' | 'settings'
 
-const VALID_TABS: NavTab[] = ['dashboard', 'users', 'template', 'lab', 'music', 'orders', 'payment', 'landing', 'articles', 'writers', 'affiliates', 'feedback', 'experiments', 'settings']
+const VALID_TABS: NavTab[] = ['dashboard', 'users', 'template', 'lab', 'music', 'orders', 'payment', 'articles', 'writers', 'affiliates', 'feedback', 'experiments', 'settings']
 
 //  Main Component 
 
@@ -441,7 +440,6 @@ export default function AdminPanel({
             onProofReview={handleProofReview}
           />
         )}
-        {activeTab === 'landing' && <LandingPageTab />}
         {activeTab === 'articles' && <ArticlesTab />}
         {activeTab === 'writers' && <WriterTab />}
         {activeTab === 'affiliates' && <AffiliatesTab />}
@@ -531,7 +529,6 @@ const NAV_GROUPS = [
   {
     label: 'Konten',
     items: [
-      { id: 'landing'     as NavTab, label: 'Landing Page',       icon: Globe,           desc: 'Konten & layout halaman utama' },
       { id: 'articles'    as NavTab, label: 'Artikel',            icon: FileText,        desc: 'Blog, SEO & manajemen konten' },
       { id: 'writers'     as NavTab, label: 'Writer',             icon: PenLine,         desc: 'Kelola penulis konten' },
     ],
