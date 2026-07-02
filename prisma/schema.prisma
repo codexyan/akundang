@@ -24,6 +24,7 @@ model User {
   paymentProofs  PaymentProof[]
   articles       Article[]
   affiliate      Affiliate?
+  writerProfile  WriterProfile?
   supportTickets SupportTicket[]
   referralsMade  UserReferral[] @relation("referrer")
   referralsFrom  UserReferral[] @relation("referred")
@@ -211,13 +212,57 @@ model Article {
   metaDesc       String    @default("") @map("meta_desc")
   tags           String    @default("")
   settings       Json      @default("{}")
+
+  // ── Editorial workflow ──────────────────────────────────────
+  // status: 'draft' | 'pending_review' | 'needs_revision' | 'scheduled' | 'published' | 'archived'
+  // Validated in the application layer (NOT a Prisma enum) so it stays flexible.
+  // isPublished/publishedAt are kept in sync with status for backward compatibility
+  // with all existing public queries (findPublished, /blog, sitemap, etc.).
+  status         String    @default("draft")
+  submittedAt    DateTime? @map("submitted_at")
+  reviewNotes    String    @default("") @map("review_notes")
+  scheduledAt    DateTime? @map("scheduled_at")
+  reviewedBy     String?   @map("reviewed_by")
+  categoryId     String?   @map("category_id")
+
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author   User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  category ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([authorId])
+  @@index([status])
+  @@index([categoryId])
   @@map("articles")
+}
+
+// ─── ARTICLE CATEGORIES ──────────────────────────────────────
+model ArticleCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  articles Article[]
+
+  @@map("article_categories")
+}
+
+// ─── WRITER PROFILES ─────────────────────────────────────────
+model WriterProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  bio         String   @default("")
+  avatarUrl   String   @default("") @map("avatar_url")
+  socialLinks Json     @default("{}") @map("social_links")
+  isTrusted   Boolean  @default(false) @map("is_trusted")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("writer_profiles")
 }
 
 // ─── AFFILIATES ─────────────────────────────────────────────

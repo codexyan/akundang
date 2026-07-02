@@ -875,6 +875,12 @@ export interface ArticleData {
   metaDesc: string
   tags: string
   settings: ArticleSettings
+  status: string
+  submittedAt: string | null
+  reviewNotes: string
+  scheduledAt: string | null
+  reviewedBy: string | null
+  categoryId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -885,6 +891,8 @@ function mapArticle(row: {
   isPublished: boolean; publishedAt: Date | null;
   allowLikes: boolean; allowComments: boolean; likesCount: number; viewsCount: number;
   metaTitle: string; metaDesc: string; tags: string; settings: import('@prisma/client').Prisma.JsonValue;
+  status: string; submittedAt: Date | null; reviewNotes: string; scheduledAt: Date | null;
+  reviewedBy: string | null; categoryId: string | null;
   createdAt: Date; updatedAt: Date;
 }): ArticleData {
   const raw = (typeof row.settings === 'object' && row.settings !== null ? row.settings : {}) as Record<string, unknown>
@@ -916,6 +924,12 @@ function mapArticle(row: {
     metaDesc: row.metaDesc,
     tags: row.tags,
     settings,
+    status: row.status,
+    submittedAt: row.submittedAt?.toISOString() ?? null,
+    reviewNotes: row.reviewNotes,
+    scheduledAt: row.scheduledAt?.toISOString() ?? null,
+    reviewedBy: row.reviewedBy,
+    categoryId: row.categoryId,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
@@ -1006,9 +1020,175 @@ export const articles = {
   async delete(id: string): Promise<void> {
     await prisma.article.delete({ where: { id } })
   },
+
+  //  Editorial workflow
+
+  async submitForReview(id: string): Promise<ArticleData> {
+    const row = await prisma.article.update({
+      where: { id },
+      data: { status: 'pending_review', submittedAt: new Date() },
+    })
+    return mapArticle(row)
+  },
+
+  async requestRevision(id: string, notes: string): Promise<ArticleData> {
+    const row = await prisma.article.update({
+      where: { id },
+      data: { status: 'needs_revision', reviewNotes: notes },
+    })
+    return mapArticle(row)
+  },
+
+  async approve(id: string, reviewedBy: string): Promise<ArticleData> {
+    const existing = await prisma.article.findUnique({ where: { id }, select: { publishedAt: true } })
+    const row = await prisma.article.update({
+      where: { id },
+      data: {
+        status: 'published',
+        isPublished: true,
+        reviewedBy,
+        publishedAt: existing?.publishedAt ?? new Date(),
+      },
+    })
+    return mapArticle(row)
+  },
+
+  async schedule(id: string, scheduledAt: string | Date, reviewedBy: string): Promise<ArticleData> {
+    const row = await prisma.article.update({
+      where: { id },
+      data: {
+        status: 'scheduled',
+        scheduledAt: new Date(scheduledAt),
+        reviewedBy,
+        isPublished: false,
+      },
+    })
+    return mapArticle(row)
+  },
+
+  async archive(id: string): Promise<ArticleData> {
+    const row = await prisma.article.update({
+      where: { id },
+      data: { status: 'archived', isPublished: false },
+    })
+    return mapArticle(row)
+  },
+
+  async findByStatus(status: string): Promise<ArticleData[]> {
+    const rows = await prisma.article.findMany({
+      where: { status },
+      orderBy: { updatedAt: 'desc' },
+    })
+    return rows.map(mapArticle)
+  },
+
+  async findPendingCount(): Promise<number> {
+    return prisma.article.count({ where: { status: 'pending_review' } })
+  },
+
+  // Cron helper: publish any 'scheduled' article whose scheduledAt has passed.
+  async publishScheduledDue(): Promise<number> {
+    const now = new Date()
+    const res = await prisma.article.updateMany({
+      where: { status: 'scheduled', scheduledAt: { lte: now } },
+      data: { status: 'published', isPublished: true, publishedAt: now },
+    })
+    return res.count
+  },
 }
 
-//  PAYMENT PROOFS 
+//  ARTICLE CATEGORIES
+
+export interface ArticleCategoryData {
+  id: string
+  name: string
+  slug: string
+  sortOrder: number
+  createdAt: string
+}
+
+function mapCategory(row: { id: string; name: string; slug: string; sortOrder: number; createdAt: Date }): ArticleCategoryData {
+  return { id: row.id, name: row.name, slug: row.slug, sortOrder: row.sortOrder, createdAt: row.createdAt.toISOString() }
+}
+
+export const articleCategories = {
+  async findAll(): Promise<ArticleCategoryData[]> {
+    const rows = await prisma.articleCategory.findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] })
+    return rows.map(mapCategory)
+  },
+
+  async create(data: { name: string; slug: string; sortOrder?: number }): Promise<ArticleCategoryData> {
+    const row = await prisma.articleCategory.create({
+      data: { name: data.name, slug: data.slug, sortOrder: data.sortOrder ?? 0 },
+    })
+    return mapCategory(row)
+  },
+
+  async update(id: string, data: Partial<{ name: string; slug: string; sortOrder: number }>): Promise<ArticleCategoryData> {
+    const row = await prisma.articleCategory.update({ where: { id }, data })
+    return mapCategory(row)
+  },
+
+  async delete(id: string): Promise<void> {
+    await prisma.articleCategory.delete({ where: { id } })
+  },
+}
+
+//  WRITER PROFILES
+
+export interface WriterProfileData {
+  id: string
+  userId: string
+  bio: string
+  avatarUrl: string
+  socialLinks: Record<string, unknown>
+  isTrusted: boolean
+  createdAt: string
+}
+
+function mapWriterProfile(row: {
+  id: string; userId: string; bio: string; avatarUrl: string;
+  socialLinks: import('@prisma/client').Prisma.JsonValue; isTrusted: boolean; createdAt: Date;
+}): WriterProfileData {
+  return {
+    id: row.id,
+    userId: row.userId,
+    bio: row.bio,
+    avatarUrl: row.avatarUrl,
+    socialLinks: (typeof row.socialLinks === 'object' && row.socialLinks !== null ? row.socialLinks : {}) as Record<string, unknown>,
+    isTrusted: row.isTrusted,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
+
+export const writerProfiles = {
+  async findByUserId(userId: string): Promise<WriterProfileData | null> {
+    const row = await prisma.writerProfile.findUnique({ where: { userId } })
+    return row ? mapWriterProfile(row) : null
+  },
+
+  async upsert(userId: string, data: Partial<{ bio: string; avatarUrl: string; socialLinks: Record<string, unknown>; isTrusted: boolean }>): Promise<WriterProfileData> {
+    const row = await prisma.writerProfile.upsert({
+      where: { userId },
+      create: {
+        userId,
+        bio: data.bio ?? '',
+        avatarUrl: data.avatarUrl ?? '',
+        socialLinks: (data.socialLinks ?? {}) as import('@prisma/client').Prisma.InputJsonValue,
+        isTrusted: data.isTrusted ?? false,
+      },
+      update: {
+        ...(data.bio !== undefined ? { bio: data.bio } : {}),
+        ...(data.avatarUrl !== undefined ? { avatarUrl: data.avatarUrl } : {}),
+        ...(data.socialLinks !== undefined ? { socialLinks: data.socialLinks as import('@prisma/client').Prisma.InputJsonValue } : {}),
+        ...(data.isTrusted !== undefined ? { isTrusted: data.isTrusted } : {}),
+      },
+    })
+    return mapWriterProfile(row)
+  },
+}
+
+//  PAYMENT PROOFS
 
 export const paymentProofs = {
   async findAll(): Promise<PaymentProof[]> {
